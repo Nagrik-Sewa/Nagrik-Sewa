@@ -1,0 +1,10 @@
+# Upload Directory
+
+This directory stores uploaded files such as:
+- Worker verification documents
+- Portfolio images
+- Profile pictures
+- Resume files
+- Certification documents
+
+All files are organized in subdirectories by type and user ID.
