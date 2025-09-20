@@ -38,7 +38,6 @@ export function Navigation() {
     { href: "/", label: t("navigation.home") },
     { href: "/services", label: t("navigation.services") },
     { href: "/workers", label: t("navigation.workers") },
-    { href: "/demo", label: "Demo" },
   ];
 
   const userLinks = isAuthenticated
@@ -87,7 +86,7 @@ export function Navigation() {
             {/* Language and Location Selectors */}
             <div className="flex items-center space-x-3 border-r pr-4">
               <LanguageSelector variant="compact" />
-              <LocationSelector variant="compact" showDistrict={false} />
+              <LocationSelector variant="compact" showDistrict={true} />
             </div>
 
             {isAuthenticated ? (
@@ -183,7 +182,7 @@ export function Navigation() {
                   <p className="text-xs font-medium text-muted-foreground mb-2">LANGUAGE & LOCATION</p>
                   <div className="space-y-2">
                     <LanguageSelector />
-                    <LocationSelector showDistrict={false} />
+                    <LocationSelector showDistrict={true} />
                   </div>
                 </div>
               </div>

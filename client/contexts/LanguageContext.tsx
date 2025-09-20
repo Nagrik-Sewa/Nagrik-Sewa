@@ -73,6 +73,84 @@ const translations: { [key in Language]: Translation } = {
       workerFeature2: 'Work in your native language',
       workerFeature3: 'Connect with local customers',
     },
+    home: {
+      heroBadge: '🚀 Now Available in 25+ Cities Across India',
+      heroTitle: 'AI-Powered Home Services',
+      heroTitleHighlight: 'Made Simple',
+      heroTitleEnd: 'for Everyone',
+      heroDescription: "India's smartest platform connecting you with verified workers through AI assistance.",
+      heroSubtitle: 'Trusted by 50,000+ families across India for reliable home services',
+      searchPlaceholder: 'Search for services...',
+      findWorkers: 'Find Workers',
+      orText: 'or',
+      browseServices: 'Browse All Services',
+      popularServices: 'Popular Services',
+      featuresTitle: 'Why Choose Nagrik Sewa?',
+      featuresSubtitle: 'Experience the future of home services with cutting-edge technology',
+      features: {
+        aiMatching: {
+          title: 'AI-Powered Matching',
+          description: 'Smart algorithm matches you with the best workers based on location, skills, and ratings.'
+        },
+        multiLanguage: {
+          title: 'Multi-Language Support',
+          description: 'Platform available in 11+ Indian languages with voice assistant support.'
+        },
+        verified: {
+          title: 'Verified Workers',
+          description: 'All workers undergo KYC, Aadhaar verification, and background checks.'
+        },
+        tracking: {
+          title: 'Real-Time Tracking',
+          description: 'Track your worker\'s location and job progress in real-time with GPS.'
+        },
+        resume: {
+          title: 'Digital Resume Builder',
+          description: 'Workers can build professional resumes showcasing skills and ratings.'
+        },
+        emergency: {
+          title: 'Emergency SOS',
+          description: 'One-click emergency button for immediate help and safety alerts.'
+        }
+      },
+      advancedFeatures: {
+        training: {
+          title: 'Skill Training & Upskilling',
+          description: 'Access to government-certified training programs and skill development courses.'
+        },
+        schemes: {
+          title: 'Government Schemes',
+          description: 'Discover and apply for relevant government schemes and benefits.'
+        },
+        analytics: {
+          title: 'Performance Analytics',
+          description: 'Track your service history, earnings, and customer feedback.'
+        },
+        community: {
+          title: 'Worker Community',
+          description: 'Connect with fellow workers, share experiences, and learn together.'
+        }
+      },
+      stats: {
+        activeWorkers: 'Active Workers',
+        happyCustomers: 'Happy Customers',
+        servicesCompleted: 'Services Completed',
+        citiesCovered: 'Cities Covered'
+      },
+      getStarted: 'Get Started Today'
+    },
+    legal: {
+      terms: {
+        title: 'Terms of Service',
+        subtitle: 'Terms and conditions governing the use of Nagrik Sewa platform',
+        lastUpdated: 'Last updated'
+      },
+      privacy: {
+        title: 'Privacy Policy',
+        subtitle: 'Your privacy and data security are our top priorities',
+        lastUpdated: 'Last updated'
+      }
+    },
   },
   hi: {
     navigation: {
@@ -131,6 +209,84 @@ const translations: { [key in Language]: Translation } = {
       workerFeature1: 'अपना सेवा क्षेत्र सटीक रूप से सेट करें',
       workerFeature2: 'अपनी मातृभाषा में काम करें',
       workerFeature3: 'स्थानीय ग्राहकों से जुड़ें',
+    },
+    home: {
+      heroBadge: '🚀 भारत के 25+ शहरों में अब उपलब्ध',
+      heroTitle: 'AI-संचालित घरेलू सेवाएं',
+      heroTitleHighlight: 'सरल बनाया गया',
+      heroTitleEnd: 'सभी के लिए',
+      heroDescription: 'AI सहायता के साथ सत्यापित कार्यकर्ताओं से जोड़ने वाला भारत का सबसे स्मार्ट प्लेटफॉर्म।',
+      heroSubtitle: 'विश्वसनीय घरेलू सेवाओं के लिए भारत भर के 50,000+ परिवारों द्वारा भरोसेमंद',
+      searchPlaceholder: 'सेवाएं खोजें...',
+      findWorkers: 'कार्यकर्ता खोजें',
+      orText: 'या',
+      browseServices: 'सभी सेवाएं देखें',
+      popularServices: 'लोकप्रिय सेवाएं',
+      featuresTitle: 'नागरिक सेवा क्यों चुनें?',
+      featuresSubtitle: 'अत्याधुनिक तकनीक के साथ घरेलू सेवाओं का भविष्य अनुभव करें',
+      features: {
+        aiMatching: {
+          title: 'AI-संचालित मैचिंग',
+          description: 'स्मार्ट एल्गोरिदम आपको स्थान, कौशल और रेटिंग के आधार पर सर्वोत्तम कार्यकर्ताओं से मिलाता है।'
+        },
+        multiLanguage: {
+          title: 'बहुभाषी समर्थन',
+          description: 'वॉइस असिस्टेंट समर्थन के साथ 11+ भारतीय भाषाओं में प्लेटफॉर्म उपलब्ध।'
+        },
+        verified: {
+          title: 'सत्यापित कार्यकर्ता',
+          description: 'सभी कार्यकर्ता KYC, आधार सत्यापन और पृष्ठभूमि जांच से गुजरते हैं।'
+        },
+        tracking: {
+          title: 'रियल-टाइम ट्रैकिंग',
+          description: 'GPS के साथ अपने कार्यकर्ता का स्थान और कार्य प्रगति रियल-टाइम में ट्रैक करें।'
+        },
+        resume: {
+          title: 'डिजिटल रिज्यूमे बिल्डर',
+          description: 'कार्यकर्ता कौशल और रेटिंग दिखाने वाले पेशेवर रिज्यूमे बना सकते हैं।'
+        },
+        emergency: {
+          title: 'आपातकालीन SOS',
+          description: 'तत्काल सहायता और सुरक्षा अलर्ट के लिए एक-क्लिक आपातकालीन बटन।'
+        }
+      },
+      advancedFeatures: {
+        training: {
+          title: 'कौशल प्रशिक्षण और अपस्किलिंग',
+          description: 'सरकारी-प्रमाणित प्रशिक्षण कार्यक्रमों और कौशल विकास पाठ्यक्रमों तक पहुंच।'
+        },
+        schemes: {
+          title: 'सरकारी योजनाएं',
+          description: 'प्रासंगिक सरकारी योजनाओं और लाभों की खोज करें और आवेदन करें।'
+        },
+        analytics: {
+          title: 'प्रदर्शन विश्लेषण',
+          description: 'अपनी सेवा इतिहास, कमाई और ग्राहक प्रतिक्रिया को ट्रैक करें।'
+        },
+        community: {
+          title: 'कार्यकर्ता समुदाय',
+          description: 'साथी कार्यकर्ताओं से जुड़ें, अनुभव साझा करें और एक साथ सीखें।'
+        }
+      },
+      stats: {
+        activeWorkers: 'सक्रिय कार्यकर्ता',
+        happyCustomers: 'खुश ग्राहक',
+        servicesCompleted: 'पूर्ण सेवाएं',
+        citiesCovered: 'कवर किए गए शहर'
+      },
+      getStarted: 'आज ही शुरुआत करें'
+    },
+    legal: {
+      terms: {
+        title: 'सेवा की शर्तें',
+        subtitle: 'नागरिक सेवा प्लेटफॉर्म के उपयोग को नियंत्रित करने वाली नियम और शर्तें',
+        lastUpdated: 'अंतिम बार अपडेट किया गया'
+      },
+      privacy: {
+        title: 'गोपनीयता नीति',
+        subtitle: 'आपकी गोपनीयता और डेटा सुरक्षा हमारी शीर्ष प्राथमिकताएं हैं',
+        lastUpdated: 'अंतिम बार अपडेट किया गया'
+      }
     },
   },
   bn: {

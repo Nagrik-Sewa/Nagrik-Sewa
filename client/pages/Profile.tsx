@@ -13,6 +13,9 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import VerifiedBadge, { GovVerifiedBadge, VerifiedBadgeWithTooltip } from '@/components/VerifiedBadge';
+import DigiLockerAuth from '@/components/DigiLockerAuth';
 import { 
   User, 
   Mail, 
@@ -26,7 +29,10 @@ import {
   Camera,
   Save,
   Eye,
-  EyeOff
+  EyeOff,
+  CheckCircle,
+  XCircle,
+  Clock
 } from 'lucide-react';
 
 const Profile: React.FC = () => {
@@ -36,6 +42,12 @@ const Profile: React.FC = () => {
   
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDigiLockerAuth, setShowDigiLockerAuth] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState({
+    email: user?.isEmailVerified || false,
+    phone: user?.isPhoneVerified || false,
+    digiLocker: user?.isDigiLockerVerified || false
+  });
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
@@ -87,6 +99,17 @@ const Profile: React.FC = () => {
     }
   };
 
+  const handleDigiLockerVerification = (verificationData: any) => {
+    console.log('DigiLocker verification completed:', verificationData);
+    setVerificationStatus(prev => ({
+      ...prev,
+      digiLocker: true
+    }));
+    setShowDigiLockerAuth(false);
+    // Update user context with verification status
+    updateUser({ isDigiLockerVerified: true });
+  };
+
   const handleSaveProfile = async () => {
     setIsLoading(true);
     try {
@@ -126,10 +149,23 @@ const Profile: React.FC = () => {
           <h1 className="text-3xl font-bold">Profile Settings</h1>
           <p className="text-gray-600 mt-2">Manage your account settings and preferences</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={user.isEmailVerified ? "default" : "destructive"}>
-            {user.isEmailVerified ? "Verified" : "Unverified"}
-          </Badge>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Badge variant={verificationStatus.email ? "default" : "destructive"}>
+              {verificationStatus.email ? "Email Verified" : "Email Unverified"}
+            </Badge>
+            {verificationStatus.phone && (
+              <Badge variant="default">Phone Verified</Badge>
+            )}
+            {verificationStatus.digiLocker && (
+              <VerifiedBadgeWithTooltip 
+                variant="medium" 
+                isVerified={true}
+                verificationDate={new Date().toISOString()}
+                verificationType="DigiLocker"
+              />
+            )}
+          </div>
           {user.role === 'worker' && (
             <Badge variant="outline">Worker</Badge>
           )}
@@ -137,8 +173,9 @@ const Profile: React.FC = () => {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="verification">Verification</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
@@ -307,6 +344,223 @@ const Profile: React.FC = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Verification Tab */}
+        <TabsContent value="verification">
+          <div className="space-y-6">
+            {/* Verification Status Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Verification Status
+                </CardTitle>
+                <CardDescription>
+                  Verify your identity to enhance trust and security on the platform
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Email Verification */}
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium">Email</p>
+                        <p className="text-sm text-gray-600">{user.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {verificationStatus.email ? (
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-red-600" />
+                      )}
+                      <Badge variant={verificationStatus.email ? "default" : "destructive"}>
+                        {verificationStatus.email ? "Verified" : "Unverified"}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Phone Verification */}
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Phone className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium">Phone</p>
+                        <p className="text-sm text-gray-600">{user.phone}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {verificationStatus.phone ? (
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <Clock className="h-5 w-5 text-yellow-600" />
+                      )}
+                      <Badge variant={verificationStatus.phone ? "default" : "secondary"}>
+                        {verificationStatus.phone ? "Verified" : "Pending"}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* DigiLocker Verification */}
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Shield className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium">Government ID</p>
+                        <p className="text-sm text-gray-600">DigiLocker</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {verificationStatus.digiLocker ? (
+                        <>
+                          <GovVerifiedBadge variant="small" />
+                          <Badge variant="default">Verified</Badge>
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-5 w-5 text-red-600" />
+                          <Badge variant="destructive">Unverified</Badge>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Verification Benefits */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 mb-2">Benefits of Verification</h4>
+                  <ul className="text-blue-800 text-sm space-y-1">
+                    <li>• Enhanced profile credibility and trust</li>
+                    <li>• Priority in search results and recommendations</li>
+                    <li>• Access to premium features and higher booking limits</li>
+                    <li>• Faster dispute resolution and customer support</li>
+                    <li>• Verified badge display across the platform</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* DigiLocker Verification */}
+            {!verificationStatus.digiLocker && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-blue-600" />
+                    DigiLocker Verification
+                  </CardTitle>
+                  <CardDescription>
+                    Verify your identity using government-issued documents through DigiLocker
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Shield className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-blue-900 mb-2">
+                            Government Verification Available
+                          </h4>
+                          <p className="text-blue-800 text-sm mb-3">
+                            Verify your identity using DigiLocker for enhanced security and trust. 
+                            This process is secure, government-approved, and takes just a few minutes.
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 text-xs text-blue-700">
+                            <div className="flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              <span>Government Approved</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              <span>Secure & Private</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              <span>Quick Process</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              <span>Trusted Platform</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Dialog open={showDigiLockerAuth} onOpenChange={setShowDigiLockerAuth}>
+                      <DialogTrigger asChild>
+                        <Button className="w-full bg-blue-600 hover:bg-blue-700" size="lg">
+                          <Shield className="w-4 h-4 mr-2" />
+                          Verify with DigiLocker
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <DigiLockerAuth 
+                          onVerificationComplete={handleDigiLockerVerification}
+                          userType={user.role === 'admin' ? 'customer' : user.role}
+                        />
+                      </DialogContent>
+                    </Dialog>
+
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">
+                        By proceeding, you agree to share your identity information for verification purposes. 
+                        Your data is encrypted and never stored in plain text.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Verified Status */}
+            {verificationStatus.digiLocker && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="h-5 w-5" />
+                    Verification Complete
+                  </CardTitle>
+                  <CardDescription>
+                    Your identity has been successfully verified through DigiLocker
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <GovVerifiedBadge variant="large" />
+                      <div>
+                        <h4 className="font-semibold text-green-900">Government Verified</h4>
+                        <p className="text-green-800 text-sm">
+                          Your profile now displays a verified badge, enhancing trust with other users.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-3 border rounded-lg">
+                      <p className="text-sm font-medium text-gray-700">Verification Date</p>
+                      <p className="text-sm text-gray-600">{new Date().toLocaleDateString()}</p>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <p className="text-sm font-medium text-gray-700">Verification Method</p>
+                      <p className="text-sm text-gray-600">DigiLocker (Government)</p>
+                    </div>
+                  </div>
+
+                  <Button variant="outline" size="sm" onClick={() => {/* Handle revoke verification */}}>
+                    Manage Verification
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </TabsContent>
 
         {/* Security Tab */}

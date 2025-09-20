@@ -12,6 +12,7 @@ interface User {
   avatar?: string;
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
+  isDigiLockerVerified?: boolean;
   preferences?: {
     language: string;
     notifications: {

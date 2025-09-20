@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { useLocation } from "@/contexts/LocationContext";
+import { indianStates } from "@/data/indianLocations";
 import { 
   Search,
   Filter,
@@ -20,10 +22,16 @@ import {
 export default function Services() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedLocation, setSelectedLocation] = useState("Delhi");
+  const { selectedState, selectedDistrict } = useLocation();
+
+  // Get current location name
+  const currentLocation = selectedState 
+    ? indianStates.find(state => state.code === selectedState)?.name || "India"
+    : "India";
+  
+  const displayLocation = selectedDistrict ? `${selectedDistrict}, ${currentLocation}` : currentLocation;
 
   const categories = ["All", "Home Services", "Construction", "Technical", "Personal Care", "Event Services"];
-  const locations = ["Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Hyderabad"];
 
   const services = [
     {
@@ -156,6 +164,18 @@ export default function Services() {
               Browse our complete catalog of verified workers across all service categories
             </p>
             
+            {/* Location Notice */}
+            {!selectedState && (
+              <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
+                <div className="flex items-center justify-center text-yellow-800">
+                  <MapPin className="w-5 h-5 mr-2" />
+                  <span className="font-medium">
+                    Select your location from the navigation bar to see services in your area
+                  </span>
+                </div>
+              </div>
+            )}
+            
             {/* Search and Filters */}
             <div className="max-w-4xl mx-auto">
               <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -178,15 +198,11 @@ export default function Services() {
                       <option key={category} value={category}>{category}</option>
                     ))}
                   </select>
-                  <select 
-                    className="h-12 px-4 rounded-md border border-gray-300 text-lg bg-white"
-                    value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
-                  >
-                    {locations.map(location => (
-                      <option key={location} value={location}>{location}</option>
-                    ))}
-                  </select>
+                  <div className="h-12 px-4 rounded-md border border-gray-300 text-lg bg-gray-50 flex items-center">
+                    <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                    <span className="text-gray-700">{displayLocation}</span>
+                    <span className="text-xs text-gray-500 ml-2">(from navigation)</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -199,7 +215,7 @@ export default function Services() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900">
-              {filteredServices.length} Services Available in {selectedLocation}
+              {filteredServices.length} Services Available in {displayLocation}
             </h2>
             <Button variant="outline" className="flex items-center space-x-2">
               <Filter className="w-4 h-4" />

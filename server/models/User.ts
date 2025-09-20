@@ -31,6 +31,26 @@ export interface IUser extends Document {
   phoneVerificationOTP?: string;
   otpExpiry?: Date;
   
+  // DigiLocker verification
+  isDigiLockerVerified: boolean;
+  digiLockerData?: {
+    aadhaarNumber: string; // Encrypted
+    name: string;
+    dob: string;
+    gender: string;
+    address: {
+      house?: string;
+      street?: string;
+      locality?: string;
+      city: string;
+      state: string;
+      pincode: string;
+    };
+    verificationDate: Date;
+    verificationId: string;
+    documentsVerified: string[];
+  };
+  
   // Security
   lastLogin?: Date;
   loginAttempts: number;
@@ -152,6 +172,32 @@ const userSchema = new Schema<IUser>({
   emailVerificationToken: String,
   phoneVerificationOTP: String,
   otpExpiry: Date,
+  
+  // DigiLocker verification
+  isDigiLockerVerified: {
+    type: Boolean,
+    default: false
+  },
+  digiLockerData: {
+    aadhaarNumber: {
+      type: String,
+      select: false // Never return in queries for security
+    },
+    name: String,
+    dob: String,
+    gender: String,
+    address: {
+      house: String,
+      street: String,
+      locality: String,
+      city: String,
+      state: String,
+      pincode: String
+    },
+    verificationDate: Date,
+    verificationId: String,
+    documentsVerified: [String]
+  },
   
   // Security
   lastLogin: Date,

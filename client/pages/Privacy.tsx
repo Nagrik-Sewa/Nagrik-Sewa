@@ -1,7 +1,9 @@
 import { Shield, Lock, Eye, Database, Users, FileText } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { CONTACT_INFO } from "../constants/contact";
 
 export default function Privacy() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -9,12 +11,16 @@ export default function Privacy() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Shield className="w-16 h-16 mx-auto mb-4" />
-            <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
+            <h1 className="text-4xl font-bold mb-4">{t('legal.privacy.title') || 'Privacy Policy'}</h1>
             <p className="text-xl text-brand-100">
-              Your privacy and data security are our top priorities
+              {t('legal.privacy.subtitle') || 'Your privacy and data security are our top priorities'}
             </p>
             <p className="text-sm text-brand-200 mt-2">
-              Last updated: August 25, 2025
+              {t('legal.privacy.lastUpdated') || 'Last updated'}: {new Date().toLocaleDateString('en-IN', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
             </p>
           </div>
         </div>
@@ -55,6 +61,17 @@ export default function Privacy() {
               </div>
 
               <div>
+                <h3 className="text-lg font-semibold mb-2">DigiLocker Authentication Data</h3>
+                <ul className="list-disc list-inside text-gray-700 space-y-1">
+                  <li>Aadhaar-linked identity verification through DigiLocker API</li>
+                  <li>Government document verification status</li>
+                  <li>Encrypted document references (not actual documents)</li>
+                  <li>Verification timestamps and audit logs</li>
+                  <li>Digital signature certificates for enhanced trust</li>
+                </ul>
+              </div>
+
+              <div>
                 <h3 className="text-lg font-semibold mb-2">Usage Information</h3>
                 <ul className="list-disc list-inside text-gray-700 space-y-1">
                   <li>Service requests and booking history</li>
@@ -78,7 +95,9 @@ export default function Privacy() {
               <li>Connect you with verified service providers in your area</li>
               <li>Process payments and manage your account</li>
               <li>Send service notifications and booking confirmations</li>
-              <li>Verify the identity of service providers for safety</li>
+              <li>Verify the identity of service providers for safety through DigiLocker integration</li>
+              <li>Display government verification badges for authenticated users</li>
+              <li>Enhance trust and security through official document verification</li>
               <li>Improve our platform and develop new features</li>
               <li>Provide customer support and resolve disputes</li>
               <li>Send promotional offers (with your consent)</li>
@@ -106,6 +125,50 @@ export default function Privacy() {
                 <li>Limited access to personal data on a need-to-know basis</li>
                 <li>PCI DSS compliance for payment processing</li>
               </ul>
+            </div>
+          </section>
+
+          {/* DigiLocker Integration */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold mb-4 flex items-center">
+              <Shield className="w-6 h-6 mr-2 text-brand-600" />
+              DigiLocker Integration & Government Verification
+            </h2>
+            
+            <div className="space-y-4">
+              <p className="text-gray-700">
+                Our DigiLocker integration enhances security and trust through government-verified authentication:
+              </p>
+              
+              <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-400">
+                <h3 className="text-lg font-semibold mb-3 text-blue-800">What We Access Through DigiLocker</h3>
+                <ul className="list-disc list-inside text-gray-700 space-y-2">
+                  <li>Identity verification status (verified/unverified)</li>
+                  <li>Document authenticity confirmation</li>
+                  <li>Encrypted reference IDs (not actual documents)</li>
+                  <li>Verification timestamps for audit purposes</li>
+                </ul>
+              </div>
+
+              <div className="bg-green-50 p-6 rounded-lg border-l-4 border-green-400">
+                <h3 className="text-lg font-semibold mb-3 text-green-800">What We DON'T Access</h3>
+                <ul className="list-disc list-inside text-gray-700 space-y-2">
+                  <li>Your actual Aadhaar number or personal documents</li>
+                  <li>DigiLocker account credentials or passwords</li>
+                  <li>Personal documents stored in your DigiLocker</li>
+                  <li>Any information beyond verification status</li>
+                </ul>
+              </div>
+
+              <div className="bg-amber-50 p-6 rounded-lg border-l-4 border-amber-400">
+                <h3 className="text-lg font-semibold mb-3 text-amber-800">Your Control</h3>
+                <ul className="list-disc list-inside text-gray-700 space-y-2">
+                  <li>DigiLocker verification is completely optional</li>
+                  <li>You can revoke verification consent at any time</li>
+                  <li>Verification badges can be hidden from your profile</li>
+                  <li>All verification data is encrypted and secure</li>
+                </ul>
+              </div>
             </div>
           </section>
 
@@ -165,6 +228,26 @@ export default function Privacy() {
             </ul>
           </section>
 
+          {/* Data Retention */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold mb-4">Data Retention</h2>
+            
+            <div className="space-y-4">
+              <p className="text-gray-700">
+                We retain your personal information only for as long as necessary to fulfill the purposes outlined in this policy:
+              </p>
+              
+              <ul className="list-disc list-inside text-gray-700 space-y-2">
+                <li><strong>Account Data:</strong> Until account deletion or 3 years of inactivity</li>
+                <li><strong>Booking History:</strong> Retained for 7 years for legal and audit purposes</li>
+                <li><strong>DigiLocker Verification:</strong> Verification status retained until revoked by user</li>
+                <li><strong>Payment Records:</strong> Retained for 7 years as per legal requirements</li>
+                <li><strong>Communication Logs:</strong> Retained for 2 years for dispute resolution</li>
+                <li><strong>Marketing Data:</strong> Deleted immediately upon opt-out request</li>
+              </ul>
+            </div>
+          </section>
+
           {/* Children's Privacy */}
           <section className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Children's Privacy</h2>
@@ -172,6 +255,59 @@ export default function Privacy() {
             <p className="text-gray-700">
               Our services are not intended for individuals under 18 years of age. We do not knowingly collect personal information from children. If we become aware that we have collected personal information from a child, we will delete it promptly.
             </p>
+          </section>
+
+          {/* Third-Party Services */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold mb-4">Third-Party Services</h2>
+            
+            <div className="space-y-4">
+              <p className="text-gray-700">
+                We integrate with trusted third-party services to enhance your experience:
+              </p>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-2">Government Services</h3>
+                  <ul className="text-sm text-gray-700 space-y-1">
+                    <li>• DigiLocker API (Identity Verification)</li>
+                    <li>• Aadhaar Authentication</li>
+                    <li>• Government Document Verification</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-2">Payment Partners</h3>
+                  <ul className="text-sm text-gray-700 space-y-1">
+                    <li>• Razorpay (Payment Processing)</li>
+                    <li>• Paytm (Wallet Integration)</li>
+                    <li>• UPI Payment Systems</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-2">Communication</h3>
+                  <ul className="text-sm text-gray-700 space-y-1">
+                    <li>• SMS Gateway Providers</li>
+                    <li>• Email Service Providers</li>
+                    <li>• Push Notification Services</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-2">Analytics & Support</h3>
+                  <ul className="text-sm text-gray-700 space-y-1">
+                    <li>• Google Analytics (Usage Analytics)</li>
+                    <li>• Customer Support Tools</li>
+                    <li>• Performance Monitoring</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <p className="text-sm text-gray-600 italic">
+                All third-party integrations are bound by strict data protection agreements and comply with applicable privacy laws.
+              </p>
+            </div>
           </section>
 
           {/* International Transfers */}
@@ -196,16 +332,41 @@ export default function Privacy() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Contact Us</h2>
             
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <p className="text-gray-700 mb-4">
+            <div className="space-y-6">
+              <p className="text-gray-700">
                 If you have questions about this Privacy Policy or our data practices, please contact us:
               </p>
               
-              <div className="space-y-2 text-gray-700">
-                <p><strong>Email:</strong> {CONTACT_INFO.PRIVACY_EMAIL}</p>
-                <p><strong>Phone:</strong> {CONTACT_INFO.MAIN_SUPPORT_PHONE}</p>
-                <p><strong>Address:</strong> {CONTACT_INFO.FULL_ADDRESS}</p>
-                <p><strong>Data Protection Officer:</strong> {CONTACT_INFO.DPO_EMAIL}</p>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <h3 className="font-semibold mb-3 text-gray-800">General Privacy Inquiries</h3>
+                  <div className="space-y-2 text-gray-700">
+                    <p><strong>Email:</strong> {CONTACT_INFO.PRIVACY_EMAIL}</p>
+                    <p><strong>Phone:</strong> {CONTACT_INFO.MAIN_SUPPORT_PHONE}</p>
+                    <p><strong>Response Time:</strong> {CONTACT_INFO.EMAIL_RESPONSE_TIME}</p>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <h3 className="font-semibold mb-3 text-gray-800">Data Protection Officer</h3>
+                  <div className="space-y-2 text-gray-700">
+                    <p><strong>Email:</strong> {CONTACT_INFO.DPO_EMAIL}</p>
+                    <p><strong>Purpose:</strong> Data rights requests, complaints</p>
+                    <p><strong>Response Time:</strong> Within 30 days</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                <h3 className="font-semibold mb-3 text-blue-800">Mailing Address</h3>
+                <p className="text-gray-700">{CONTACT_INFO.FULL_ADDRESS}</p>
+              </div>
+              
+              <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                <p className="text-sm text-amber-800">
+                  <strong>Quick Tip:</strong> For faster resolution of privacy-related queries, please include your account email 
+                  and specific details about your request when contacting us.
+                </p>
               </div>
             </div>
           </section>

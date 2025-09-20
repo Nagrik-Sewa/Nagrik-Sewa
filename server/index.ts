@@ -15,6 +15,7 @@ import chatbotRoutes from "./routes/chatbot";
 import chatRoutes from "./routes/chat";
 import testAIRoutes from "./routes/test-ai";
 import uploadRoutes from "./routes/upload";
+import digilockerRoutes from "./routes/digilocker";
 
 export function createServer() {
   const app = express();
@@ -65,6 +66,7 @@ export function createServer() {
 
   // Main API routes
   app.use("/api/auth", authRoutes);
+  app.use("/api/verification", digilockerRoutes);
   app.use("/api/services", servicesRoutes);
   app.use("/api/bookings", bookingsRoutes);
   app.use("/api/chatbot", chatbotRoutes);

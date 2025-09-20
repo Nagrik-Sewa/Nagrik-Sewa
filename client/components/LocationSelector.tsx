@@ -26,30 +26,49 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   const districts = selectedStateData?.districts || [];
 
   return (
-    <div className={`flex flex-col gap-3 ${className}`}>
+    <div className={`flex ${variant === 'compact' ? 'flex-row gap-2' : 'flex-col gap-3'} ${className}`}>
       {/* State Selector */}
       <div className="flex items-center gap-2">
         {variant === 'default' && (
           <MapPin className="h-4 w-4 text-gray-500" />
         )}
         <Select value={selectedState} onValueChange={handleStateChange}>
-          <SelectTrigger className={variant === 'compact' ? 'w-[160px]' : 'w-[200px]'}>
-            <SelectValue placeholder="Select State">
+          <SelectTrigger className={variant === 'compact' ? 'w-[140px]' : 'w-[200px]'}>
+            <SelectValue placeholder="Select Location">
               <span className="flex items-center gap-2">
                 {variant === 'compact' && <MapPin className="h-3 w-3" />}
                 <span>
-                  {selectedStateData?.name || 'Select State'}
+                  {selectedStateData?.name || 'Select Location'}
                 </span>
               </span>
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {indianStates.map((state) => (
+            {/* States Section */}
+            <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              States
+            </div>
+            {indianStates.filter(state => !state.type || state.type === 'state').map((state) => (
               <SelectItem key={state.code} value={state.code}>
                 <div className="flex flex-col">
                   <span className="font-medium">{state.name}</span>
                   <span className="text-xs text-gray-500">
                     {state.districts.length} districts
+                  </span>
+                </div>
+              </SelectItem>
+            ))}
+            
+            {/* Union Territories Section */}
+            <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wide border-t mt-1 pt-2">
+              Union Territories
+            </div>
+            {indianStates.filter(state => state.type === 'ut').map((state) => (
+              <SelectItem key={state.code} value={state.code}>
+                <div className="flex flex-col">
+                  <span className="font-medium">{state.name}</span>
+                  <span className="text-xs text-gray-500">
+                    {state.districts.length} areas
                   </span>
                 </div>
               </SelectItem>
@@ -63,7 +82,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         <div className="flex items-center gap-2">
           <div className={variant === 'default' ? 'w-6' : 'w-0'} /> {/* Spacer for alignment */}
           <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
-            <SelectTrigger className={variant === 'compact' ? 'w-[160px]' : 'w-[200px]'}>
+            <SelectTrigger className={variant === 'compact' ? 'w-[140px]' : 'w-[200px]'}>
               <SelectValue placeholder="Select District">
                 {selectedDistrict || 'Select District'}
               </SelectValue>

@@ -2,6 +2,7 @@ export interface State {
   code: string;
   name: string;
   districts: string[];
+  type?: 'state' | 'ut'; // Union Territory or State
 }
 
 // Comprehensive list of Indian states and their districts
@@ -54,6 +55,7 @@ export const indianStates: State[] = [
   {
     code: 'DL',
     name: 'Delhi',
+    type: 'ut',
     districts: [
       'Central Delhi', 'East Delhi', 'New Delhi', 'North Delhi', 'North East Delhi',
       'North West Delhi', 'Shahdara', 'South Delhi', 'South East Delhi',
@@ -180,10 +182,60 @@ export const indianStates: State[] = [
   {
     code: 'JK',
     name: 'Jammu and Kashmir',
+    type: 'ut',
     districts: [
       'Anantnag', 'Bandipora', 'Baramulla', 'Budgam', 'Doda', 'Ganderbal',
       'Jammu', 'Kathua', 'Kishtwar', 'Kulgam', 'Kupwara', 'Poonch', 'Pulwama',
       'Rajouri', 'Ramban', 'Reasi', 'Samba', 'Shopian', 'Srinagar', 'Udhampur'
+    ]
+  },
+  // Union Territories
+  {
+    code: 'AN',
+    name: 'Andaman and Nicobar Islands',
+    type: 'ut',
+    districts: [
+      'Nicobar', 'North and Middle Andaman', 'South Andaman'
+    ]
+  },
+  {
+    code: 'CH',
+    name: 'Chandigarh',
+    type: 'ut',
+    districts: [
+      'Chandigarh'
+    ]
+  },
+  {
+    code: 'DN',
+    name: 'Dadra and Nagar Haveli and Daman and Diu',
+    type: 'ut',
+    districts: [
+      'Dadra and Nagar Haveli', 'Daman', 'Diu'
+    ]
+  },
+  {
+    code: 'LD',
+    name: 'Lakshadweep',
+    type: 'ut',
+    districts: [
+      'Lakshadweep'
+    ]
+  },
+  {
+    code: 'PY',
+    name: 'Puducherry',
+    type: 'ut',
+    districts: [
+      'Karaikal', 'Mahe', 'Puducherry', 'Yanam'
+    ]
+  },
+  {
+    code: 'LA',
+    name: 'Ladakh',
+    type: 'ut',
+    districts: [
+      'Kargil', 'Leh'
     ]
   }
 ];

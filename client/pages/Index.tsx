@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   Search,
   MapPin,
@@ -32,6 +33,7 @@ import {
 import { useState } from "react";
 
 export default function Index() {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("Delhi");
 
@@ -49,38 +51,38 @@ export default function Index() {
   const features = [
     {
       icon: Brain,
-      title: "AI-Powered Matching",
-      description: "Smart algorithm matches you with the best workers based on location, skills, and ratings.",
+      title: t('home.features.aiMatching.title') || "AI-Powered Matching",
+      description: t('home.features.aiMatching.description') || "Smart algorithm matches you with the best workers based on location, skills, and ratings.",
       color: "text-blue-600"
     },
     {
       icon: Globe,
-      title: "Multi-Language Support",
-      description: "Platform available in 11+ Indian languages with voice assistant support.",
+      title: t('home.features.multiLanguage.title') || "Multi-Language Support",
+      description: t('home.features.multiLanguage.description') || "Platform available in 11+ Indian languages with voice assistant support.",
       color: "text-green-600"
     },
     {
       icon: Shield,
-      title: "Verified Workers",
-      description: "All workers undergo KYC, Aadhaar verification, and background checks.",
+      title: t('home.features.verified.title') || "Verified Workers",
+      description: t('home.features.verified.description') || "All workers undergo KYC, Aadhaar verification, and background checks.",
       color: "text-purple-600"
     },
     {
       icon: Navigation,
-      title: "Real-Time Tracking",
-      description: "Track your worker's location and job progress in real-time with GPS.",
+      title: t('home.features.tracking.title') || "Real-Time Tracking",
+      description: t('home.features.tracking.description') || "Track your worker's location and job progress in real-time with GPS.",
       color: "text-orange-600"
     },
     {
       icon: FileText,
-      title: "Digital Resume Builder",
-      description: "Workers can build professional resumes showcasing skills and ratings.",
+      title: t('home.features.resume.title') || "Digital Resume Builder",
+      description: t('home.features.resume.description') || "Workers can build professional resumes showcasing skills and ratings.",
       color: "text-indigo-600"
     },
     {
       icon: AlertTriangle,
-      title: "Emergency SOS",
-      description: "One-click emergency button for immediate help and safety alerts.",
+      title: t('home.features.emergency.title') || "Emergency SOS",
+      description: t('home.features.emergency.description') || "One-click emergency button for immediate help and safety alerts.",
       color: "text-red-600"
     }
   ];
@@ -88,30 +90,30 @@ export default function Index() {
   const advancedFeatures = [
     {
       icon: GraduationCap,
-      title: "Skill Training & Upskilling",
-      description: "Access to government-certified training programs and skill development courses.",
+      title: t('home.advancedFeatures.training.title') || "Skill Training & Upskilling",
+      description: t('home.advancedFeatures.training.description') || "Access to government-certified training programs and skill development courses.",
     },
     {
       icon: Building,
-      title: "Government Schemes",
-      description: "Discover and apply for relevant government schemes and benefits.",
+      title: t('home.advancedFeatures.schemes.title') || "Government Schemes",
+      description: t('home.advancedFeatures.schemes.description') || "Discover and apply for relevant government schemes and benefits.",
     },
     {
       icon: Activity,
-      title: "Labor Analytics",
-      description: "Real-time insights and trends for both workers and customers.",
+      title: t('home.advancedFeatures.analytics.title') || "Performance Analytics",
+      description: t('home.advancedFeatures.analytics.description') || "Track your service history, earnings, and customer feedback.",
     },
     {
-      icon: Blocks,
-      title: "Blockchain Contracts",
-      description: "Secure, transparent job contracts powered by blockchain technology.",
+      icon: Users,
+      title: t('home.advancedFeatures.community.title') || "Worker Community",
+      description: t('home.advancedFeatures.community.description') || "Connect with fellow workers, share experiences, and learn together.",
     }
   ];
 
   const stats = [
-    { number: "50,000+", label: "Verified Workers", icon: Users },
-    { number: "1M+", label: "Jobs Completed", icon: CheckCircle },
-    { number: "25+", label: "Cities Covered", icon: MapPin },
+    { number: "50,000+", label: t('home.stats.activeWorkers') || "Active Workers", icon: Users },
+    { number: "1M+", label: t('home.stats.servicesCompleted') || "Services Completed", icon: CheckCircle },
+    { number: "25+", label: t('home.stats.citiesCovered') || "Cities Covered", icon: MapPin },
     { number: "4.8/5", label: "Average Rating", icon: Star },
   ];
 
@@ -146,15 +148,15 @@ export default function Index() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-brand-100 text-brand-800 border-brand-200">
-              🚀 Now Available in 25+ Cities Across India
+              {t('home.heroBadge') || '🚀 Now Available in 25+ Cities Across India'}
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              AI-Powered Home Services
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-500"> Made Simple </span>
-              for Everyone
+              {t('home.heroTitle') || 'AI-Powered Home Services'}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-500"> {t('home.heroTitleHighlight') || 'Made Simple'} </span>
+              {t('home.heroTitleEnd') || 'for Everyone'}
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              India's smartest platform connecting you with verified workers through AI assistance. 
+              {t('home.heroDescription') || "India's smartest platform connecting you with verified workers through AI assistance."} 
               <span className="font-semibold text-brand-600">Intelligent chatbot support</span>, 
               <span className="font-semibold text-orange-600"> multilingual AI responses</span>, and 
               <span className="font-semibold text-purple-600"> AI-enhanced profiles</span> - all in your preferred language.
@@ -167,7 +169,7 @@ export default function Index() {
                   <div className="relative">
                     <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                     <Input
-                      placeholder="What service do you need?"
+                      placeholder={t('home.searchPlaceholder') || "What service do you need?"}
                       className="pl-10 h-12 text-lg border-gray-300"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -187,7 +189,7 @@ export default function Index() {
                   </div>
                   <Button size="lg" className="h-12 text-lg bg-brand-500 hover:bg-brand-600">
                     <Search className="w-5 h-5 mr-2" />
-                    Find Workers
+                    {t('home.findWorkers') || 'Find Workers'}
                   </Button>
                 </div>
               </div>
@@ -195,7 +197,8 @@ export default function Index() {
 
             {/* Popular Services */}
             <div className="mb-12">
-              <p className="text-gray-600 mb-4">Popular services:</p>
+              <p className="text-gray-600 mb-4">{t('home.popularServices') || 'Popular services:'}
+              </p>
               <div className="flex flex-wrap gap-3 justify-center">
                 {popularServices.map((service, index) => (
                   <Button 
@@ -260,10 +263,10 @@ export default function Index() {
               ✨ Powered by Advanced Technology
             </Badge>
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              Why Choose Nagrik Sewa?
+              {t('home.featuresTitle') || 'Why Choose Nagrik Sewa?'}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We're revolutionizing how India connects workers and customers with cutting-edge technology and deep local understanding.
+              {t('home.featuresSubtitle') || "We're revolutionizing how India connects workers and customers with cutting-edge technology and deep local understanding."}
             </p>
           </div>
 

@@ -23,6 +23,7 @@ import Workers from "./pages/Workers";
 import WorkerDetails from "./pages/WorkerDetails.tsx";
 import Bookings from "./pages/Bookings.tsx";
 import BookingDetails from "./pages/BookingDetails.tsx";
+import BookService from "./pages/BookService.tsx";
 import Profile from "./pages/Profile.tsx";
 import Dashboard from "./pages/Dashboard";
 import LocationDemo from "./pages/LocationDemo";
@@ -43,6 +44,17 @@ import GetVerified from "./pages/workers/GetVerified";
 import ResumeBuilder from "./pages/workers/ResumeBuilder";
 import WorkerSupport from "./pages/workers/WorkerSupport";
 import GovtSchemes from "./pages/workers/GovtSchemes";
+
+// Service Category Pages
+import HomeServices from "./pages/services/HomeServices";
+import ConstructionServices from "./pages/services/ConstructionServices";
+import ElectricalServices from "./pages/services/ElectricalServices";
+import PlumbingServices from "./pages/services/PlumbingServices";
+import CleaningServices from "./pages/services/CleaningServices";
+import GardeningServices from "./pages/services/GardeningServices";
+
+// Admin Pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ChatbotWidget } from "./components/chat/ChatbotWidget";
@@ -94,6 +106,14 @@ const App = () => (
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/support" element={<Support />} />
                       
+                      {/* Service Category Routes */}
+                      <Route path="/services/home" element={<HomeServices />} />
+                      <Route path="/services/construction" element={<ConstructionServices />} />
+                      <Route path="/services/electrical" element={<ElectricalServices />} />
+                      <Route path="/services/plumbing" element={<PlumbingServices />} />
+                      <Route path="/services/cleaning" element={<CleaningServices />} />
+                      <Route path="/services/gardening" element={<GardeningServices />} />
+                      
                       {/* Worker Portal Routes */}
                       <Route path="/join-as-worker" element={<JoinAsWorker />} />
                       <Route path="/skill-training" element={<SkillTraining />} />
@@ -135,10 +155,26 @@ const App = () => (
                         }
                       />
                       <Route
+                        path="/book-service"
+                        element={
+                          <ProtectedRoute>
+                            <BookService />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/profile"
                         element={
                           <ProtectedRoute>
                             <Profile />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin"
+                        element={
+                          <ProtectedRoute>
+                            <AdminDashboard />
                           </ProtectedRoute>
                         }
                       />
