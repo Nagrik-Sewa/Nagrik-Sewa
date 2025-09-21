@@ -38,14 +38,12 @@ export function Navigation() {
     { href: "/", label: t("navigation.home") },
     { href: "/services", label: t("navigation.services") },
     { href: "/workers", label: t("navigation.workers") },
+    { href: "/dashboard", label: t("navigation.dashboard") },
+    { href: "/bookings", label: t("navigation.bookings") },
   ];
 
-  const userLinks = isAuthenticated
-    ? [
-        { href: "/dashboard", label: t("navigation.dashboard") },
-        { href: "/bookings", label: t("navigation.bookings") },
-      ]
-    : [];
+  // For testing purposes, show all links regardless of auth status
+  const userLinks: { href: string; label: string }[] = [];
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

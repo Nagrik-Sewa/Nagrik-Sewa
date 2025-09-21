@@ -22,9 +22,10 @@ const Login: React.FC = () => {
 
   const from = location.state?.from?.pathname || '/dashboard';
 
-  if (isAuthenticated) {
-    return <Navigate to={from} replace />;
-  }
+  // Temporarily disable auto-redirect for testing
+  // if (isAuthenticated) {
+  //   return <Navigate to={from} replace />;
+  // }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

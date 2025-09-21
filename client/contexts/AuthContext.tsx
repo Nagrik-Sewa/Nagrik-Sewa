@@ -58,8 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (token) {
         try {
           const response = await api.get('/auth/me');
-          setUser(response.data.user);
+          console.log('Auth me response:', response.data);
+          setUser(response.data.data.user); // Fix: correct path to user data
         } catch (error) {
+          console.error('Auth initialization failed:', error);
           localStorage.removeItem('authToken');
         }
       }
@@ -72,7 +74,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { user, token } = response.data;
+      console.log('Login response:', response.data);
+      
+      // Handle the correct response structure from server
+      const { user, tokens } = response.data.data;
+      const token = tokens.accessToken;
       
       localStorage.setItem('authToken', token);
       setUser(user);
@@ -82,6 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: `Logged in successfully as ${user.firstName}`,
       });
     } catch (error: any) {
+      console.error('Login error:', error);
       const message = error.response?.data?.message || 'Login failed';
       toast({
         title: "Login failed",
