@@ -94,17 +94,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (data: RegisterData) => {
     try {
+      console.log('Starting registration...', data);
       const response = await api.post('/auth/register', data);
-      const { user, token } = response.data;
+      console.log('Registration response:', response.data);
       
+      const { user, token } = response.data.data; // Note: response.data.data based on server structure
+      
+      console.log('Setting token and user...', { user, token });
       localStorage.setItem('authToken', token);
       setUser(user);
       
+      console.log('User state updated, isAuthenticated should be true');
+      
       toast({
-        title: "Account created!",
-        description: "Welcome to Nagrik Sewa. Please verify your email.",
+        title: "Welcome to Nagrik Sewa! 🇮🇳",
+        description: `Account created successfully! Welcome ${user.firstName}. You are now logged in.`,
       });
     } catch (error: any) {
+      console.error('Registration failed:', error);
       const message = error.response?.data?.message || 'Registration failed';
       toast({
         title: "Registration failed",

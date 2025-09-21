@@ -15,7 +15,7 @@ export const securityHeaders = helmet({
         ? ["'self'", "'unsafe-inline'", "'unsafe-eval'"] 
         : ["'self'"],
       connectSrc: process.env.NODE_ENV === 'development'
-        ? ["'self'", "ws:", "wss:", "https://api.razorpay.com"]
+        ? ["'self'", "ws:", "wss:", "http://localhost:*", "https://api.razorpay.com"]
         : ["'self'", "https://api.razorpay.com"],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
