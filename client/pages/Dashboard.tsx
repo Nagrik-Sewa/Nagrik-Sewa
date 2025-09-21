@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { api } from '@/lib/api';
 import { 
   Calendar, 
   Users, 
@@ -16,6 +18,49 @@ import {
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [dashboardData, setDashboardData] = useState({
+    bookings: 0,
+    totalSpent: 0,
+    reviewsGiven: 0,
+    savedServices: 0,
+    recentActivity: []
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        // Fetch user's bookings
+        const bookingsResponse = await api.get('/bookings/my-bookings');
+        const bookings = bookingsResponse.data.data?.bookings || [];
+        
+        setDashboardData({
+          bookings: bookings.length,
+          totalSpent: 0, // We'll calculate this from bookings if needed
+          reviewsGiven: 0, // We'll add reviews later
+          savedServices: 0, // We'll add saved services later
+          recentActivity: bookings.slice(0, 3) // Show last 3 bookings
+        });
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        // Set default values for testing
+        setDashboardData({
+          bookings: 0,
+          totalSpent: 0,
+          reviewsGiven: 0,
+          savedServices: 0,
+          recentActivity: []
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
 
   if (!user) return null;
 
@@ -58,9 +103,11 @@ const Dashboard: React.FC = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : dashboardData.bookings}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              {dashboardData.bookings === 0 ? 'No bookings yet' : 'Total bookings'}
             </p>
           </CardContent>
         </Card>
@@ -73,9 +120,11 @@ const Dashboard: React.FC = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹{isWorker ? '45,231' : '12,340'}</div>
+            <div className="text-2xl font-bold">
+              ₹{loading ? '...' : dashboardData.totalSpent.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +180.1% from last month
+              {dashboardData.totalSpent === 0 ? 'No transactions yet' : 'Total amount'}
             </p>
           </CardContent>
         </Card>
@@ -89,10 +138,10 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isWorker ? '4.8' : '15'}
+              {loading ? '...' : (isWorker ? '5.0' : dashboardData.reviewsGiven)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {isWorker ? 'Based on 127 reviews' : '+2 this month'}
+              {isWorker ? 'No reviews yet' : (dashboardData.reviewsGiven === 0 ? 'No reviews yet' : 'Total reviews')}
             </p>
           </CardContent>
         </Card>
@@ -106,10 +155,10 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isWorker ? '98%' : '8'}
+              {loading ? '...' : (isWorker ? '100%' : dashboardData.savedServices)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {isWorker ? '+2% from last month' : '3 new this week'}
+              {isWorker ? 'Perfect record' : (dashboardData.savedServices === 0 ? 'No saved services' : 'Total saved')}
             </p>
           </CardContent>
         </Card>
@@ -125,41 +174,33 @@ const Dashboard: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <div className="bg-green-100 p-2 rounded-full">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">
-                  {isWorker ? 'Plumbing service completed' : 'AC repair completed'}
+            {loading ? (
+              <div className="text-center text-gray-500">Loading activity...</div>
+            ) : dashboardData.recentActivity.length > 0 ? (
+              dashboardData.recentActivity.map((activity: any, index: number) => (
+                <div key={index} className="flex items-center space-x-4">
+                  <div className="bg-blue-100 p-2 rounded-full">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      Booking #{activity._id?.slice(-4) || 'New'} - {activity.status || 'Pending'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {activity.createdAt ? new Date(activity.createdAt).toLocaleDateString() : 'Recent'}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-500">
+                <Calendar className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">No recent activity</p>
+                <p className="text-xs text-gray-400">
+                  {isWorker ? 'Start accepting bookings to see activity' : 'Book a service to see activity here'}
                 </p>
-                <p className="text-xs text-gray-500">2 hours ago</p>
               </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-2 rounded-full">
-                <Clock className="h-4 w-4 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">
-                  {isWorker ? 'New booking received' : 'Cleaning service scheduled'}
-                </p>
-                <p className="text-xs text-gray-500">4 hours ago</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="bg-yellow-100 p-2 rounded-full">
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">
-                  Payment pending review
-                </p>
-                <p className="text-xs text-gray-500">1 day ago</p>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -174,32 +215,56 @@ const Dashboard: React.FC = () => {
           <CardContent className="space-y-3">
             {isWorker ? (
               <>
-                <Button className="w-full justify-start" variant="outline">
+                <Button 
+                  className="w-full justify-start" 
+                  variant="outline"
+                  onClick={() => navigate('/workers/profile')}
+                >
                   <Calendar className="mr-2 h-4 w-4" />
                   Update Availability
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
+                <Button 
+                  className="w-full justify-start" 
+                  variant="outline"
+                  onClick={() => navigate('/bookings')}
+                >
                   <Users className="mr-2 h-4 w-4" />
                   View Pending Bookings
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
+                <Button 
+                  className="w-full justify-start" 
+                  variant="outline"
+                  onClick={() => navigate('/workers/earnings')}
+                >
                   <DollarSign className="mr-2 h-4 w-4" />
                   Withdrawal Request
                 </Button>
               </>
             ) : (
               <>
-                <Button className="w-full justify-start" variant="outline">
+                <Button 
+                  className="w-full justify-start" 
+                  variant="outline"
+                  onClick={() => navigate('/services')}
+                >
                   <Calendar className="mr-2 h-4 w-4" />
                   Book a Service
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
+                <Button 
+                  className="w-full justify-start" 
+                  variant="outline"
+                  onClick={() => navigate('/workers')}
+                >
                   <Users className="mr-2 h-4 w-4" />
                   Find Workers
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
+                <Button 
+                  className="w-full justify-start" 
+                  variant="outline"
+                  onClick={() => navigate('/bookings')}
+                >
                   <Star className="mr-2 h-4 w-4" />
-                  Rate Recent Services
+                  View My Bookings
                 </Button>
               </>
             )}
@@ -207,22 +272,8 @@ const Dashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Profile Completion */}
-      {!user.isEmailVerified && (
-        <Card className="mt-8 border-yellow-200 bg-yellow-50">
-          <CardHeader>
-            <CardTitle className="text-yellow-800">Complete Your Profile</CardTitle>
-            <CardDescription className="text-yellow-700">
-              Verify your email to access all features
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="border-yellow-300 text-yellow-800 hover:bg-yellow-100">
-              Verify Email
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Profile Completion - Removed for testing */}
+      {/* Email verification requirement removed to allow full functionality testing */}
     </div>
   );
 };

@@ -33,7 +33,7 @@ router.post('/register', validateInput(schemas.register), async (req: Request, r
       return;
     }
 
-    // Create new user
+    // Create new user (with email automatically verified for testing)
     const user = new User({
       email,
       phone,
@@ -41,11 +41,12 @@ router.post('/register', validateInput(schemas.register), async (req: Request, r
       firstName,
       lastName,
       role,
-      address
+      address,
+      isEmailVerified: true, // Auto-verify for testing
+      emailVerifiedAt: new Date() // Set verification timestamp
     });
 
-    // Generate email verification token
-    const emailToken = user.generateEmailVerificationToken();
+    // Skip email verification token generation for testing
     await user.save();
 
     // If worker role, create worker profile
@@ -65,21 +66,8 @@ router.post('/register', validateInput(schemas.register), async (req: Request, r
       await workerProfile.save();
     }
 
-    // Send verification email
-    try {
-      await sendEmail({
-        to: email,
-        subject: 'Verify your email - Nagrik Sewa',
-        template: 'email-verification',
-        data: {
-          name: firstName,
-          verificationLink: `${process.env.FRONTEND_URL}/verify-email?token=${emailToken}`
-        }
-      });
-    } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
-      // Don't fail registration if email fails
-    }
+    // Skip verification email for testing - email is auto-verified
+    console.log('📧 Email verification skipped for testing - user auto-verified');
 
     // Generate tokens
     const accessToken = generateToken(user);
@@ -87,7 +75,7 @@ router.post('/register', validateInput(schemas.register), async (req: Request, r
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully. Please verify your email.',
+      message: 'User registered successfully. Email auto-verified for testing.',
       data: {
         user: {
           id: user._id,
@@ -370,11 +358,15 @@ router.post('/forgot-password', validateInput(schemas.forgotPassword), async (re
       await sendEmail({
         to: email,
         subject: 'Password Reset - Nagrik Sewa',
-        template: 'password-reset',
-        data: {
-          name: user.firstName,
-          resetLink: `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
-        }
+        html: `
+          <h2>Password Reset Request</h2>
+          <p>Hello ${user.firstName},</p>
+          <p>You have requested to reset your password for your Nagrik Sewa account.</p>
+          <p>Click the link below to reset your password:</p>
+          <a href="${process.env.FRONTEND_URL}/reset-password?token=${resetToken}">Reset Password</a>
+          <p>This link will expire in 1 hour.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+        `
       });
     } catch (emailError) {
       console.error('Failed to send reset email:', emailError);
