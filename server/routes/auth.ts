@@ -207,13 +207,15 @@ router.post('/send-otp', authMiddleware, async (req, res) => {
         sendEmail({
           to: user.email,
           subject: 'Nagrik Sewa Verification Code',
+          verificationCode: otp,
+          userName: user.firstName,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563eb;">Verification Code</h2>
+              <h2 style="color: #10b981;">🇮🇳 Nagrik Sewa Verification</h2>
               <p>Dear ${user.firstName},</p>
-              <p>Your verification code for Nagrik Sewa is:</p>
-              <div style="background: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
-                <span style="font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 8px;">${otp}</span>
+              <p>Welcome to Nagrik Sewa! Your verification code is:</p>
+              <div style="background: #f0fdf4; border: 2px solid #10b981; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+                <span style="font-size: 32px; font-weight: bold; color: #10b981; letter-spacing: 8px;">${otp}</span>
               </div>
               <p><strong>Important:</strong></p>
               <ul>

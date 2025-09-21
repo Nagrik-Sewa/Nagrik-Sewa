@@ -20,6 +20,11 @@ import digilockerRoutes from "./routes/digilocker";
 export function createServer() {
   const app = express();
 
+  // Initialize database connection
+  database.connect().catch(error => {
+    console.error('Failed to connect to database:', error);
+  });
+
   // Security middleware
   app.use(securityHeaders);
   app.use(compression());

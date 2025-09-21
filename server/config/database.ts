@@ -25,10 +25,15 @@ class Database {
 
       const options: mongoose.ConnectOptions = {
         maxPoolSize: 10, // Maintain up to 10 socket connections
-        serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-        socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+        serverSelectionTimeoutMS: 30000, // Keep trying to send operations for 30 seconds
+        socketTimeoutMS: 60000, // Close sockets after 60 seconds of inactivity
+        connectTimeoutMS: 30000, // How long to wait for initial connection
+        heartbeatFrequencyMS: 10000, // Frequency of the heartbeat
         retryWrites: true
       };
+
+      // Set mongoose buffer settings globally
+      mongoose.set('bufferCommands', false);
 
       await mongoose.connect(mongoUri, options);
       
