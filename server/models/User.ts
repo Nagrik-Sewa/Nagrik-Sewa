@@ -72,6 +72,7 @@ export interface IUser extends Document {
   isActive: boolean;
   isBlocked: boolean;
   blockReason?: string;
+  accountStatus: 'pending' | 'active' | 'suspended' | 'inactive';
   
   // Timestamps
   createdAt: Date;
@@ -251,7 +252,12 @@ const userSchema = new Schema<IUser>({
     type: Boolean,
     default: false
   },
-  blockReason: String
+  blockReason: String,
+  accountStatus: {
+    type: String,
+    enum: ['pending', 'active', 'suspended', 'inactive'],
+    default: 'pending'
+  }
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

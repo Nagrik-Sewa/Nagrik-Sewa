@@ -38,8 +38,6 @@ export function Navigation() {
     { href: "/", label: t("navigation.home") },
     { href: "/services", label: t("navigation.services") },
     { href: "/workers", label: t("navigation.workers") },
-    { href: "/dashboard", label: t("navigation.dashboard") },
-    { href: "/bookings", label: t("navigation.bookings") },
   ];
 
   // For testing purposes, show all links regardless of auth status

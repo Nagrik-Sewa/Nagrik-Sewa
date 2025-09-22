@@ -50,30 +50,30 @@ Best regards,
 © 2025 Nagrik Sewa - Serving India with Pride
 ```
 
-## Step 4: Get Your Keys
+## Step 4: Your EmailJS Configuration
 
-1. Go to **Integration** in your EmailJS dashboard
-2. Note down these values:
-   - **Service ID**: (from your service)
-   - **Template ID**: `nagrik_sewa_verification`
-   - **Public Key**: (from Integration page)
-   - **Private Key**: (from Account > API Keys)
+✅ **Your EmailJS credentials are configured:**
+
+- **Service ID**: `service_8fmrx3n`
+- **Template ID**: `template_6nfl643`
+- **Public Key**: `GYQ6VHEu_6LIkKgs_`
+- **Private Key**: `wporU4Qu4-zzr6xkHTA8j`
 
 ## Step 5: Update Environment Variables
 
-Replace the placeholder values in your `.env` file:
+Replace the placeholder values in your `.env` file with these actual values:
 
 ```env
 # EmailJS Configuration (Frontend)
-VITE_EMAILJS_SERVICE_ID=your_actual_service_id
-VITE_EMAILJS_TEMPLATE_ID=nagrik_sewa_verification
-VITE_EMAILJS_PUBLIC_KEY=your_actual_public_key
+VITE_EMAILJS_SERVICE_ID=service_8fmrx3n
+VITE_EMAILJS_TEMPLATE_ID=template_6nfl643
+VITE_EMAILJS_PUBLIC_KEY=GYQ6VHEu_6LIkKgs_
 
 # EmailJS Configuration (Backend)
-EMAILJS_SERVICE_ID=your_actual_service_id
-EMAILJS_TEMPLATE_ID=nagrik_sewa_verification
-EMAILJS_PUBLIC_KEY=your_actual_public_key
-EMAILJS_PRIVATE_KEY=your_actual_private_key
+EMAILJS_SERVICE_ID=service_8fmrx3n
+EMAILJS_TEMPLATE_ID=template_6nfl643
+EMAILJS_PUBLIC_KEY=GYQ6VHEu_6LIkKgs_
+EMAILJS_PRIVATE_KEY=wporU4Qu4-zzr6xkHTA8j
 ```
 
 ## Step 6: Test the Setup

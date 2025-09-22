@@ -85,6 +85,11 @@ const ResumeSchema: Schema = new Schema({
 // Create index for better query performance
 ResumeSchema.index({ userId: 1, updatedAt: -1 });
 
-const Resume = mongoose.model<IResume>('Resume', ResumeSchema);
+let Resume;
+try {
+  Resume = mongoose.model<IResume>('Resume');
+} catch (error) {
+  Resume = mongoose.model<IResume>('Resume', ResumeSchema);
+}
 
 export default Resume;

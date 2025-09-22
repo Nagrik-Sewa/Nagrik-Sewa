@@ -6,8 +6,106 @@ import { User } from '../models/User';
 import { authenticate as authMiddleware } from '../middleware/auth';
 import { sendEmail } from '../services/email';
 import { sendSMS } from '../services/sms';
+import { OTPService } from '../services/otp';
 
 const router = express.Router();
+
+// Admin registration endpoint (one-time setup)
+router.post('/register-admin', async (req, res) => {
+  try {
+    const { email, password, firstName, lastName, phone } = req.body;
+
+    // Security: Only allow specific admin email
+    if (email !== 'pushkarkumarsaini2006@gmail.com') {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized admin registration attempt'
+      });
+    }
+
+    // Check if admin already exists
+    const existingAdmin = await User.findOne({ email });
+    if (existingAdmin) {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin already exists'
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Normalize phone number (remove country code if present)
+    let normalizedPhone = phone || '9999999999';
+    if (normalizedPhone.startsWith('+91')) {
+      normalizedPhone = normalizedPhone.substring(3);
+    } else if (normalizedPhone.startsWith('91')) {
+      normalizedPhone = normalizedPhone.substring(2);
+    }
+
+    // Create admin user
+    const admin = new User({
+      firstName: firstName || 'Pushkar',
+      lastName: lastName || 'Saini',
+      email: 'pushkarkumarsaini2006@gmail.com',
+      password: hashedPassword,
+      phone: normalizedPhone, // 10-digit phone number
+      role: 'admin',
+      address: {
+        street: 'Admin Address',
+        city: 'Delhi',
+        state: 'Delhi',
+        pincode: '110001',
+        country: 'India'
+      },
+      isEmailVerified: true, // Admin is pre-verified
+      isPhoneVerified: true,
+      loginAttempts: 0,
+      isTwoFactorEnabled: false,
+      languagePreference: 'en',
+      notificationPreferences: {
+        email: true,
+        sms: true,
+        push: true,
+        whatsapp: true
+      },
+      accountStatus: 'active'
+    });
+
+    await admin.save();
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: admin._id, role: admin.role },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '7d' }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Admin registered successfully',
+      data: {
+        user: {
+          id: admin._id,
+          firstName: admin.firstName,
+          lastName: admin.lastName,
+          email: admin.email,
+          phone: admin.phone,
+          role: admin.role
+        },
+        token
+      }
+    });
+
+  } catch (error) {
+    console.error('Admin registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Admin registration failed',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 
 // Register endpoint
 router.post('/register', async (req, res) => {
@@ -37,7 +135,7 @@ router.post('/register', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user with required address object
+    // Create user with required address object but mark as unverified
     const user = new User({
       firstName,
       lastName: lastName || '',
@@ -62,31 +160,59 @@ router.post('/register', async (req, res) => {
         push: true,
         whatsapp: true
       },
-      accountStatus: 'active'
+      accountStatus: 'pending' // Mark as pending until OTP verification
     });
 
     await user.save();
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET || 'fallback_secret',
-      { expiresIn: '7d' }
-    );
+    // Generate OTP for phone verification
+    const phoneOTP = OTPService.generateOTP();
+    OTPService.storeOTP(phone, phoneOTP);
 
+    // Generate OTP for email verification
+    const emailOTP = OTPService.generateOTP();
+    OTPService.storeOTP(email, emailOTP);
+
+    // Send OTP via SMS (if service is configured)
+    try {
+      await sendSMS({
+        to: phone,
+        message: `Your Nagrik Sewa verification code is: ${phoneOTP}. Valid for 10 minutes.`,
+        otp: phoneOTP
+      });
+    } catch (smsError) {
+      console.log('SMS OTP (for testing):', phoneOTP);
+    }
+
+    // Send OTP via Email (using EmailJS)
+    try {
+      await sendEmail({
+        to: email,
+        subject: 'Verify Your Nagrik Sewa Account',
+        template: 'email-otp',
+        data: {
+          name: firstName,
+          otp: emailOTP
+        }
+      });
+    } catch (emailError) {
+      console.log('Email OTP (for testing):', emailOTP);
+    }
+
+    // Don't return token yet - user needs to verify first
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: 'Registration initiated. Please verify your phone and email with the OTP codes sent.',
       data: {
-        user: {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          phone: user.phone,
-          role: user.role
-        },
-        token
+        userId: user._id,
+        email: user.email,
+        phone: user.phone,
+        requiresVerification: true,
+        // For development/testing - remove in production
+        testOTP: {
+          phone: phoneOTP,
+          email: emailOTP
+        }
       }
     });
 
@@ -95,6 +221,194 @@ router.post('/register', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Registration failed',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Verify OTP endpoint
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { userId, phoneOTP, emailOTP } = req.body;
+
+    // Validation
+    if (!userId || (!phoneOTP && !emailOTP)) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID and at least one OTP (phone or email) are required'
+      });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    let phoneVerified = user.isPhoneVerified;
+    let emailVerified = user.isEmailVerified;
+
+    // Verify phone OTP if provided
+    if (phoneOTP && !user.isPhoneVerified) {
+      const phoneVerification = OTPService.verifyOTP(user.phone, phoneOTP);
+      if (phoneVerification.success) {
+        phoneVerified = true;
+        user.isPhoneVerified = true;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: `Phone OTP verification failed: ${phoneVerification.message}`
+        });
+      }
+    }
+
+    // Verify email OTP if provided
+    if (emailOTP && !user.isEmailVerified) {
+      const emailVerification = OTPService.verifyOTP(user.email, emailOTP);
+      if (emailVerification.success) {
+        emailVerified = true;
+        user.isEmailVerified = true;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: `Email OTP verification failed: ${emailVerification.message}`
+        });
+      }
+    }
+
+    // If both are verified, activate the account
+    if (phoneVerified && emailVerified) {
+      user.accountStatus = 'active';
+      await user.save();
+
+      // Generate JWT token now that user is verified
+      const token = jwt.sign(
+        { userId: user._id, role: user.role },
+        process.env.JWT_SECRET || 'fallback_secret',
+        { expiresIn: '7d' }
+      );
+
+      res.json({
+        success: true,
+        message: 'Account verified successfully! You can now login.',
+        data: {
+          user: {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            isEmailVerified: user.isEmailVerified,
+            isPhoneVerified: user.isPhoneVerified
+          },
+          token
+        }
+      });
+    } else {
+      // Save partial verification progress
+      await user.save();
+      
+      res.json({
+        success: true,
+        message: 'Partial verification completed. Please verify both phone and email.',
+        data: {
+          userId: user._id,
+          phoneVerified: user.isPhoneVerified,
+          emailVerified: user.isEmailVerified,
+          requiresVerification: !(user.isPhoneVerified && user.isEmailVerified)
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error('OTP verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'OTP verification failed',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Resend OTP endpoint
+router.post('/resend-otp', async (req, res) => {
+  try {
+    const { userId, type } = req.body; // type: 'phone' or 'email'
+
+    if (!userId || !type) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID and OTP type are required'
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    if (type === 'phone' && !user.isPhoneVerified) {
+      const phoneOTP = OTPService.generateOTP();
+      OTPService.storeOTP(user.phone, phoneOTP);
+
+      try {
+        await sendSMS({
+          to: user.phone,
+          message: `Your Nagrik Sewa verification code is: ${phoneOTP}. Valid for 10 minutes.`,
+          otp: phoneOTP
+        });
+      } catch (smsError) {
+        console.log('SMS OTP (for testing):', phoneOTP);
+      }
+
+      res.json({
+        success: true,
+        message: 'Phone OTP resent successfully',
+        testOTP: phoneOTP // Remove in production
+      });
+
+    } else if (type === 'email' && !user.isEmailVerified) {
+      const emailOTP = OTPService.generateOTP();
+      OTPService.storeOTP(user.email, emailOTP);
+
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'Verify Your Nagrik Sewa Account',
+          template: 'email-otp',
+          data: {
+            name: user.firstName,
+            otp: emailOTP
+          }
+        });
+      } catch (emailError) {
+        console.log('Email OTP (for testing):', emailOTP);
+      }
+
+      res.json({
+        success: true,
+        message: 'Email OTP resent successfully',
+        testOTP: emailOTP // Remove in production
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid OTP type or already verified'
+      });
+    }
+
+  } catch (error) {
+    console.error('Resend OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to resend OTP',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
@@ -128,6 +442,20 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
+      });
+    }
+
+    // Check if account is verified
+    if (!user.isEmailVerified || !user.isPhoneVerified) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account not verified. Please verify your email and phone number.',
+        data: {
+          userId: user._id,
+          requiresVerification: true,
+          isEmailVerified: user.isEmailVerified,
+          isPhoneVerified: user.isPhoneVerified
+        }
       });
     }
 
@@ -207,25 +535,11 @@ router.post('/send-otp', authMiddleware, async (req, res) => {
         sendEmail({
           to: user.email,
           subject: 'Nagrik Sewa Verification Code',
-          verificationCode: otp,
-          userName: user.firstName,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #10b981;">🇮🇳 Nagrik Sewa Verification</h2>
-              <p>Dear ${user.firstName},</p>
-              <p>Welcome to Nagrik Sewa! Your verification code is:</p>
-              <div style="background: #f0fdf4; border: 2px solid #10b981; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
-                <span style="font-size: 32px; font-weight: bold; color: #10b981; letter-spacing: 8px;">${otp}</span>
-              </div>
-              <p><strong>Important:</strong></p>
-              <ul>
-                <li>This code will expire in 10 minutes</li>
-                <li>Do not share this code with anyone</li>
-                <li>If you didn't request this code, please ignore this email</li>
-              </ul>
-              <p>Best regards,<br>Nagrik Sewa Team</p>
-            </div>
-          `
+          template: 'email-otp',
+          data: {
+            name: user.firstName,
+            otp: otp
+          }
         }).catch(error => {
           console.error('Email sending failed:', error);
           return { success: false, type: 'email', error: error.message };
@@ -379,18 +693,11 @@ router.post('/resend-otp', authMiddleware, async (req, res) => {
         sendEmail({
           to: user.email,
           subject: 'Nagrik Sewa Verification Code (Resent)',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563eb;">Verification Code (Resent)</h2>
-              <p>Dear ${user.firstName},</p>
-              <p>Your new verification code for Nagrik Sewa is:</p>
-              <div style="background: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
-                <span style="font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 8px;">${otp}</span>
-              </div>
-              <p>This code will expire in 10 minutes.</p>
-              <p>Best regards,<br>Nagrik Sewa Team</p>
-            </div>
-          `
+          template: 'email-otp',
+          data: {
+            name: user.firstName,
+            otp: otp
+          }
         })
       );
     }
