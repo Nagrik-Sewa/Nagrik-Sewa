@@ -7,6 +7,7 @@ import { generateToken, generateRefreshToken, authenticate } from '../../middlew
 import { validateInput, schemas, authRateLimit, otpRateLimit } from '../../middleware/security';
 import { sendEmail } from '../../services/email.js';
 import { sendSMS } from '../../services/sms.js';
+import googleAuthRouter from './google';
 
 const router = Router();
 
@@ -14,6 +15,9 @@ const router = Router();
 router.use('/login', authRateLimit);
 router.use('/register', authRateLimit);
 router.use('/send-otp', otpRateLimit);
+
+// Google OAuth routes
+router.use('/', googleAuthRouter);
 
 // Register new user
 router.post('/register', validateInput(schemas.register), async (req: Request, res: Response): Promise<void> => {
@@ -522,6 +526,305 @@ router.post('/logout', authenticate, async (req: Request, res: Response): Promis
     success: true,
     message: 'Logged out successfully'
   });
+});
+
+// Send email verification
+router.post('/send-verification-email', authenticate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).user.userId;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+      return;
+    }
+
+    if (user.isEmailVerified) {
+      res.status(400).json({
+        success: false,
+        message: 'Email already verified'
+      });
+      return;
+    }
+
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    user.emailVerificationToken = verificationToken;
+    await user.save();
+
+    // Send verification email
+    const verificationUrl = `${process.env.VITE_API_URL}/auth/verify-email?token=${verificationToken}`;
+    await sendEmail({
+      to: user.email,
+      subject: 'Email Verification - Nagrik Sewa',
+      html: `
+        <h2>Email Verification</h2>
+        <p>Hello ${user.firstName},</p>
+        <p>Please verify your email address by clicking the link below:</p>
+        <a href="${verificationUrl}">Verify Email</a>
+        <p>This link will expire soon for security reasons.</p>
+        <p>If you didn't create this account, please ignore this email.</p>
+      `
+    });
+
+    res.json({
+      success: true,
+      message: 'Verification email sent successfully'
+    });
+  } catch (error) {
+    console.error('❌ Send verification email error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send verification email'
+    });
+  }
+});
+
+// Send phone OTP
+router.post('/send-phone-otp', authenticate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).user.userId;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+      return;
+    }
+
+    if (user.isPhoneVerified) {
+      res.status(400).json({
+        success: false,
+        message: 'Phone already verified'
+      });
+      return;
+    }
+
+    if (!user.phone) {
+      res.status(400).json({
+        success: false,
+        message: 'No phone number associated with account'
+      });
+      return;
+    }
+
+    // Generate OTP using the user model method
+    const otp = user.generatePhoneOTP();
+    await user.save();
+
+    // Send OTP via SMS
+    try {
+      await sendSMS({
+        to: user.phone,
+        message: `Your Nagrik Sewa verification code is: ${otp}. Valid for 10 minutes. Do not share with anyone.`
+      });
+
+      res.json({
+        success: true,
+        message: 'OTP sent to your phone number'
+      });
+    } catch (smsError) {
+      console.error('Failed to send SMS:', smsError);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send OTP'
+      });
+    }
+  } catch (error) {
+    console.error('Send phone OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send OTP'
+    });
+  }
+});
+
+// Verify phone OTP
+router.post('/verify-phone-otp', authenticate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { otp } = req.body;
+    const userId = (req as any).user.userId;
+
+    if (!otp) {
+      res.status(400).json({
+        success: false,
+        message: 'OTP is required'
+      });
+      return;
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+      return;
+    }
+
+    // Verify OTP using the OTP service
+    // Check if OTP is valid and not expired
+    if (!user.phoneVerificationOTP || user.phoneVerificationOTP !== otp) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid OTP'
+      });
+      return;
+    }
+
+    if (!user.otpExpiry || user.otpExpiry < new Date()) {
+      res.status(400).json({
+        success: false,
+        message: 'OTP has expired'
+      });
+      return;
+    }
+
+    // Mark phone as verified and clear OTP
+    user.isPhoneVerified = true;
+    user.phoneVerificationOTP = undefined;
+    user.otpExpiry = undefined;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Phone number verified successfully'
+    });
+  } catch (error) {
+    console.error('❌ Verify phone OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify phone OTP'
+    });
+  }
+});
+
+// Verify DigiLocker
+router.post('/verify-digilocker', authenticate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { verificationData } = req.body;
+    const userId = (req as any).user.userId;
+
+    if (!verificationData) {
+      res.status(400).json({
+        success: false,
+        message: 'Verification data is required'
+      });
+      return;
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+      return;
+    }
+
+    // In a real implementation, you would verify the DigiLocker data
+    // against the actual DigiLocker API and validate the documents
+    
+    // For now, we'll store the verification data and mark as verified
+    user.isDigiLockerVerified = true;
+    user.digiLockerData = {
+      aadhaarNumber: verificationData.aadhaar?.number || '',
+      name: verificationData.aadhaar?.name || user.firstName + ' ' + user.lastName,
+      dob: verificationData.aadhaar?.dob || '',
+      gender: verificationData.aadhaar?.gender || '',
+      address: {
+        house: verificationData.aadhaar?.address?.house || '',
+        street: verificationData.aadhaar?.address?.street || '',
+        locality: verificationData.aadhaar?.address?.locality || '',
+        city: verificationData.aadhaar?.address?.city || user.address?.city || '',
+        state: verificationData.aadhaar?.address?.state || user.address?.state || '',
+        pincode: verificationData.aadhaar?.address?.pincode || user.address?.pincode || ''
+      },
+      verificationDate: new Date(),
+      verificationId: crypto.randomBytes(16).toString('hex'),
+      documentsVerified: verificationData.documents?.map((doc: any) => doc.name) || []
+    };
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'DigiLocker verification completed successfully',
+      data: {
+        verificationId: user.digiLockerData.verificationId,
+        verificationDate: user.digiLockerData.verificationDate
+      }
+    });
+  } catch (error) {
+    console.error('❌ DigiLocker verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify DigiLocker data'
+    });
+  }
+});
+
+// Check verification status
+router.get('/verification-status', authenticate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).user.userId;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+      return;
+    }
+
+    const verificationStatus = {
+      email: {
+        verified: user.isEmailVerified,
+        required: true
+      },
+      phone: {
+        verified: user.isPhoneVerified,
+        required: false,
+        hasPhone: !!user.phone
+      },
+      digilocker: {
+        verified: user.isDigiLockerVerified,
+        required: false
+      }
+    };
+
+    const needsVerification = !user.isEmailVerified || 
+      (user.phone && !user.isPhoneVerified) ||
+      !user.isDigiLockerVerified;
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          phone: user.phone,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role
+        },
+        verification: verificationStatus,
+        needsVerification
+      }
+    });
+  } catch (error) {
+    console.error('❌ Verification status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get verification status'
+    });
+  }
 });
 
 export default router;

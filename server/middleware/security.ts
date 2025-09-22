@@ -10,14 +10,14 @@ export const securityHeaders = helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:"],
+      imgSrc: ["'self'", "data:", "https:", "https://lh3.googleusercontent.com"],
       scriptSrc: process.env.NODE_ENV === 'development' 
-        ? ["'self'", "'unsafe-inline'", "'unsafe-eval'"] 
-        : ["'self'"],
+        ? ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://accounts.google.com", "https://apis.google.com", "https://digilocker.gov.in"] 
+        : ["'self'", "https://accounts.google.com", "https://apis.google.com", "https://digilocker.gov.in"],
       connectSrc: process.env.NODE_ENV === 'development'
-        ? ["'self'", "ws:", "wss:", "http://localhost:*", "https://api.razorpay.com"]
-        : ["'self'", "https://api.razorpay.com"],
-      frameSrc: ["'none'"],
+        ? ["'self'", "ws:", "wss:", "http://localhost:*", "https://api.razorpay.com", "https://accounts.google.com", "https://oauth2.googleapis.com", "https://api.digitallocker.gov.in", "https://digilocker.gov.in"]
+        : ["'self'", "https://api.razorpay.com", "https://accounts.google.com", "https://oauth2.googleapis.com", "https://api.digitallocker.gov.in", "https://digilocker.gov.in"],
+      frameSrc: ["'self'", "https://accounts.google.com", "https://digilocker.gov.in"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],

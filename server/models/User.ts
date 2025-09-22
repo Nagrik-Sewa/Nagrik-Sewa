@@ -27,6 +27,7 @@ export interface IUser extends Document {
   // Verification status
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
+  isGoogleAuth: boolean;
   emailVerificationToken?: string;
   phoneVerificationOTP?: string;
   otpExpiry?: Date;
@@ -166,6 +167,10 @@ const userSchema = new Schema<IUser>({
     default: false
   },
   isPhoneVerified: {
+    type: Boolean,
+    default: false
+  },
+  isGoogleAuth: {
     type: Boolean,
     default: false
   },

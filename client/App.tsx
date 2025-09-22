@@ -15,6 +15,7 @@ import { LocationProvider } from "./contexts/LocationContext";
 import { FontProvider } from "./contexts/FontContext";
 import { SocketProvider } from "./contexts/SocketContext";
 import { ChatbotProvider } from "./contexts/ChatbotContext";
+import { GoogleAuthProvider } from "./components/GoogleAuthProvider";
 
 // Pages
 import Index from "./pages/Index";
@@ -35,6 +36,7 @@ import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyEmail from "./pages/auth/VerifyEmail";
+import { PostLoginVerification } from "./components/PostLoginVerification";
 import NotFound from "./pages/NotFound";
 
 // Worker Pages
@@ -76,13 +78,14 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <LanguageProvider>
-        <FontProvider>
-          <LocationProvider>
-            <AuthProvider>
-              <SocketProvider>
-                <ChatbotProvider>
+    <GoogleAuthProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <FontProvider>
+            <LocationProvider>
+              <AuthProvider>
+                <SocketProvider>
+                  <ChatbotProvider>
                   <TooltipProvider>
                     <Toaster />
                     <Sonner />
@@ -128,6 +131,16 @@ const App = () => (
                       <Route path="/forgot-password" element={<ForgotPassword />} />
                       <Route path="/reset-password" element={<ResetPassword />} />
                       <Route path="/verify-email" element={<VerifyEmail />} />
+                      
+                      {/* Verification route */}
+                      <Route 
+                        path="/verify-account" 
+                        element={
+                          <ProtectedRoute>
+                            <PostLoginVerification />
+                          </ProtectedRoute>
+                        } 
+                      />
 
                       {/* Protected routes */}
                       <Route
@@ -195,6 +208,7 @@ const App = () => (
     </FontProvider>
   </LanguageProvider>
 </ThemeProvider>
+</GoogleAuthProvider>
 </QueryClientProvider>
 );
 
