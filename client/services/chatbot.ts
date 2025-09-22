@@ -1,7 +1,21 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
+// Initialize Gemini AI with error handling
+const getGeminiModel = () => {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    console.warn('Gemini API key not found. AI features will be limited.');
+    return null;
+  }
+  
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    return genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  } catch (error) {
+    console.error('Failed to initialize Gemini model:', error);
+    return null;
+  }
+};
 
 export interface ChatMessage {
   id: string;
@@ -24,7 +38,7 @@ export interface ChatSession {
 }
 
 class ChatbotService {
-  private model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  private model = getGeminiModel();
   private activeSessions = new Map<string, ChatSession>();
 
   // System prompts for different user types and languages
@@ -149,6 +163,10 @@ If the query is too complex, requires personal account access, or involves sensi
       }
 
       // Generate AI response
+      if (!this.model) {
+        throw new Error('AI service is not available. Please check your configuration.');
+      }
+
       const systemPrompt = this.getSystemPrompt(session.userType, session.language);
       const conversationHistory = session.messages
         .slice(-10) // Keep last 10 messages for context
@@ -269,6 +287,10 @@ If the query is too complex, requires personal account access, or involves sensi
   // AI Resume Enhancement Features
   async enhanceResume(resumeData: any, language: string = 'en'): Promise<any> {
     try {
+      if (!this.model) {
+        throw new Error('AI service is not available for resume enhancement.');
+      }
+
       const prompt = `As an expert resume writer, enhance this resume data to make it more professional and appealing to employers in India's service industry. 
 
 Resume Data:

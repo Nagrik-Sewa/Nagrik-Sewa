@@ -45,7 +45,7 @@ import SkillTraining from "./pages/workers/SkillTraining";
 import GetVerified from "./pages/workers/GetVerified";
 import ResumeBuilder from "./pages/workers/ResumeBuilder";
 import WorkerSupport from "./pages/workers/WorkerSupport";
-import GovtSchemes from "./pages/workers/GovtSchemes";
+// import GovtSchemes from "./pages/workers/GovtSchemes";
 
 // Service Category Pages
 import HomeServices from "./pages/services/HomeServices";
@@ -123,7 +123,7 @@ const App = () => (
                       <Route path="/get-verified" element={<GetVerified />} />
                       <Route path="/resume-builder" element={<ResumeBuilder />} />
                       <Route path="/worker-support" element={<WorkerSupport />} />
-                      <Route path="/government-schemes" element={<GovtSchemes />} />
+                      {/* <Route path="/government-schemes" element={<GovtSchemes />} /> */}
                       
                       {/* Auth routes */}
                       <Route path="/login" element={<Login />} />
