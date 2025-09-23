@@ -66,16 +66,16 @@ export function Footer() {
                 Empowering laborers, serving citizens.
               </p>
               <div className="flex space-x-3">
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-500 hover:bg-blue-50">
                   <Facebook className="w-5 h-5" />
                 </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-black hover:bg-gray-200">
                   <Twitter className="w-5 h-5" />
                 </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-pink-500 hover:bg-pink-50">
                   <Instagram className="w-5 h-5" />
                 </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-500 hover:bg-red-50">
                   <Youtube className="w-5 h-5" />
                 </Button>
               </div>
