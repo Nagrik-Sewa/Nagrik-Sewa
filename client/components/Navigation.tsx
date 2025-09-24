@@ -54,27 +54,12 @@ export function Navigation() {
   const navLinks: NavLink[] = [
     { href: "/", label: t("navigation.home"), icon: HomeIcon },
     {
-      href: "/services",
-      label: t("navigation.services"),
-      icon: Briefcase,
-      dropdown: [
-        { href: "/services/home", label: t("navigation.homeServices") },
-        { href: "/services/construction", label: t("navigation.construction") },
-        { href: "/services/electrical", label: t("navigation.electrical") },
-        { href: "/services/plumbing", label: t("navigation.plumbing") },
-        { href: "/services/cleaning", label: t("navigation.cleaning") },
-        { href: "/services/gardening", label: t("navigation.gardening") },
-      ],
-    },
-    {
       href: "#",
       label: t("navigation.forWorkers"),
       icon: Users,
       dropdown: [
-        { href: "/workers", label: t("navigation.browseWorkers") },
         { href: "/join-as-worker", label: t("navigation.joinAsWorker") },
-        { href: "/skill-training", label: t("navigation.skillTraining") },
-        { href: "/resume-builder", label: t("navigation.resumeBuilder") },
+        { href: "/find-customers", label: "Find Customers" },
         { href: "/get-verified", label: t("navigation.getVerified") },
         { href: "/worker-support", label: t("navigation.workerSupport") },
       ],
@@ -84,8 +69,10 @@ export function Navigation() {
       label: "For Customers",
       icon: Users,
       dropdown: [
-        { href: "/auth/register", label: "Join as Customer" },
-        { href: "/workers", label: "Find Worker" },
+        { href: "/join-as-customer", label: "Join as Customer" },
+        { href: "/workers", label: "Find Workers" },
+        { href: "/get-verified", label: "Get Verified" },
+        { href: "/customer-support", label: "Customer Support" },
       ],
     },
   ];
