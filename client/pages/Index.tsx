@@ -157,9 +157,9 @@ export default function Index() {
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               {t('home.heroDescription') || "India's smartest platform connecting you with verified workers through AI assistance."} 
-              <span className="font-semibold text-brand-600">Intelligent chatbot support</span>, 
-              <span className="font-semibold text-orange-600"> multilingual AI responses</span>, and 
-              <span className="font-semibold text-purple-600"> AI-enhanced profiles</span> - all in your preferred language.
+              <span className="font-semibold text-brand-600">{t('home.intelligentChatbot') || 'Intelligent chatbot support'}</span>, 
+              <span className="font-semibold text-orange-600"> {t('home.multilingualAI') || 'multilingual AI responses'}</span>, and 
+              <span className="font-semibold text-purple-600"> {t('home.aiProfiles') || 'AI-enhanced profiles'}</span> - {t('home.preferredLanguage') || 'all in your preferred language'}.
             </p>
             
             {/* Search Bar */}
