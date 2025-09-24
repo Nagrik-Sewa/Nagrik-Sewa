@@ -22,35 +22,40 @@ import {
   Bell,
   Menu,
   X,
+  GraduationCap,
+  FileText,
+  HelpCircle,
+  Briefcase,
+  Users,
+  Shield,
   Home as HomeIcon,
   ChevronDown,
-  Heart,
-  Star
 } from "lucide-react";
 
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { LocationSelector } from "@/components/LocationSelector";
+
+interface NavLink {
+  href: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  dropdown?: { href: string; label: string }[];
+}
 
 export function Navigation() {
   const { user, isAuthenticated, logout } = useAuth();
   const { t } = useLanguage();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const isActivePath = (path: string) => location.pathname === path;
 
-  interface NavLink {
-    href: string;
-    label: string;
-    icon?: any;
-    dropdown?: { href: string; label: string }[];
-  }
-
   const navLinks: NavLink[] = [
     { href: "/", label: t("navigation.home"), icon: HomeIcon },
-    { 
-      href: "/services", 
-      label: t("navigation.services"), 
+    {
+      href: "/services",
+      label: t("navigation.services"),
       icon: Briefcase,
       dropdown: [
         { href: "/services/home", label: t("navigation.homeServices") },
@@ -58,47 +63,32 @@ export function Navigation() {
         { href: "/services/electrical", label: t("navigation.electrical") },
         { href: "/services/plumbing", label: t("navigation.plumbing") },
         { href: "/services/cleaning", label: t("navigation.cleaning") },
-        { href: "/services/gardening", label: t("navigation.gardening") }
-      ]
+        { href: "/services/gardening", label: t("navigation.gardening") },
+      ],
     },
-    { href: "/workers", label: t("navigation.workers"), icon: Users }
-  ];
-
-  // Additional navigation links for different user types
-  const workerLinks = [
-    { 
-      href: "/join-as-worker", 
-      label: t("navigation.joinAsWorker"), 
+    {
+      href: "#",
+      label: t("navigation.forWorkers"),
       icon: Users,
-      description: "Start your journey"
+      dropdown: [
+        { href: "/workers", label: t("navigation.browseWorkers") },
+        { href: "/join-as-worker", label: t("navigation.joinAsWorker") },
+        { href: "/skill-training", label: t("navigation.skillTraining") },
+        { href: "/resume-builder", label: t("navigation.resumeBuilder") },
+        { href: "/get-verified", label: t("navigation.getVerified") },
+        { href: "/worker-support", label: t("navigation.workerSupport") },
+      ],
     },
-    { 
-      href: "/skill-training", 
-      label: t("navigation.skillTraining"), 
-      icon: GraduationCap,
-      description: "Enhance your skills"
+    {
+      href: "#",
+      label: "For Customers",
+      icon: Users,
+      dropdown: [
+        { href: "/auth/register", label: "Join as Customer" },
+        { href: "/workers", label: "Find Worker" },
+      ],
     },
-    { 
-      href: "/resume-builder", 
-      label: t("navigation.resumeBuilder"), 
-      icon: FileText,
-      description: "Create professional resume"
-    },
-    { 
-      href: "/get-verified", 
-      label: t("navigation.getVerified"), 
-      icon: Shield,
-      description: "Verify your credentials"
-    }
   ];
-
-  const helpLinks = [
-    { href: "/support", label: t("navigation.support"), icon: HelpCircle },
-    { href: "/worker-support", label: t("navigation.workerSupport"), icon: Users }
-  ];
-
-  // For testing purposes, show all links regardless of auth status
-  const userLinks: NavLink[] = [];
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -115,7 +105,7 @@ export function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            {[...navLinks, ...userLinks].map((link) => (
+            {navLinks.map((link) => (
               <div key={link.href} className="relative group">
                 {link.dropdown ? (
                   <DropdownMenu>
@@ -128,6 +118,7 @@ export function Navigation() {
                             : "text-muted-foreground"
                         }`}
                       >
+                        {link.icon && <link.icon className="h-4 w-4" />}
                         <span>{link.label}</span>
                         <ChevronDown className="h-3 w-3" />
                       </button>
@@ -145,106 +136,28 @@ export function Navigation() {
                 ) : (
                   <Link
                     to={link.href}
-                    className={`text-sm font-medium transition-colors hover:text-primary ${
+                    className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-primary ${
                       isActivePath(link.href) ? "text-primary" : "text-muted-foreground"
                     }`}
                   >
-                    {link.label}
+                    {link.icon && <link.icon className="h-4 w-4" />}
+                    <span>{link.label}</span>
                   </Link>
                 )}
               </div>
             ))}
-            
-            {/* Additional Navigation Items */}
-            {/* For Workers Navigation */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center space-x-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group">
-                  <div className="flex items-center space-x-1 px-3 py-1.5 rounded-md group-hover:bg-primary/5">
-                    <GraduationCap className="h-4 w-4" />
-                    <span>{t("navigation.forWorkers")}</span>
-                    <ChevronDown className="h-3 w-3" />
-                  </div>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel className="text-xs text-muted-foreground">
-                  Worker Services
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {workerLinks.map((workerLink) => (
-                  <DropdownMenuItem key={workerLink.href} asChild>
-                    <Link to={workerLink.href} className="w-full flex items-start space-x-3 p-2">
-                      <workerLink.icon className="h-4 w-4 mt-0.5 text-primary" />
-                      <div className="flex flex-col">
-                        <span className="font-medium">{workerLink.label}</span>
-                        <span className="text-xs text-muted-foreground">{workerLink.description}</span>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/worker-support" className="w-full flex items-center space-x-2">
-                    <HelpCircle className="h-4 w-4 text-primary" />
-                    <span>Worker Support</span>
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
 
-            {/* Help & Support Navigation */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center space-x-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group">
-                  <div className="flex items-center space-x-1 px-3 py-1.5 rounded-md group-hover:bg-primary/5">
-                    <HelpCircle className="h-4 w-4" />
-                    <span>Help</span>
-                    <ChevronDown className="h-3 w-3" />
-                  </div>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48">
-                <DropdownMenuLabel className="text-xs text-muted-foreground">
-                  Support & Information
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {helpLinks.map((helpLink) => (
-                  <DropdownMenuItem key={helpLink.href} asChild>
-                    <Link to={helpLink.href} className="w-full flex items-center space-x-2">
-                      <helpLink.icon className="h-4 w-4 text-primary" />
-                      <span>{helpLink.label}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/privacy" className="w-full flex items-center space-x-2">
-                    <Shield className="h-4 w-4 text-primary" />
-                    <span>Privacy Policy</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/terms" className="w-full flex items-center space-x-2">
-                    <FileText className="h-4 w-4 text-primary" />
-                    <span>Terms of Service</span>
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Desktop Auth Section */}
-          <div className="hidden md:flex items-center space-x-4">
-            {/* Language and Location Selectors */}
+            {/* Language & Location Selectors */}
             <div className="flex items-center space-x-3 border-r pr-4">
               <LanguageSelector variant="compact" />
               <LocationSelector variant="compact" showDistrict />
             </div>
+          </div>
 
-            {/* Auth Section */}
+          {/* Auth Section */}
+          <div className="hidden md:flex items-center space-x-3">
             {isAuthenticated ? (
-              <div className="flex items-center space-x-3">
+              <>
                 <Button variant="outline" size="sm" asChild>
                   <Link to="/bookings">
                     <Calendar className="h-4 w-4 mr-2" />
@@ -281,44 +194,44 @@ export function Navigation() {
                     <DropdownMenuItem asChild>
                       <Link to="/dashboard">
                         <User className="mr-2 h-4 w-4" />
-                        <span>{t("navigation.dashboard")}</span>
+                        {t("navigation.dashboard")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/profile">
                         <Settings className="mr-2 h-4 w-4" />
-                        <span>{t("navigation.profile")}</span>
+                        {t("navigation.profile")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/bookings">
                         <Calendar className="mr-2 h-4 w-4" />
-                        <span>{t("navigation.bookings")}</span>
+                        {t("navigation.bookings")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/resume-builder">
                         <FileText className="mr-2 h-4 w-4" />
-                        <span>{t("navigation.resumeBuilder")}</span>
+                        {t("navigation.resumeBuilder")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
                       <LogOut className="mr-2 h-4 w-4" />
-                      <span>{t("navigation.logout")}</span>
+                      {t("navigation.logout")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </div>
+              </>
             ) : (
-              <div className="flex items-center space-x-2">
+              <>
                 <Button variant="ghost" asChild>
                   <Link to="/login">{t("navigation.login")}</Link>
                 </Button>
                 <Button asChild>
                   <Link to="/register">{t("navigation.register")}</Link>
                 </Button>
-              </div>
+              </>
             )}
           </div>
 
@@ -328,174 +241,99 @@ export function Navigation() {
             size="sm"
             className="md:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-expanded={isMobileMenuOpen}
+            aria-label="Toggle navigation menu"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t bg-background py-4">
-            <div className="flex flex-col space-y-3">
-              {/* Mobile Language and Location Selectors */}
-              <div className="border-b pb-3 mb-3 space-y-3">
-                <div className="px-2">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">LANGUAGE & LOCATION</p>
-                  <div className="space-y-2">
-                    <LanguageSelector />
-                    <LocationSelector showDistrict={true} />
-                  </div>
-                </div>
-              </div>
-
-              {[...navLinks, ...userLinks].map((link) => (
-                <div key={link.href}>
+          <div className="md:hidden mt-2 space-y-2 pb-4">
+            {navLinks.map((link) => (
+              <div key={link.href}>
+                {link.dropdown ? (
+                  <>
+                    <button
+                      className="flex w-full items-center justify-between px-2 py-2 text-left text-sm font-medium text-muted-foreground hover:text-primary"
+                      onClick={() =>
+                        setOpenDropdown(openDropdown === link.label ? null : link.label)
+                      }
+                    >
+                      <span>{link.label}</span>
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform ${
+                          openDropdown === link.label ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    {openDropdown === link.label && (
+                      <div className="ml-4 mt-1 space-y-1">
+                        {link.dropdown.map((subLink) => (
+                          <Link
+                            key={subLink.href}
+                            to={subLink.href}
+                            className={`block px-2 py-1 text-sm font-medium transition-colors hover:text-primary ${
+                              isActivePath(subLink.href) ? "text-primary" : "text-muted-foreground"
+                            }`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            {subLink.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
                   <Link
                     to={link.href}
-                    className={`text-sm font-medium transition-colors hover:text-primary px-2 py-1 ${
-                      isActivePath(link.href)
-                        ? "text-primary"
-                        : "text-muted-foreground"
+                    className={`block px-2 py-2 text-sm font-medium transition-colors hover:text-primary ${
+                      isActivePath(link.href) ? "text-primary" : "text-muted-foreground"
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {link.label}
                   </Link>
-                  {/* Show service subcategories in mobile */}
-                  {link.dropdown && (
-                    <div className="ml-4 mt-2 space-y-2">
-                      {link.dropdown.map((subLink) => (
-                        <Link
-                          key={subLink.href}
-                          to={subLink.href}
-                          className="block text-xs text-muted-foreground hover:text-primary px-2 py-1"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          {subLink.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              {/* Mobile Worker Links */}
-              <div className="border-t pt-3 mt-3">
-                <div className="flex items-center space-x-2 mb-3 px-2">
-                  <GraduationCap className="h-4 w-4 text-primary" />
-                  <p className="text-xs font-medium text-muted-foreground">{t("navigation.forWorkers").toUpperCase()}</p>
-                </div>
-                {workerLinks.map((workerLink) => (
-                  <Link
-                    key={workerLink.href}
-                    to={workerLink.href}
-                    className="flex items-start space-x-3 text-sm font-medium text-muted-foreground hover:text-primary px-2 py-2 rounded-md hover:bg-primary/5 transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <workerLink.icon className="h-4 w-4 mt-0.5 text-primary" />
-                    <div className="flex flex-col">
-                      <span>{workerLink.label}</span>
-                      <span className="text-xs opacity-70">{workerLink.description}</span>
-                    </div>
-                  </Link>
-                ))}
-                <Link
-                  to="/worker-support"
-                  className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary px-2 py-1 mt-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <HelpCircle className="h-4 w-4 text-primary" />
-                  <span>Worker Support</span>
-                </Link>
+                )}
               </div>
+            ))}
 
-              {/* Mobile Help Links */}
-              <div className="border-t pt-3 mt-3">
-                <div className="flex items-center space-x-2 mb-3 px-2">
-                  <HelpCircle className="h-4 w-4 text-primary" />
-                  <p className="text-xs font-medium text-muted-foreground">HELP & SUPPORT</p>
-                </div>
-                {helpLinks.map((helpLink) => (
-                  <Link
-                    key={helpLink.href}
-                    to={helpLink.href}
-                    className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary px-2 py-1 rounded-md hover:bg-primary/5 transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <helpLink.icon className="h-4 w-4 text-primary" />
-                    <span>{helpLink.label}</span>
-                  </Link>
-                ))}
-                <Link
-                  to="/privacy"
-                  className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary px-2 py-1 rounded-md hover:bg-primary/5 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Shield className="h-4 w-4 text-primary" />
-                  <span>Privacy Policy</span>
-                </Link>
-                <Link
-                  to="/terms"
-                  className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary px-2 py-1 rounded-md hover:bg-primary/5 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <FileText className="h-4 w-4 text-primary" />
-                  <span>Terms of Service</span>
-                </Link>
-              </div>
-              
+            {/* Auth links in mobile */}
+            <div className="mt-2 space-y-2 border-t pt-2">
               {isAuthenticated ? (
                 <>
-                  <div className="border-t pt-3 mt-3">
-                    <Link
-                      to="/dashboard"
-                      className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary px-2 py-1"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <User className="h-4 w-4" />
-                      <span>{t("navigation.dashboard")}</span>
-                    </Link>
-                    <Link
-                      to="/profile"
-                      className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary px-2 py-1"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Settings className="h-4 w-4" />
-                      <span>{t("navigation.profile")}</span>
-                    </Link>
-                    <Link
-                      to="/bookings"
-                      className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary px-2 py-1"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Calendar className="h-4 w-4" />
-                      <span>{t("navigation.bookings")}</span>
-                    </Link>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary px-2 py-1 w-full text-left"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>{t("navigation.logout")}</span>
-                    </button>
-                  </div>
+                  <Link
+                    to="/bookings"
+                    className="block px-2 py-2 text-sm font-medium text-muted-foreground hover:text-primary"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t("navigation.bookings")}
+                  </Link>
+                  <button
+                    className="block w-full text-left px-2 py-2 text-sm font-medium text-muted-foreground hover:text-primary"
+                    onClick={logout}
+                  >
+                    {t("navigation.logout")}
+                  </button>
                 </>
               ) : (
-                <div className="border-t pt-3 mt-3 flex flex-col space-y-2">
-                  <Button variant="ghost" asChild className="justify-start">
-                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                      {t("navigation.login")}
-                    </Link>
-                  </Button>
-                  <Button asChild className="justify-start">
-                    <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
-                      {t("navigation.register")}
-                    </Link>
-                  </Button>
-                </div>
+                <>
+                  <Link
+                    to="/login"
+                    className="block px-2 py-2 text-sm font-medium text-muted-foreground hover:text-primary"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t("navigation.login")}
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="block px-2 py-2 text-sm font-medium text-muted-foreground hover:text-primary"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t("navigation.register")}
+                  </Link>
+                </>
               )}
             </div>
           </div>
