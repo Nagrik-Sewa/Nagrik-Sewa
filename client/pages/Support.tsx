@@ -41,15 +41,15 @@ export default function Support() {
       faqs: [
         {
           question: "How do I create an account on Nagrik Sewa?",
-          answer: "You can create an account by downloading our mobile app or visiting our website. Click on 'Sign Up' and provide your phone number, email, and basic details. We'll send you an OTP for verification."
+          answer: "Creating your account is simple and secure. Download our mobile app from Google Play Store or Apple App Store, or visit our website. Click 'Sign Up' and enter your mobile number, email address, full name, and create a strong password. We'll send you an OTP for verification. Complete your profile by adding your address and preferred language. Review and accept our Terms of Service and Privacy Policy to activate your account."
         },
         {
           question: "How can I update my profile information?",
-          answer: "Go to your profile section in the app or website, click 'Edit Profile', update your information, and save changes. Some changes may require re-verification."
+          answer: "Navigate to 'My Profile' section in the app menu or click on your profile icon on the website. Click 'Edit Profile' button to modify personal information like name, phone number, email, or address. Update your profile picture by tapping the camera icon. For security, some changes like phone number or email may require OTP verification. Always click 'Save' or 'Update Profile' to ensure your information is properly stored."
         },
         {
           question: "I forgot my password. How can I reset it?",
-          answer: "Click on 'Forgot Password' on the login page, enter your registered email or phone number, and follow the instructions sent to you."
+          answer: "Click on 'Forgot Password' link on the login page of our app or website. Provide your registered email address or mobile number associated with your account. Check your email inbox or SMS for password reset instructions (also check spam folder). Click the reset link and create a new strong password with at least 8 characters including letters and numbers. Use your new password to login and update your security settings if needed."
         }
       ]
     },
@@ -60,19 +60,19 @@ export default function Support() {
       faqs: [
         {
           question: "How do I book a service?",
-          answer: "Browse services by category, select your preferred service provider, choose date and time, provide service details, and confirm booking with payment."
+          answer: "Browse through our service categories like cleaning, repairs, beauty, etc., or use the search function to find specific services. Choose from verified service providers based on ratings, reviews, pricing, and availability in your area. Pick your preferred date and time slot that works best for your schedule. Provide specific requirements, special instructions, and exact address with landmarks for accurate service delivery. Complete booking by making payment through our secure gateway using cards, UPI, net banking, or select cash-on-service option."
         },
         {
           question: "What payment methods do you accept?",
-          answer: "We accept all major credit/debit cards, UPI, net banking, digital wallets, and cash payments (for select services)."
+          answer: "We offer multiple secure payment options for your convenience. All major credit cards (Visa, Mastercard, Rupay), debit cards, and international cards are accepted securely. Pay instantly using UPI apps like Google Pay, PhonePe, Paytm, digital wallets, and BHIM UPI for quick transactions. Direct bank transfers from all major Indian banks including SBI, HDFC, ICICI, Axis, and regional banks are supported. Cash-on-service option is available for select services, though digital payments are recommended for safety."
         },
         {
           question: "Can I cancel or reschedule my booking?",
-          answer: "Yes, you can cancel or reschedule up to 2 hours before the scheduled time. Cancellation charges may apply based on the service provider's policy."
+          answer: "Yes, we provide flexible cancellation and rescheduling options. Free cancellation or rescheduling is allowed up to 2 hours before scheduled service time for most services. Use 'My Bookings' section in app/website to cancel or reschedule with just a few taps or clicks. Cancellations made within policy timeframe receive full refund, while late cancellations may incur service provider charges. Choose new date/time from available slots, and we'll confirm with the service provider within 30 minutes."
         },
         {
           question: "How do refunds work?",
-          answer: "Refunds are processed within 5-7 business days to your original payment method. The refund amount depends on the cancellation policy and timing."
+          answer: "Our refund process is transparent and customer-friendly. Refunds are initiated immediately and reflect in your account within 5-7 business days depending on your bank/payment method. Money is refunded to the original payment source - same card, UPI account, or wallet used for booking. In case of partial service completion or issues, you may receive partial refunds based on service provider policy and investigation. You'll receive SMS and email notifications with refund reference numbers to track the status."
         }
       ]
     },
@@ -83,15 +83,15 @@ export default function Support() {
       faqs: [
         {
           question: "Are service providers verified?",
-          answer: "Yes, all service providers undergo background verification, document checks, and skill assessments before joining our platform."
+          answer: "Yes, we maintain the highest verification standards for your safety and peace of mind. Every service provider submits government-issued ID proofs (Aadhaar, PAN, Driving License) which are verified by our security team. We conduct comprehensive background verification including criminal record checks and previous employment verification through authorized agencies. Practical skill tests and certifications ensure providers meet our quality standards and can deliver professional services. We also verify previous work experience and contact references to ensure reliability and professional conduct."
         },
         {
           question: "What if I'm not satisfied with the service?",
-          answer: "Contact our support team within 24 hours. We'll investigate and provide appropriate resolution, including re-service or refund if needed."
+          answer: "Your satisfaction is our priority. Contact our support team within 24 hours of service completion through app, website, or helpline for fastest resolution. Our quality team will investigate your complaint by reviewing service details, contacting the provider, and assessing the situation. Based on investigation, we offer re-service at no cost, partial/full refund, or service credit for future bookings. We work with the service provider to understand and resolve the issue to prevent similar problems in future."
         },
         {
           question: "Is my home safe with your service providers?",
-          answer: "We conduct thorough background checks and provide insurance coverage. You can also track service providers in real-time during their visit."
+          answer: "We prioritize your home's security with comprehensive safety measures. All service providers are covered under our comprehensive insurance policy that protects against any damage or theft during service. GPS tracking allows you to monitor service provider location and movement, with live updates sent to your phone. We have 24/7 emergency helpline and panic button feature in app for immediate assistance during any uncomfortable situations. Service providers follow strict safety protocols including wearing ID badges, following hygiene standards, and maintaining professional conduct."
         }
       ]
     },
@@ -102,15 +102,15 @@ export default function Support() {
       faqs: [
         {
           question: "The app is not working properly. What should I do?",
-          answer: "Try clearing the app cache, restarting your device, or updating to the latest version. If issues persist, contact our technical support."
+          answer: "Technical issues can be frustrating, but most can be resolved quickly. Close and restart the app completely, then check if your internet connection is stable and working properly. Ensure you have the latest version by checking Google Play Store or Apple App Store for available updates and install them. Go to your device settings, find Nagrik Sewa app, and clear cache/data, then restart the app to refresh all stored data. Restart your phone/tablet completely as this resolves most temporary software conflicts and memory issues. If issues persist, contact our technical support team with your device details."
         },
         {
           question: "I'm not receiving notifications.",
-          answer: "Check your notification settings in the app and ensure notifications are enabled in your device settings. Also check if Do Not Disturb mode is active."
+          answer: "Notification issues can prevent you from staying updated. Open Nagrik Sewa app, go to Settings > Notifications, and ensure all relevant notification types are enabled. Check your phone's Settings > Apps > Nagrik Sewa > Notifications and verify that notifications are allowed and not restricted. Ensure your device's Do Not Disturb mode is off, or add Nagrik Sewa to allowed apps during DND hours. Make sure Nagrik Sewa is allowed to run in background (Settings > Battery > Background App Refresh) for timely notifications. Poor network connectivity can delay notifications - ensure you have stable internet connection."
         },
         {
           question: "Why can't I see service providers in my area?",
-          answer: "Ensure location services are enabled and you've entered the correct address. We're continuously expanding our network to cover more areas."
+          answer: "Service availability depends on location and provider network. Enable location services/GPS in your device settings and allow Nagrik Sewa to access your precise location. Double-check that you've entered the correct complete address including area, city, and PIN code in your profile. We're continuously expanding our network - check our service area map or contact support to confirm coverage in your location. Some services may not be available during certain hours - try checking during peak service hours (9 AM - 8 PM). If services aren't available in your area yet, join our waitlist to be notified when we launch services in your locality."
         }
       ]
     }
