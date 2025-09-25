@@ -45,6 +45,9 @@ import SkillTraining from "./pages/workers/SkillTraining";
 import GetVerified from "./pages/workers/GetVerified";
 import ResumeBuilder from "./pages/workers/ResumeBuilder";
 import WorkerSupport from "./pages/workers/WorkerSupport";
+import FindCustomers from "./pages/FindCustomers";
+import CustomerSupport from "./pages/CustomerSupport";
+import JoinAsCustomer from "./pages/JoinAsCustomer";
 // import GovtSchemes from "./pages/workers/GovtSchemes";
 
 // Service Category Pages
@@ -119,6 +122,9 @@ const App = () => (
                       
                       {/* Worker Portal Routes */}
                       <Route path="/join-as-worker" element={<JoinAsWorker />} />
+                      <Route path="/join-as-customer" element={<JoinAsCustomer />} />
+                      <Route path="/find-customers" element={<FindCustomers />} />
+                      <Route path="/customer-support" element={<CustomerSupport />} />
                       <Route path="/skill-training" element={<SkillTraining />} />
                       <Route path="/get-verified" element={<GetVerified />} />
                       <Route path="/resume-builder" element={<ResumeBuilder />} />

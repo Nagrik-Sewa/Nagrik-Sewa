@@ -34,3 +34,8 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// API functions
+export const statsApi = {
+  getPlatformStats: () => api.get('/stats/platform'),
+};

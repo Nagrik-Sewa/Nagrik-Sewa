@@ -12,7 +12,15 @@ import {
   UserCheck,
   Users,
   HelpCircle,
-  Star
+  Star,
+  Calendar,
+  MapPin,
+  CreditCard,
+  Phone,
+  FileText,
+  Search,
+  Clock,
+  Award
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -42,9 +50,27 @@ export const ChatbotWidget: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Quick actions based on user type
+  const quickActions = userType === 'customer' ? [
+    { icon: Calendar, text: 'Book Service', query: 'I want to book a service' },
+    { icon: Search, text: 'Find Workers', query: 'How can I find workers in my area?' },
+    { icon: Clock, text: 'Track Order', query: 'How can I track my service appointment?' },
+    { icon: CreditCard, text: 'Payment Help', query: 'I need help with payments and pricing' },
+    { icon: MapPin, text: 'Service Areas', query: 'What areas do you serve?' },
+    { icon: Phone, text: 'Contact Support', query: 'I need to contact customer support' }
+  ] : [
+    { icon: UserCheck, text: 'Join Platform', query: 'How can I register as a worker?' },
+    { icon: FileText, text: 'Verification', query: 'What documents do I need for verification?' },
+    { icon: Award, text: 'Get Training', query: 'Tell me about training programs and certifications' },
+    { icon: CreditCard, text: 'Earnings', query: 'How much can I earn and how do payments work?' },
+    { icon: Users, text: 'Profile Help', query: 'Help me optimize my worker profile' },
+    { icon: Phone, text: 'Support', query: 'I need help with my worker account' }
+  ];
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -63,8 +89,14 @@ export const ChatbotWidget: React.FC = () => {
 
     const message = inputMessage.trim();
     setInputMessage('');
+    setShowQuickActions(false); // Hide quick actions after first message
     
     await sendMessage(message);
+  };
+
+  const handleQuickAction = async (query: string) => {
+    setShowQuickActions(false);
+    await sendMessage(query);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -101,7 +133,7 @@ export const ChatbotWidget: React.FC = () => {
 
   const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
     const isUser = message.role === 'user';
-    const isSystem = message.role === 'system';
+    const isRetryMessage = message.content.includes('🔄 Connection issue');
 
     return (
       <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
@@ -109,7 +141,7 @@ export const ChatbotWidget: React.FC = () => {
           <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
             isUser 
               ? 'bg-brand-600 text-white' 
-              : isSystem 
+              : isRetryMessage 
                 ? 'bg-gray-500 text-white'
                 : 'bg-gray-100 text-gray-600'
           }`}>
@@ -119,7 +151,7 @@ export const ChatbotWidget: React.FC = () => {
           <div className={`rounded-2xl px-4 py-2 ${
             isUser 
               ? 'bg-brand-600 text-white' 
-              : isSystem
+              : isRetryMessage
                 ? 'bg-gray-100 text-gray-700'
                 : 'bg-white border border-gray-200 text-gray-800'
           }`}>
@@ -277,16 +309,66 @@ export const ChatbotWidget: React.FC = () => {
             )}
 
             {/* Messages Area */}
-            <div className="flex-1 p-4 overflow-y-auto bg-gray-50" style={{ height: showSettings ? '380px' : '480px' }}>
+            <div className="flex-1 p-4 overflow-y-auto bg-gray-50" style={{ height: showSettings || showFeedback ? '380px' : '480px' }}>
               {messages.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="flex flex-col items-center justify-center h-full text-gray-500">
                   <div className="text-center">
                     <Bot className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                    <p className="text-sm">AI Assistant is ready to help!</p>
+                    <p className="text-sm mb-4">AI Assistant is ready to help!</p>
+                    
+                    {/* Quick Actions */}
+                    {showQuickActions && (
+                      <div className="max-w-sm">
+                        <p className="text-xs text-gray-600 mb-3 font-medium">Quick Actions:</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {quickActions.map((action, index) => (
+                            <Button
+                              key={index}
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-2 h-auto py-2 px-3 text-xs bg-white hover:bg-brand-50 hover:text-brand-700 hover:border-brand-200 transition-colors"
+                              onClick={() => handleQuickAction(action.query)}
+                            >
+                              <action.icon className="w-3 h-3" />
+                              <span className="truncate">{action.text}</span>
+                            </Button>
+                          ))}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mt-2 text-xs text-gray-500 hover:text-gray-700"
+                          onClick={() => setShowQuickActions(false)}
+                        >
+                          Or type your question below...
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
                 <div className="space-y-1">
+                  {/* Show quick actions if no user messages yet */}
+                  {showQuickActions && messages.filter(m => m.role === 'user').length === 0 && (
+                    <div className="mb-4 p-3 bg-white rounded-lg border border-gray-200">
+                      <p className="text-xs text-gray-600 mb-2 font-medium">Need help with:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {quickActions.slice(0, 4).map((action, index) => (
+                          <Button
+                            key={index}
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto py-1 px-2 text-xs text-brand-600 hover:bg-brand-50"
+                            onClick={() => handleQuickAction(action.query)}
+                          >
+                            <action.icon className="w-3 h-3 mr-1" />
+                            {action.text}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   {messages.map((message) => (
                     <MessageBubble key={message.id} message={message} />
                   ))}

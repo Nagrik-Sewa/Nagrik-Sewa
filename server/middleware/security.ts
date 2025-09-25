@@ -15,8 +15,8 @@ export const securityHeaders = helmet({
         ? ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://accounts.google.com", "https://apis.google.com", "https://digilocker.gov.in"] 
         : ["'self'", "https://accounts.google.com", "https://apis.google.com", "https://digilocker.gov.in"],
       connectSrc: process.env.NODE_ENV === 'development'
-        ? ["'self'", "ws:", "wss:", "http://localhost:*", "https://api.razorpay.com", "https://accounts.google.com", "https://oauth2.googleapis.com", "https://api.digitallocker.gov.in", "https://digilocker.gov.in"]
-        : ["'self'", "https://api.razorpay.com", "https://accounts.google.com", "https://oauth2.googleapis.com", "https://api.digitallocker.gov.in", "https://digilocker.gov.in"],
+        ? ["'self'", "ws:", "wss:", "http://localhost:*", "https://api.razorpay.com", "https://accounts.google.com", "https://oauth2.googleapis.com", "https://api.digitallocker.gov.in", "https://digilocker.gov.in", "https://generativelanguage.googleapis.com"]
+        : ["'self'", "https://api.razorpay.com", "https://accounts.google.com", "https://oauth2.googleapis.com", "https://api.digitallocker.gov.in", "https://digilocker.gov.in", "https://generativelanguage.googleapis.com"],
       frameSrc: ["'self'", "https://accounts.google.com", "https://digilocker.gov.in"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
