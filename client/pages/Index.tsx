@@ -220,12 +220,12 @@ export default function Index() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="bg-brand-600 hover:bg-brand-700 text-white text-lg px-8 py-4 shadow-lg">
                 <Users className="w-5 h-5 mr-2" />
-                Find Workers Now
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button size="lg" variant="outline" className="border-brand-600 text-brand-600 hover:bg-brand-50 text-lg px-8 py-4 border-2">
-                <Heart className="w-5 h-5 mr-2" />
                 Join as Worker
+                <ArrowRight className="w-5 h-5 mr-2" />
+              </Button>
+              <Button size="lg" variant="outline" className="bg-brand-600 hover:bg-brand-700 text-white text-lg px-8 py-4 shadow-lg">
+                <Heart className="w-5 h-5 mr-2" />
+                Join as Customel
               </Button>
               <Button size="lg" variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-200 text-lg px-8 py-4">
                 <Play className="w-5 h-5 mr-2" />
@@ -415,11 +415,11 @@ export default function Index() {
             Join thousands of satisfied customers and workers. Connect instantly and grow your business today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-brand-600 hover:bg-gray-50 hover:shadow-lg text-lg px-8 py-4 font-semibold border-2 border-white transition-all duration-300">
-              <Users className="w-5 h-5 mr-2" />
-              Find Workers Now
+            <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-gray-50 hover:text-brand-600 hover:shadow-lg text-lg px-8 py-4 font-semibold transition-all duration-300 w-[200px]">
+              <Search className="w-5 h-5 mr-2" />
+              Find Workers
             </Button>
-            <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-gray-50 hover:text-brand-600 hover:shadow-lg text-lg px-8 py-4 font-semibold transition-all duration-300">
+            <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-gray-50 hover:text-brand-600 hover:shadow-lg text-lg px-8 py-4 font-semibold transition-all duration-300 w-[200px]">
               <Search className="w-5 h-5 mr-2" />
               Find Customers
             </Button>
