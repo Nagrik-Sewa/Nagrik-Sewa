@@ -54,7 +54,7 @@ export function Navigation() {
   const navLinks: NavLink[] = [
     { href: "/", label: t("navigation.home"), icon: HomeIcon },
     {
-      href: "#",
+      href: "#workers",
       label: t("navigation.forWorkers"),
       icon: Users,
       dropdown: [
@@ -65,7 +65,7 @@ export function Navigation() {
       ],
     },
     {
-      href: "#",
+      href: "#customers",
       label: "For Customers",
       icon: Users,
       dropdown: [
