@@ -127,7 +127,7 @@ export default function JoinAsWorker() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-brand-600"
+                className="border-white text-white bg-white text-brand-600"
                 onClick={() => makePhoneCall(CONTACT_INFO.MAIN_SUPPORT_PHONE)}
               >
                 <Phone className="w-5 h-5 mr-2" />
@@ -355,7 +355,7 @@ export default function JoinAsWorker() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg"
-                className="bg-brand-600 hover:bg-brand-700"
+                className="bg-brand-700"
                 onClick={() => makePhoneCall(CONTACT_INFO.MAIN_SUPPORT_PHONE)}
               >
                 <Phone className="w-5 h-5 mr-2" />
@@ -364,7 +364,7 @@ export default function JoinAsWorker() {
               <Button 
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white hover:text-gray-800"
+                className="border-white text-white bg-white text-gray-800"
                 onClick={() => sendEmail(CONTACT_INFO.MAIN_EMAIL, "Worker Application Inquiry")}
               >
                 <Mail className="w-5 h-5 mr-2" />
