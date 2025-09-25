@@ -412,16 +412,16 @@ export default function Index() {
             Ready to Get Started?
           </h2>
           <p className="text-xl text-brand-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied customers and workers. Experience the future of work today.
+            Join thousands of satisfied customers and workers. Connect instantly and grow your business today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-brand-600 hover:bg-gray-100 text-lg px-8 py-4">
+            <Button size="lg" className="bg-white text-brand-600 hover:bg-gray-50 hover:shadow-lg text-lg px-8 py-4 font-semibold border-2 border-white transition-all duration-300">
               <Users className="w-5 h-5 mr-2" />
               Find Workers Now
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-brand-600 text-lg px-8 py-4">
-              <Heart className="w-5 h-5 mr-2" />
-              Join as Worker
+            <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-gray-50 hover:text-brand-600 hover:shadow-lg text-lg px-8 py-4 font-semibold transition-all duration-300">
+              <Search className="w-5 h-5 mr-2" />
+              Find Customers
             </Button>
           </div>
         </div>
