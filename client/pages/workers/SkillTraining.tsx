@@ -12,141 +12,266 @@ import {
   FileText,
   TrendingUp,
   Target,
-  Zap
+  Zap,
+  Search,
+  Filter
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
+import { Badge } from "../../components/ui/badge";
 
 export default function SkillTraining() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const trainingPrograms = [
+  const skillCourses = [
     {
       id: 1,
-      title: "Professional Home Cleaning",
-      category: "cleaning",
-      duration: "2 weeks",
+      title: "Professional House Cleaning",
+      category: "Home Services",
+      icon: "🏠",
+      description: "Learn professional cleaning techniques, equipment usage, and customer service skills",
+      duration: "2 hours",
       level: "Beginner",
       rating: 4.8,
       students: 1250,
-      price: "Free",
-      image: "/api/placeholder/300/200",
+      instructor: "Sunita Sharma",
+      videoUrl: "", // You will add this
+      thumbnail: "",
       modules: [
-        "Basic cleaning techniques",
-        "Equipment and chemical usage",
-        "Safety protocols",
-        "Customer service skills"
+        "Cleaning Equipment & Supplies",
+        "Room-by-Room Cleaning Techniques",
+        "Time Management & Efficiency",
+        "Customer Communication",
+        "Safety & Hygiene Standards"
       ],
-      certification: true,
-      instructor: "Priya Sharma - 10 years experience"
+      certificationAvailable: true,
+      price: "Free"
     },
     {
       id: 2,
       title: "Basic Plumbing Skills",
-      category: "plumbing",
-      duration: "3 weeks",
+      category: "Technical",
+      icon: "🔧",
+      description: "Master essential plumbing repairs, pipe fitting, and troubleshooting techniques",
+      duration: "3 hours",
       level: "Intermediate",
-      rating: 4.9,
-      students: 890,
-      price: "₹999",
-      image: "/api/placeholder/300/200",
+      rating: 4.7,
+      students: 850,
+      instructor: "Ramesh Kumar",
+      videoUrl: "", // You will add this
+      thumbnail: "",
       modules: [
-        "Pipe fitting and repair",
-        "Fixture installation",
-        "Leak detection",
-        "Tool usage and safety"
+        "Plumbing Tools & Materials",
+        "Pipe Repair & Installation",
+        "Drain Cleaning Techniques",
+        "Water Pressure Solutions",
+        "Emergency Repairs",
+        "Safety Protocols"
       ],
-      certification: true,
-      instructor: "Rajesh Kumar - Certified Plumber"
+      certificationAvailable: true,
+      price: "₹299"
     },
     {
       id: 3,
-      title: "Electrical Basics & Safety",
-      category: "electrical",
-      duration: "4 weeks",
+      title: "Electrical Work Fundamentals",
+      category: "Technical",
+      icon: "⚡",
+      description: "Learn safe electrical practices, wiring basics, and appliance troubleshooting",
+      duration: "4 hours",
       level: "Intermediate",
-      rating: 4.7,
-      students: 675,
-      price: "₹1,499",
-      image: "/api/placeholder/300/200",
+      rating: 4.9,
+      students: 680,
+      instructor: "Vijay Electrician",
+      videoUrl: "", // You will add this
+      thumbnail: "",
       modules: [
-        "Electrical circuits basics",
-        "Wiring and connections",
-        "Safety regulations",
-        "Troubleshooting common issues"
+        "Electrical Safety First",
+        "Basic Wiring Techniques",
+        "Circuit Testing & Troubleshooting",
+        "Appliance Repair Basics",
+        "Meter Reading & Usage",
+        "Legal & Compliance Requirements"
       ],
-      certification: true,
-      instructor: "Amit Patel - Licensed Electrician"
+      certificationAvailable: true,
+      price: "₹499"
     },
     {
       id: 4,
-      title: "Beauty & Wellness Services",
-      category: "beauty",
-      duration: "6 weeks",
+      title: "House Painting Mastery",
+      category: "Home Services",
+      icon: "🎨",
+      description: "Professional painting techniques for interior and exterior surfaces",
+      duration: "2.5 hours",
       level: "Beginner",
-      rating: 4.9,
-      students: 2100,
-      price: "₹2,999",
-      image: "/api/placeholder/300/200",
+      rating: 4.6,
+      students: 520,
+      instructor: "Mahesh Painter",
+      videoUrl: "", // You will add this
+      thumbnail: "",
       modules: [
-        "Facial and skincare",
-        "Hair styling techniques",
-        "Nail art and manicure",
-        "Hygiene and sanitation"
+        "Surface Preparation",
+        "Paint Selection & Mixing",
+        "Brush & Roller Techniques",
+        "Texture & Pattern Application",
+        "Clean-up & Finishing",
+        "Cost Estimation"
       ],
-      certification: true,
-      instructor: "Sunita Devi - Professional Beautician"
+      certificationAvailable: true,
+      price: "Free"
     },
     {
       id: 5,
-      title: "AC Repair & Maintenance",
-      category: "appliance",
-      duration: "3 weeks",
-      level: "Advanced",
+      title: "Carpentry & Woodwork",
+      category: "Construction",
+      icon: "🔨",
+      description: "Essential carpentry skills for furniture making and repair work",
+      duration: "5 hours",
+      level: "Intermediate",
       rating: 4.8,
-      students: 450,
-      price: "₹1,999",
-      image: "/api/placeholder/300/200",
+      students: 420,
+      instructor: "Suresh Carpenter",
+      videoUrl: "", // You will add this
+      thumbnail: "",
       modules: [
-        "AC components and working",
-        "Repair techniques",
-        "Gas charging",
-        "Preventive maintenance"
+        "Wood Types & Selection",
+        "Tool Usage & Maintenance",
+        "Measuring & Cutting Techniques",
+        "Joinery Methods",
+        "Furniture Assembly",
+        "Finishing & Polishing",
+        "Customer Requirements"
       ],
-      certification: true,
-      instructor: "Mohit Singh - HVAC Specialist"
+      certificationAvailable: true,
+      price: "₹699"
     },
     {
       id: 6,
-      title: "Customer Service Excellence",
-      category: "soft-skills",
-      duration: "1 week",
+      title: "Garden Maintenance & Landscaping",
+      category: "Home Services",
+      icon: "🌱",
+      description: "Complete guide to plant care, garden design, and maintenance",
+      duration: "3 hours",
       level: "Beginner",
-      rating: 4.6,
-      students: 3200,
-      price: "Free",
-      image: "/api/placeholder/300/200",
+      rating: 4.5,
+      students: 280,
+      instructor: "Kamala Gardener",
+      videoUrl: "", // You will add this
+      thumbnail: "",
       modules: [
-        "Communication skills",
-        "Handling difficult customers",
-        "Professional etiquette",
-        "Problem-solving"
+        "Plant Identification & Care",
+        "Soil Testing & Preparation",
+        "Watering & Fertilization",
+        "Pruning & Trimming",
+        "Pest & Disease Control",
+        "Seasonal Maintenance"
       ],
-      certification: true,
-      instructor: "Dr. Kavita Sharma - Soft Skills Expert"
+      certificationAvailable: true,
+      price: "Free"
+    },
+    {
+      id: 7,
+      title: "AC Installation & Repair",
+      category: "Technical",
+      icon: "❄️",
+      description: "Professional AC servicing, installation, and troubleshooting skills",
+      duration: "4 hours",
+      level: "Advanced",
+      rating: 4.7,
+      students: 340,
+      instructor: "Ravi AC Expert",
+      videoUrl: "", // You will add this
+      thumbnail: "",
+      modules: [
+        "AC Types & Components",
+        "Installation Procedures",
+        "Refrigerant Handling",
+        "Electrical Connections",
+        "Troubleshooting Common Issues",
+        "Preventive Maintenance",
+        "Customer Service"
+      ],
+      certificationAvailable: true,
+      price: "₹999"
+    },
+    {
+      id: 8,
+      title: "Construction & Labor Skills",
+      category: "Construction",
+      icon: "🏗️",
+      description: "Essential construction techniques and safety practices",
+      duration: "6 hours",
+      level: "Intermediate",
+      rating: 4.6,
+      students: 920,
+      instructor: "Prakash Builder",
+      videoUrl: "", // You will add this
+      thumbnail: "",
+      modules: [
+        "Construction Safety",
+        "Material Handling",
+        "Basic Masonry",
+        "Concrete Work",
+        "Tool Usage",
+        "Quality Control",
+        "Team Coordination"
+      ],
+      certificationAvailable: true,
+      price: "₹799"
+    },
+    {
+      id: 9,
+      title: "Beauty & Grooming Services",
+      category: "Personal Care",
+      icon: "💄",
+      description: "Professional beauty techniques and customer service",
+      duration: "4 hours",
+      level: "Intermediate",
+      rating: 4.8,
+      students: 180,
+      instructor: "Priya Beauty Expert",
+      videoUrl: "", // You will add this
+      thumbnail: "",
+      modules: [
+        "Hygiene & Sanitation",
+        "Hair Cutting & Styling",
+        "Makeup Application",
+        "Skin Care Basics",
+        "Equipment & Products",
+        "Customer Consultation",
+        "Business Skills"
+      ],
+      certificationAvailable: true,
+      price: "₹599"
+    },
+    {
+      id: 10,
+      title: "Workplace Safety & First Aid",
+      category: "Safety",
+      icon: "🛡️",
+      description: "Essential safety practices and emergency response for all workers",
+      duration: "2 hours",
+      level: "Beginner",
+      rating: 4.9,
+      students: 2100,
+      instructor: "Dr. Amit Safety Expert",
+      videoUrl: "", // You will add this
+      thumbnail: "",
+      modules: [
+        "Workplace Hazard Identification",
+        "Personal Protective Equipment",
+        "Emergency Procedures",
+        "Basic First Aid",
+        "Fire Safety",
+        "Accident Reporting"
+      ],
+      certificationAvailable: true,
+      price: "Free"
     }
   ];
 
-  const categories = [
-    { id: "all", name: "All Courses", count: trainingPrograms.length },
-    { id: "cleaning", name: "Cleaning", count: 1 },
-    { id: "plumbing", name: "Plumbing", count: 1 },
-    { id: "electrical", name: "Electrical", count: 1 },
-    { id: "beauty", name: "Beauty & Wellness", count: 1 },
-    { id: "appliance", name: "Appliance Repair", count: 1 },
-    { id: "soft-skills", name: "Soft Skills", count: 1 }
-  ];
+  const categories = ["All", "Home Services", "Construction", "Technical", "Personal Care", "Safety"];
 
   const benefits = [
     {
@@ -181,9 +306,20 @@ export default function SkillTraining() {
     }
   ];
 
-  const filteredPrograms = selectedCategory === "all" 
-    ? trainingPrograms 
-    : trainingPrograms.filter(program => program.category === selectedCategory);
+  const filteredCourses = skillCourses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         course.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "All" || course.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleWatchVideo = (course: any) => {
+    if (course.videoUrl) {
+      window.open(course.videoUrl, '_blank');
+    } else {
+      alert(`Video for "${course.title}" will be available soon. Please check back later!`);
+    }
+  };
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -197,51 +333,13 @@ export default function SkillTraining() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-brand-600 to-brand-700 text-white py-20">
+      <div className="bg-gradient-to-r from-brand-600 to-brand-700 text-white py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <BookOpen className="w-20 h-20 mx-auto mb-6" />
-            <h1 className="text-5xl font-bold mb-6">Skill Training Center</h1>
-            <p className="text-xl text-brand-100 mb-8 max-w-3xl mx-auto">
-              Enhance your skills with our comprehensive training programs. Get certified and increase your earning potential on Nagrik Sewa platform.
-            </p>
-            <div className="flex items-center justify-center space-x-8 text-brand-100">
-              <div className="text-center">
-                <div className="text-3xl font-bold">25+</div>
-                <div className="text-sm">Training Programs</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">10,000+</div>
-                <div className="text-sm">Certified Workers</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">95%</div>
-                <div className="text-sm">Job Placement Rate</div>
-              </div>
-            </div>
+            <h1 className="text-3xl md:text-4xl font-bold">Skill Training Center</h1>
           </div>
         </div>
       </div>
-
-      {/* Benefits Section */}
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Why Choose Our Training?</h2>
-            <p className="text-xl text-gray-600">Professional development that leads to real career growth</p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {benefits.map((benefit, index) => (
-              <Card key={index} className="p-6 hover:shadow-lg transition-shadow">
-                <benefit.icon className="w-12 h-12 text-brand-600 mb-4" />
-                <h3 className="text-xl font-semibold mb-3">{benefit.title}</h3>
-                <p className="text-gray-600">{benefit.description}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Training Programs */}
       <section className="py-16 bg-white">
@@ -251,137 +349,202 @@ export default function SkillTraining() {
             <p className="text-xl text-gray-600">Choose from our wide range of skill development courses</p>
           </div>
 
-          {/* Category Filter */}
-          <div className="flex flex-wrap justify-center gap-2 mb-8">
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category.id)}
-                className="mb-2"
-              >
-                {category.name} ({category.count})
-              </Button>
+          {/* Search and Filter */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="relative md:col-span-2">
+                  <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                  <Input
+                    placeholder="Search training courses..."
+                    className="pl-10 h-12 text-lg"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <select 
+                  className="h-12 px-4 rounded-md border border-gray-300 text-lg bg-white"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Results Count */}
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {filteredCourses.length} Training Courses Available
+            </h2>
+            <Button variant="outline" className="flex items-center space-x-2">
+              <Filter className="w-4 h-4" />
+              <span>Filters</span>
+            </Button>
+          </div>
+
+          {/* Courses Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredCourses.map((course) => (
+              <Card key={course.id} className="border-2 border-gray-100 hover:border-blue-200 transition-all duration-300 hover:shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-3xl">{course.icon}</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {course.category}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                      <span className="text-sm font-semibold">{course.rating}</span>
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg">{course.title}</CardTitle>
+                  <p className="text-sm text-gray-600">{course.description}</p>
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center space-x-1">
+                      <Clock className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-600">{course.duration}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Users className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-600">{course.students} students</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+                    <Badge variant={course.level === 'Beginner' ? 'default' : course.level === 'Intermediate' ? 'secondary' : 'destructive'}>
+                      {course.level}
+                    </Badge>
+                    <div className="font-semibold text-lg text-gray-900">{course.price}</div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-gray-700">Instructor:</div>
+                    <div className="text-sm text-gray-600">{course.instructor}</div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-gray-700">Course Modules:</div>
+                    <div className="space-y-1">
+                      {course.modules.slice(0, 3).map((module, index) => (
+                        <div key={index} className="flex items-center space-x-2 text-sm text-gray-600">
+                          <CheckCircle className="w-3 h-3 text-green-500" />
+                          <span>{module}</span>
+                        </div>
+                      ))}
+                      {course.modules.length > 3 && (
+                        <div className="text-xs text-gray-500">
+                          +{course.modules.length - 3} more modules
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {course.certificationAvailable && (
+                    <div className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg">
+                      <Award className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-green-700 font-medium">Certificate Available</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Button 
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      onClick={() => handleWatchVideo(course)}
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      Watch Training Video
+                    </Button>
+                    
+                    <Button variant="outline" className="w-full">
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      View Full Curriculum
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
-          {/* Programs Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPrograms.map((program) => (
-              <Card key={program.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="relative">
-                  <img 
-                    src={program.image} 
-                    alt={program.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLevelColor(program.level)}`}>
-                      {program.level}
-                    </span>
-                  </div>
-                  <div className="absolute top-4 right-4 bg-white rounded-full p-2">
-                    <Play className="w-4 h-4 text-brand-600" />
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl font-bold text-brand-600">{program.price}</span>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                      {program.rating} ({program.students})
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-xl font-semibold mb-2">{program.title}</h3>
-                  <p className="text-sm text-gray-600 mb-4">{program.instructor}</p>
-                  
-                  <div className="flex items-center text-sm text-gray-600 mb-4">
-                    <Clock className="w-4 h-4 mr-1" />
-                    {program.duration}
-                    {program.certification && (
-                      <>
-                        <FileText className="w-4 h-4 ml-4 mr-1" />
-                        Certificate
-                      </>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2 mb-6">
-                    <h4 className="font-medium">What you'll learn:</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      {program.modules.slice(0, 3).map((module, index) => (
-                        <li key={index} className="flex items-start">
-                          <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                          {module}
-                        </li>
-                      ))}
-                      {program.modules.length > 3 && (
-                        <li className="text-brand-600 text-sm">+{program.modules.length - 3} more modules</li>
-                      )}
-                    </ul>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Button className="w-full">
-                      {program.price === "Free" ? "Enroll Free" : "Enroll Now"}
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Curriculum
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
+          {filteredCourses.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No courses found</h3>
+              <p className="text-gray-600">Try adjusting your search or filters</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-8 bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-3xl font-bold text-gray-900">10+</div>
+              <div className="text-gray-600">Training Courses</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-gray-900">7,000+</div>
+              <div className="text-gray-600">Students Trained</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-gray-900">4.8</div>
+              <div className="text-gray-600">Average Rating</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-gray-900">100%</div>
+              <div className="text-gray-600">Certification Available</div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Certification Process */}
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Benefits Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Certification Process</h2>
-            <p className="text-xl text-gray-600">How to get your skill certificate</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Why Choose Our Training Programs?
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Get certified, improve your skills, and increase your earning potential with our comprehensive training courses
+            </p>
           </div>
           
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-brand-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                1
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="w-8 h-8 text-blue-600" />
               </div>
-              <Video className="w-8 h-8 text-brand-600 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Complete Course</h3>
-              <p className="text-gray-600">Watch all video lessons and complete practical exercises</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Certified Training</h3>
+              <p className="text-gray-600">Get industry-recognized certificates upon course completion</p>
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-brand-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                2
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-green-600" />
               </div>
-              <BookOpen className="w-8 h-8 text-brand-600 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Take Assessment</h3>
-              <p className="text-gray-600">Pass the online assessment test with 80% or higher</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Expert Instructors</h3>
+              <p className="text-gray-600">Learn from experienced professionals with years of industry experience</p>
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-brand-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                3
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Download className="w-8 h-8 text-orange-600" />
               </div>
-              <Zap className="w-8 h-8 text-brand-600 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Practical Demo</h3>
-              <p className="text-gray-600">Demonstrate your skills in a real-world scenario</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                4
-              </div>
-              <Award className="w-8 h-8 text-brand-600 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Get Certified</h3>
-              <p className="text-gray-600">Receive your digital certificate and skill badge</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Offline Access</h3>
+              <p className="text-gray-600">Download videos and materials for offline learning at your own pace</p>
             </div>
           </div>
         </div>

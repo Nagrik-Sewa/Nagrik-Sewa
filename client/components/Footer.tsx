@@ -70,7 +70,7 @@ export function Footer() {
                 <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-500 hover:bg-transparent">
                   <Facebook className="w-5 h-5" />
                 </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-black hover:bg-transparent">
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-cyan-500 hover:bg-transparent">
                   <Twitter className="w-5 h-5" />
                 </Button>
                 <Button variant="ghost" size="sm" className="text-gray-400 hover:text-pink-500 hover:bg-transparent">
@@ -99,12 +99,12 @@ export function Footer() {
             <div>
               <h4 className="font-semibold mb-4">{t("navigation.forWorkers")}</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/join-worker" className="hover:text-white">{t("navigation.joinAsWorker")}</Link></li>
-                <li><Link to="/training" className="hover:text-white">{t("navigation.skillTraining")}</Link></li>
-                <li><Link to="/verification" className="hover:text-white">{t("navigation.getVerified")}</Link></li>
-                <li><Link to="/resume-builder" className="hover:text-white">{t("navigation.resumeBuilder")}</Link></li>
-                <li><Link to="/worker-support" className="hover:text-white">{t("navigation.workerSupport")}</Link></li>
-                <li><Link to="/government-schemes" className="hover:text-white">{t("footer.govtSchemes")}</Link></li>
+                <li><Link to="/register" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("navigation.joinAsWorker")}</Link></li>
+                <li><Link to="/skill-training" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("navigation.skillTraining")}</Link></li>
+                <li><Link to="/get-verified" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("navigation.getVerified")}</Link></li>
+                <li><Link to="/resume-builder" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("navigation.resumeBuilder")}</Link></li>
+                <li><Link to="/worker-support" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("navigation.workerSupport")}</Link></li>
+                <li><Link to="/join-as-worker" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("footer.govtSchemes")}</Link></li>
               </ul>
             </div>
 
