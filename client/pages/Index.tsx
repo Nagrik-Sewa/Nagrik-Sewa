@@ -416,14 +416,18 @@ export default function Index() {
             Join thousands of satisfied customers and workers. Connect instantly and grow your business today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-gray-50 hover:text-brand-600 hover:shadow-lg text-lg px-8 py-4 font-semibold transition-all duration-300 w-[200px]">
-              <Search className="w-5 h-5 mr-2" />
-              Find Workers
-            </Button>
-            <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-gray-50 hover:text-brand-600 hover:shadow-lg text-lg px-8 py-4 font-semibold transition-all duration-300 w-[200px]">
-              <Search className="w-5 h-5 mr-2" />
-              Find Customers
-            </Button>
+            <Link to="/workers">
+              <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-gray-50 hover:text-brand-600 hover:shadow-lg text-lg px-8 py-4 font-semibold transition-all duration-300 w-[200px]">
+                <Search className="w-5 h-5 mr-2" />
+                Find Workers
+              </Button>
+            </Link>
+            <Link to="/find-customers">
+              <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-gray-50 hover:text-brand-600 hover:shadow-lg text-lg px-8 py-4 font-semibold transition-all duration-300 w-[200px]">
+                <Search className="w-5 h-5 mr-2" />
+                Find Customers
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
