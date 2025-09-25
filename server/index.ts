@@ -17,6 +17,7 @@ import testAIRoutes from "./routes/test-ai";
 import uploadRoutes from "./routes/upload";
 import digilockerRoutes from "./routes/digilocker";
 import resumeRoutes from "./routes/resume";
+import statsRoutes from "./routes/stats";
 
 export function createServer() {
   const app = express();
@@ -80,6 +81,7 @@ export function createServer() {
   app.use("/api/test-ai", testAIRoutes);
   app.use("/api/upload", uploadRoutes);
   app.use("/api/resume", resumeRoutes);
+  app.use("/api/stats", statsRoutes);
 
   // Serve uploaded files
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));

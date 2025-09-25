@@ -48,10 +48,10 @@ const translations: { [key in Language]: Translation } = {
       terms: 'Terms of Service',
     },
     footer: {
-      verifiedWorkers: '50,000+',
-      kycChecked: 'KYC Checked Workers',
-      workersCount: '5,000+',
-      acrossCities: 'Active in 25+ Cities',
+      verifiedWorkers: '25K+',
+      kycChecked: 'KYC Verified Workers',
+      workersCount: '50K+',
+      acrossCities: 'Active in 640+ Districts',
       govtRecognized: 'Government Recognized',
       skillIndiaCertified: 'Skill India Certified',
       companyDescription: 'Nagrik Sewa is India\'s first AI-powered home services platform that bridges the gap between skilled workers and customers. We empower workers with digital tools and provide customers with verified, skilled professionals.',
@@ -60,7 +60,7 @@ const translations: { [key in Language]: Translation } = {
       contactUs: 'Contact Us',
       emergencyHelpline: 'Emergency Helpline',
       emergency: 'Emergency',
-      copyright: '© 2024 Nagrik Sewa. All rights reserved.',
+      copyright: 'All rights reserved.',
       madeBy: 'Made with ❤️ in India for India',
     },
     common: {

@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { 
   Facebook, 
-  Twitter, 
   Instagram, 
   Youtube,
   Mail,
@@ -14,9 +13,34 @@ import {
 } from "lucide-react";
 import { CONTACT_INFO, makePhoneCall, sendEmail } from "../constants/contact";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePlatformStats } from "@/hooks/use-platform-stats";
+
+// Custom X (formerly Twitter) logo component
+const XLogo = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+);
 
 export function Footer() {
   const { t } = useLanguage();
+  const { stats, loading } = usePlatformStats();
+
+  // Format numbers for display
+  const formatNumber = (num: number) => {
+    if (num >= 100000) {
+      return `${Math.floor(num / 1000)}K+`;
+    } else if (num >= 1000) {
+      return `${Math.floor(num / 1000)}K+`;
+    }
+    return `${num}+`;
+  };
+
   return (
     <footer className="bg-gray-900 text-white">
       {/* Trust Indicators */}
@@ -24,24 +48,28 @@ export function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div className="flex items-center justify-center space-x-3">
-              <Shield className="w-8 h-8 text-brand-400" />
+              <Users className="w-8 h-8 text-blue-400" />
               <div>
-                <p className="font-semibold">{t("footer.verifiedWorkers")}</p>
-                <p className="text-sm text-gray-400">{t("footer.kycChecked")}</p>
+                <p className="font-semibold">
+                  {loading ? '...' : formatNumber(stats?.totalCustomers || 35000)}
+                </p>
+                <p className="text-sm text-gray-400">Happy Customers</p>
               </div>
             </div>
             <div className="flex items-center justify-center space-x-3">
-              <Users className="w-8 h-8 text-orange-400" />
+              <Users className="w-8 h-8 text-green-400" />
               <div>
-                <p className="font-semibold">{t("footer.workersCount")}</p>
-                <p className="text-sm text-gray-400">{t("footer.acrossCities")}</p>
+                <p className="font-semibold">
+                  {loading ? '...' : formatNumber(stats?.totalWorkers || 15000)}
+                </p>
+                <p className="text-sm text-gray-400">Skilled Workers</p>
               </div>
             </div>
             <div className="flex items-center justify-center space-x-3">
-              <Award className="w-8 h-8 text-brand-400" />
+              <Award className="w-8 h-8 text-yellow-400" />
               <div>
-                <p className="font-semibold">{t("footer.govtRecognized")}</p>
-                <p className="text-sm text-gray-400">{t("footer.skillIndiaCertified")}</p>
+                <p className="font-semibold">640+</p>
+                <p className="text-sm text-gray-400">Districts Covered</p>
               </div>
             </div>
           </div>
@@ -70,8 +98,8 @@ export function Footer() {
                 <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-500 hover:bg-transparent">
                   <Facebook className="w-5 h-5" />
                 </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-black hover:bg-transparent">
-                  <Twitter className="w-5 h-5" />
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-transparent">
+                  <XLogo className="w-5 h-5" />
                 </Button>
                 <Button variant="ghost" size="sm" className="text-gray-400 hover:text-pink-500 hover:bg-transparent">
                   <Instagram className="w-5 h-5" />
@@ -146,8 +174,8 @@ export function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-400 text-sm">
-                {t("footer.copyright")}<br />
-                <span className="block mt-1">{t("footer.madeBy")}</span>
+                © 2025 Nagrik Sewa. {t("footer.copyright")}<br />
+                <span className="block mt-1">Made with ❤️ by Pushkar Kumar Saini</span>
               </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/privacy" className="text-gray-400 hover:text-white text-sm">{t("navigation.privacy")}</Link>
