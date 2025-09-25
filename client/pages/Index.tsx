@@ -156,10 +156,10 @@ export default function Index() {
               {t('home.heroTitleEnd') || 'for Everyone'}
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              {t('home.heroDescription') || "India's smartest platform connecting you with verified workers through AI assistance."} 
-              <span className="font-semibold text-brand-600">{t('home.intelligentChatbot') || 'Intelligent chatbot support'}</span>, 
-              <span className="font-semibold text-orange-600"> {t('home.multilingualAI') || 'multilingual AI responses'}</span>, and 
-              <span className="font-semibold text-purple-600"> {t('home.aiProfiles') || 'AI-enhanced profiles'}</span> - {t('home.preferredLanguage') || 'all in your preferred language'}.
+              {t('home.heroDescription') || "India's premier digital platform connecting customers with verified service professionals through advanced AI technology."} 
+              <span className="font-semibold text-brand-600">{t('home.intelligentChatbot') || 'Expert AI assistance'}</span>, 
+              <span className="font-semibold text-orange-600"> {t('home.multilingualAI') || 'multilingual support'}</span>, and 
+              <span className="font-semibold text-purple-600"> {t('home.aiProfiles') || 'intelligent matching'}</span> - {t('home.preferredLanguage') || 'all in your native language'}.
             </p>
             
             {/* Search Bar */}
@@ -187,7 +187,7 @@ export default function Index() {
                       ))}
                     </select>
                   </div>
-                  <Button size="lg" className="h-12 text-lg bg-brand-500 hover:bg-brand-600">
+                  <Button size="lg" className="h-12 text-lg bg-brand-600 hover:bg-brand-700 shadow-md">
                     <Search className="w-5 h-5 mr-2" />
                     {t('home.findWorkers') || 'Find Workers'}
                   </Button>
@@ -218,16 +218,16 @@ export default function Index() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-brand-500 hover:bg-brand-600 text-lg px-8 py-4">
+              <Button size="lg" className="bg-brand-600 hover:bg-brand-700 text-white text-lg px-8 py-4 shadow-lg">
                 <Users className="w-5 h-5 mr-2" />
                 Find Workers Now
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-2">
+              <Button size="lg" variant="outline" className="border-brand-600 text-brand-600 hover:bg-brand-50 text-lg px-8 py-4 border-2">
                 <Heart className="w-5 h-5 mr-2" />
                 Join as Worker
               </Button>
-              <Button size="lg" variant="ghost" className="text-lg px-8 py-4">
+              <Button size="lg" variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-200 text-lg px-8 py-4">
                 <Play className="w-5 h-5 mr-2" />
                 Watch Demo
               </Button>
