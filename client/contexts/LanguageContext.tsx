@@ -49,21 +49,21 @@ const translations: { [key in Language]: Translation } = {
     },
     footer: {
       verifiedWorkers: '25K+',
-      kycChecked: 'KYC सत्यापित कार्यकर्ता',
+      kycChecked: 'KYC Verified Workers',
       workersCount: '50K+',
-      acrossCities: '640+ जिलों में सक्रिय',
-      govtRecognized: 'सरकारी मान्यता प्राप्त',
-      skillIndiaCertified: 'स्किल इंडिया प्रमाणित',
-      companyDescription: 'नागरिक सेवा भारत का पहला AI-संचालित घरेलू सेवा प्लेटफॉर्म है जो कुशल कार्यकर्ताओं और ग्राहकों के बीच की खाई को पाटता है। हम कार्यकर्ताओं को डिजिटल उपकरणों से सशक्त बनाते हैं और ग्राहकों को सत्यापित, कुशल पेशेवर प्रदान करते हैं।',
-      services: 'सेवाएं',
-      govtSchemes: 'सरकारी योजनाएं',
-      contactUs: 'संपर्क करें',
-      emergencyHelpline: 'आपातकालीन हेल्पलाइन',
-      emergency: 'आपातकाल',
-      copyright: 'सभी अधिकार सुरक्षित।',
-      madeBy: 'भारत में ❤️ से बनाया गया भारत के लिए',
-      happyCustomers: 'खुश ग्राहक',
-      skilledWorkers: 'कुशल कार्यकर्ता'
+      acrossCities: 'Active across 640+ Districts',
+      govtRecognized: 'Government Recognized',
+      skillIndiaCertified: 'Skill India Certified',
+      companyDescription: 'Nagrik Sewa is India\'s first AI-powered home services platform bridging the gap between skilled workers and customers. We empower workers with digital tools and provide customers with verified, skilled professionals.',
+      services: 'Services',
+      govtSchemes: 'Government Schemes',
+      contactUs: 'Contact Us',
+      emergencyHelpline: 'Emergency Helpline',
+      emergency: 'Emergency',
+      copyright: 'All rights reserved.',
+      madeBy: 'Made with ❤️ in India for India',
+      happyCustomers: 'Happy Customers',
+      skilledWorkers: 'Skilled Workers'
     },
     common: {
       loading: 'Loading...',
@@ -887,7 +887,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>(() => {
     const stored = localStorage.getItem('language') as Language;
-    return stored || 'en';
+    return stored && ['en', 'hi', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'or', 'pa', 'as', 'ur'].includes(stored) ? stored : 'en';
   });
 
   const t = (key: string): string => {

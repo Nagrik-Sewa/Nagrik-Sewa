@@ -190,7 +190,7 @@ export default function Support() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <HelpCircle className="w-16 h-16 mx-auto mb-4" />
-            <h1 className="text-4xl font-bold mb-4">Help & Support</h1>
+            <h1 className="text-4xl font-bold mb-4">Worker Help & Support</h1>
             <p className="text-xl text-brand-100 mb-8">
               We're here to help you 24/7. Find answers or get in touch with our support team.
             </p>
@@ -212,6 +212,215 @@ export default function Support() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
+        {/* Worker Registration Prompt */}
+        <section className="mb-16">
+          <Card className="border-brand-200 bg-gradient-to-r from-brand-50 to-blue-50">
+            <div className="p-12">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Users className="w-8 h-8 text-brand-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-brand-700 mb-4">
+                  Join as a Worker for Enhanced Support
+                </h2>
+                <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+                  Register as a worker to get dedicated support, training opportunities, and access to professional development resources.
+                </p>
+                
+                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-white rounded-lg p-6 shadow-sm">
+                    <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-3" />
+                    <h3 className="font-semibold mb-2">Priority Support</h3>
+                    <p className="text-sm text-gray-600">Get faster responses and dedicated assistance</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-6 shadow-sm">
+                    <Shield className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+                    <h3 className="font-semibold mb-2">Professional Verification</h3>
+                    <p className="text-sm text-gray-600">Verify your skills and identity for better opportunities</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button size="lg" className="bg-brand-600 hover:bg-brand-700 shadow-lg">
+                    <Users className="w-5 h-5 mr-2" />
+                    Register as Worker
+                  </Button>
+                  <Button size="lg" variant="outline" className="border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white">
+                    <Settings className="w-5 h-5 mr-2" />
+                    Worker Login
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        {/* Worker Verification Section */}
+        <section className="mb-16">
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <div className="p-6">
+              <div className="flex items-center text-blue-700 mb-4">
+                <Shield className="w-6 h-6 mr-2" />
+                <h2 className="text-2xl font-bold">Professional Verification & Training</h2>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Enhance your professional profile with skill verification and access exclusive training programs for better earning opportunities.
+              </p>
+              
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <h4 className="font-semibold text-sm">Skill Certification</h4>
+                    <p className="text-xs text-gray-600">Get certified in your skills</p>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <h4 className="font-semibold text-sm">Training Programs</h4>
+                    <p className="text-xs text-gray-600">Access professional courses</p>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <Shield className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <h4 className="font-semibold text-sm">Identity Verification</h4>
+                    <p className="text-xs text-gray-600">Secure profile verification</p>
+                  </div>
+                </div>
+                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  <Shield className="w-4 h-4 mr-2" />
+                  Start Verification Process
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </section>
+        
+        {/* Worker Success Stories */}
+        <section className="mb-16">
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-lg p-8">
+            <div className="text-center mb-8">
+              <Users className="w-12 h-12 mx-auto mb-4 text-yellow-600" />
+              <h2 className="text-3xl font-bold text-yellow-800 mb-4">Worker Success Stories</h2>
+              <p className="text-lg text-yellow-700 max-w-2xl mx-auto">
+                Join thousands of successful workers who have built thriving careers through our platform.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-yellow-200">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Rajesh Kumar</h3>
+                  <p className="text-sm text-gray-600 mb-3">Electrician, Mumbai</p>
+                  <p className="text-sm text-gray-700">"Increased my monthly income by 150% within 6 months of joining the platform."</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-yellow-200">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Settings className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Priya Sharma</h3>
+                  <p className="text-sm text-gray-600 mb-3">House Cleaner, Delhi</p>
+                  <p className="text-sm text-gray-700">"Professional training helped me get more clients and better ratings."</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-yellow-200">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Amit Patel</h3>
+                  <p className="text-sm text-gray-600 mb-3">Carpenter, Bangalore</p>
+                  <p className="text-sm text-gray-700">"Verification badge helped me build trust and get premium projects."</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <Button size="lg" className="bg-yellow-600 hover:bg-yellow-700">
+                <Users className="w-5 h-5 mr-2" />
+                Start Your Success Story
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Worker Training & Certification */}
+        <section className="mb-16">
+          <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+            <div className="p-8">
+              <div className="text-center mb-8">
+                <Settings className="w-12 h-12 mx-auto mb-4 text-purple-600" />
+                <h2 className="text-3xl font-bold mb-4">Skill Development & Training</h2>
+                <p className="text-gray-600">Enhance your skills and earning potential with our comprehensive training programs.</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <CheckCircle className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                  <h3 className="font-semibold mb-2">Free Courses</h3>
+                  <p className="text-sm text-gray-600">Access to professional training courses</p>
+                </div>
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <Shield className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                  <h3 className="font-semibold mb-2">Certifications</h3>
+                  <p className="text-sm text-gray-600">Get certified in multiple skill areas</p>
+                </div>
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <Users className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                  <h3 className="font-semibold mb-2">Community</h3>
+                  <p className="text-sm text-gray-600">Connect with fellow professionals</p>
+                </div>
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <CreditCard className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                  <h3 className="font-semibold mb-2">Higher Earnings</h3>
+                  <p className="text-sm text-gray-600">Certified workers earn 30% more</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
+                  <Settings className="w-5 h-5 mr-2" />
+                  Explore Training
+                </Button>
+                <Button size="lg" variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white">
+                  <Shield className="w-5 h-5 mr-2" />
+                  View Certifications
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        {/* Worker Benefits & Resources */}
+        <section className="mb-16">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6">
+            <div className="flex items-center mb-4">
+              <Users className="w-6 h-6 text-green-600 mr-2" />
+              <h2 className="text-2xl font-bold text-green-800">Worker Benefits & Resources</h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <Shield className="w-8 h-8 text-green-600 mb-3" />
+                <h3 className="font-semibold text-green-800 mb-1">Insurance Coverage</h3>
+                <p className="text-sm text-green-700">Comprehensive insurance protection during work</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <CreditCard className="w-8 h-8 text-green-600 mb-3" />
+                <h3 className="font-semibold text-green-800 mb-1">Instant Payments</h3>
+                <p className="text-sm text-green-700">Get paid immediately after job completion</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <Settings className="w-8 h-8 text-green-600 mb-3" />
+                <h3 className="font-semibold text-green-800 mb-1">Professional Tools</h3>
+                <p className="text-sm text-green-700">Access to professional development resources</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Contact Methods */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Get Instant Help</h2>
@@ -423,7 +632,7 @@ export default function Support() {
 
         {/* Service Status */}
         <section className="mb-16">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6">
             <div className="flex items-center mb-4">
               <CheckCircle className="w-6 h-6 text-green-600 mr-2" />
               <h2 className="text-2xl font-bold text-green-800">Service Status</h2>
