@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { 
+import {
   Search,
   MapPin,
   Star,
@@ -38,7 +38,7 @@ export default function Index() {
   const [selectedCity, setSelectedCity] = useState("Delhi");
 
   const cities = ["Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Ahmedabad"];
-  
+
   const popularServices = [
     { name: "House Cleaning", icon: "🏠", demand: "High" },
     { name: "Plumbing", icon: "🔧", demand: "Medium" },
@@ -127,7 +127,7 @@ export default function Index() {
     },
     {
       name: "Rajesh Kumar",
-      location: "Mumbai", 
+      location: "Mumbai",
       rating: 5,
       text: "As a plumber, this platform helped me get regular work and build my reputation. The payment system is transparent.",
       avatar: "R"
@@ -156,12 +156,12 @@ export default function Index() {
               {t('home.heroTitleEnd') || 'for Everyone'}
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              {t('home.heroDescription') || "India's premier digital platform connecting customers with verified service professionals through advanced AI technology."} 
-              <span className="font-semibold text-brand-600">{t('home.intelligentChatbot') || 'Expert AI assistance'}</span>, 
-              <span className="font-semibold text-orange-600"> {t('home.multilingualAI') || 'multilingual support'}</span>, and 
+              {t('home.heroDescription') || "India's premier digital platform connecting customers with verified service professionals through advanced AI technology."}
+              <span className="font-semibold text-brand-600">{t('home.intelligentChatbot') || 'Expert AI assistance'}</span>,
+              <span className="font-semibold text-orange-600"> {t('home.multilingualAI') || 'multilingual support'}</span>, and
               <span className="font-semibold text-purple-600"> {t('home.aiProfiles') || 'intelligent matching'}</span> - {t('home.preferredLanguage') || 'all in your native language'}.
             </p>
-            
+
             {/* Search Bar */}
             <div className="max-w-4xl mx-auto mb-8">
               <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
@@ -177,7 +177,7 @@ export default function Index() {
                   </div>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-                    <select 
+                    <select
                       className="pl-10 h-12 w-full rounded-md border border-gray-300 text-lg bg-white"
                       value={selectedCity}
                       onChange={(e) => setSelectedCity(e.target.value)}
@@ -201,9 +201,9 @@ export default function Index() {
               </p>
               <div className="flex flex-wrap gap-3 justify-center">
                 {popularServices.map((service, index) => (
-                  <Button 
+                  <Button
                     key={index}
-                    variant="outline" 
+                    variant="outline"
                     className="rounded-full border-gray-300 hover:border-brand-400 hover:bg-brand-50"
                   >
                     <span className="mr-2">{service.icon}</span>
@@ -224,8 +224,9 @@ export default function Index() {
                 <ArrowRight className="w-5 h-5 mr-2" />
               </Button>
               <Button size="lg" variant="outline" className="bg-brand-600 hover:bg-brand-700 text-white text-lg px-8 py-4 shadow-lg">
-                <Heart className="w-5 h-5 mr-2" />
-                Join as Customel
+                <Users className="w-5 h-5 mr-2" />
+                Join as Customer
+                <ArrowRight className="w-5 h-5 mr-2" />
               </Button>
               <Button size="lg" variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-200 text-lg px-8 py-4">
                 <Play className="w-5 h-5 mr-2" />
