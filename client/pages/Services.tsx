@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ export default function Services() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const { selectedState, selectedDistrict } = useLocation();
+  const navigate = useNavigate();
 
   // Get current location name
   const currentLocation = selectedState 
@@ -276,7 +277,14 @@ export default function Services() {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-brand-500 hover:bg-brand-600">
+                  <Button 
+                    className="w-full bg-brand-500 hover:bg-brand-600"
+                    onClick={() => {
+                      // Navigate to workers page and scroll to top
+                      navigate('/workers');
+                      // The ScrollToTop component will handle scrolling automatically
+                    }}
+                  >
                     View Workers
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>

@@ -63,6 +63,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ChatbotWidget } from "./components/chat/ChatbotWidget";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -98,6 +99,7 @@ const App = () => (
                         v7_relativeSplatPath: true,
                       }}
                     >
+                      <ScrollToTop />
                 <div className="min-h-screen flex flex-col bg-background">
                   <Navigation />
                   <main className="flex-1">

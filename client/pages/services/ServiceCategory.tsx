@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +56,7 @@ interface ServiceCategoryProps {
 export default function ServiceCategory({ category }: ServiceCategoryProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("Delhi");
+  const navigate = useNavigate();
 
   const locations = ["Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Hyderabad"];
 
@@ -171,7 +172,14 @@ export default function ServiceCategory({ category }: ServiceCategoryProps) {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button className="flex-1" size="sm">
+                    <Button 
+                      className="flex-1" 
+                      size="sm"
+                      onClick={() => {
+                        navigate('/book-service');
+                        // ScrollToTop component will handle scrolling
+                      }}
+                    >
                       Book Now
                       <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>
@@ -227,7 +235,14 @@ export default function ServiceCategory({ category }: ServiceCategoryProps) {
             Join thousands of satisfied customers who trust us for their service needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-brand-600 hover:bg-brand-700">
+            <Button 
+              size="lg" 
+              className="bg-brand-600 hover:bg-brand-700"
+              onClick={() => {
+                navigate('/book-service');
+                // ScrollToTop component will handle scrolling
+              }}
+            >
               Book Service Now
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>

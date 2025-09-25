@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ export default function Index() {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("Delhi");
+  const navigate = useNavigate();
 
   const cities = ["Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Ahmedabad"];
 
@@ -187,7 +188,14 @@ export default function Index() {
                       ))}
                     </select>
                   </div>
-                  <Button size="lg" className="h-12 text-lg bg-brand-600 hover:bg-brand-700 shadow-md">
+                  <Button 
+                    size="lg" 
+                    className="h-12 text-lg bg-brand-600 hover:bg-brand-700 shadow-md"
+                    onClick={() => {
+                      navigate('/workers');
+                      // ScrollToTop component will handle scrolling automatically
+                    }}
+                  >
                     <Search className="w-5 h-5 mr-2" />
                     {t('home.findWorkers') || 'Find Workers'}
                   </Button>
@@ -205,6 +213,10 @@ export default function Index() {
                     key={index}
                     variant="outline"
                     className="rounded-full border-gray-300 hover:border-brand-400 hover:bg-brand-50"
+                    onClick={() => {
+                      navigate('/services');
+                      // ScrollToTop component will handle scrolling automatically
+                    }}
                   >
                     <span className="mr-2">{service.icon}</span>
                     {service.name}
@@ -218,17 +230,40 @@ export default function Index() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-brand-600 hover:bg-brand-700 text-white text-lg px-8 py-4 shadow-lg">
+              <Button 
+                size="lg" 
+                className="bg-brand-600 hover:bg-brand-700 text-white text-lg px-8 py-4 shadow-lg"
+                onClick={() => {
+                  navigate('/join-as-worker');
+                  // ScrollToTop component will handle scrolling automatically
+                }}
+              >
                 <Users className="w-5 h-5 mr-2" />
                 Join as Worker
                 <ArrowRight className="w-5 h-5 mr-2" />
               </Button>
-              <Button size="lg" variant="outline" className="bg-brand-600 hover:bg-brand-700 text-white text-lg px-8 py-4 shadow-lg">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="bg-brand-600 hover:bg-brand-700 text-white text-lg px-8 py-4 shadow-lg"
+                onClick={() => {
+                  navigate('/join-as-customer');
+                  // ScrollToTop component will handle scrolling automatically
+                }}
+              >
                 <Users className="w-5 h-5 mr-2" />
                 Join as Customer
                 <ArrowRight className="w-5 h-5 mr-2" />
               </Button>
-              <Button size="lg" variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-200 text-lg px-8 py-4">
+              <Button 
+                size="lg" 
+                variant="secondary" 
+                className="bg-gray-100 text-gray-700 hover:bg-gray-200 text-lg px-8 py-4"
+                onClick={() => {
+                  navigate('/demo');
+                  // ScrollToTop component will handle scrolling automatically
+                }}
+              >
                 <Play className="w-5 h-5 mr-2" />
                 Watch Demo
               </Button>
