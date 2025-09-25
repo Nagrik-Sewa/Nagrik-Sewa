@@ -5,37 +5,35 @@ import {
   CheckCircle, 
   Upload, 
   User, 
-  Camera, 
   FileText,
   Clock,
   Star,
-  Award,
   Phone,
   Mail,
   AlertCircle,
-  CreditCard,
   MapPin,
-  Calendar,
   LogIn,
-  UserPlus
+  UserPlus,
+  CreditCard,
+  Award
 } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import { CONTACT_INFO, makePhoneCall, sendEmail } from "../../constants/contact";
-import { useAuth } from "../../contexts/AuthContext";
-import DigiLockerAuth from "../../components/DigiLockerAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CONTACT_INFO, makePhoneCall, sendEmail } from "../constants/contact";
+import { useAuth } from "../contexts/AuthContext";
+import DigiLockerAuth from "../components/DigiLockerAuth";
 
-export default function GetVerified() {
+export default function CustomerVerification() {
   const { user, isAuthenticated } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [showDigiLocker, setShowDigiLocker] = useState(false);
   const [isDigiLockerVerified, setIsDigiLockerVerified] = useState(user?.isDigiLockerVerified || false);
   const [formData, setFormData] = useState({
     personalInfo: {
-      fullName: "",
-      phone: "",
-      email: "",
+      fullName: user ? `${user.firstName} ${user.lastName}` : "",
+      phone: user?.phone || "",
+      email: user?.email || "",
       dateOfBirth: "",
       address: "",
       city: "",
@@ -45,14 +43,13 @@ export default function GetVerified() {
     documents: {
       aadharNumber: "",
       panNumber: "",
-      bankAccount: "",
-      ifscCode: ""
+      drivingLicense: "",
+      passport: ""
     },
-    skills: {
-      primarySkill: "",
-      experience: "",
-      certifications: "",
-      previousWork: ""
+    preferences: {
+      serviceCategories: [],
+      preferredLanguage: "English",
+      contactPreference: "both"
     }
   });
 
@@ -66,29 +63,22 @@ export default function GetVerified() {
     },
     {
       step: 2,
-      title: "Document Upload",
-      description: "ID proofs and legal documents",
+      title: "Document Verification",
+      description: "Identity and address proofs",
       icon: FileText,
       completed: false
     },
     {
       step: 3,
-      title: "Skill Assessment",
-      description: "Skills verification and testing",
-      icon: Award,
+      title: "Preferences Setup",
+      description: "Service preferences and settings",
+      icon: Star,
       completed: false
     },
     {
       step: 4,
-      title: "Background Check",
-      description: "Security and reference verification",
-      icon: Shield,
-      completed: false
-    },
-    {
-      step: 5,
-      title: "Final Approval",
-      description: "Account activation and onboarding",
+      title: "Verification Complete",
+      description: "Account activation and benefits",
       icon: CheckCircle,
       completed: false
     }
@@ -102,57 +92,45 @@ export default function GetVerified() {
       required: true
     },
     {
-      name: "PAN Card",
-      description: "Permanent Account Number for tax purposes",
-      format: "Clear photo/scan",
-      required: true
-    },
-    {
-      name: "Bank Passbook/Statement",
-      description: "For salary payments",
-      format: "First page with account details",
-      required: true
-    },
-    {
-      name: "Skill Certificates",
-      description: "Trade/skill certifications if any",
-      format: "Digital copies",
-      required: false
-    },
-    {
-      name: "Character Certificate",
-      description: "From local police or government office",
-      format: "Official document",
-      required: false
-    },
-    {
       name: "Address Proof",
-      description: "Utility bill or rental agreement",
+      description: "Utility bill, rental agreement, or bank statement",
       format: "Recent document (within 3 months)",
       required: true
+    },
+    {
+      name: "PAN Card",
+      description: "For tax purposes and higher transaction limits",
+      format: "Clear photo/scan",
+      required: false
+    },
+    {
+      name: "Passport/Driving License",
+      description: "Additional identity verification",
+      format: "Digital copy",
+      required: false
     }
   ];
 
   const benefits = [
     {
-      icon: Star,
-      title: "Priority Bookings",
-      description: "Get more job opportunities with verified badge"
+      icon: Shield,
+      title: "Priority Booking",
+      description: "Get first preference for popular services and time slots"
     },
     {
       icon: CreditCard,
-      title: "Higher Earnings",
-      description: "Verified workers earn 30% more on average"
+      title: "Higher Booking Limits",
+      description: "Book services worth up to ₹50,000 with verified status"
     },
     {
-      icon: Shield,
-      title: "Customer Trust",
-      description: "Customers prefer verified service providers"
+      icon: Star,
+      title: "Exclusive Discounts",
+      description: "Access to verified customer-only deals and offers"
     },
     {
       icon: Award,
-      title: "Skill Recognition",
-      description: "Display your verified skills and certifications"
+      title: "Premium Support",
+      description: "Dedicated customer support with faster resolution times"
     }
   ];
 
@@ -192,7 +170,7 @@ export default function GetVerified() {
   };
 
   const handleNext = () => {
-    if (currentStep < 5) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -270,12 +248,12 @@ export default function GetVerified() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">PIN Code *</label>
                 <Input
                   type="text"
-                  value={formData.personalInfo.state}
-                  onChange={(e) => handleInputChange('personalInfo', 'state', e.target.value)}
-                  placeholder="Your state"
+                  value={formData.personalInfo.pincode}
+                  onChange={(e) => handleInputChange('personalInfo', 'pincode', e.target.value)}
+                  placeholder="123456"
                   required
                 />
               </div>
@@ -328,64 +306,57 @@ export default function GetVerified() {
       case 3:
         return (
           <div className="space-y-6">
-            <h3 className="text-2xl font-semibold mb-4">Skill Assessment</h3>
-            <div className="grid gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Primary Skill/Service *</label>
-                <select
-                  value={formData.skills.primarySkill}
-                  onChange={(e) => handleInputChange('skills', 'primarySkill', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                >
-                  <option value="">Select your primary skill</option>
-                  <option value="cleaning">Home Cleaning</option>
-                  <option value="plumbing">Plumbing</option>
-                  <option value="electrical">Electrical Work</option>
-                  <option value="painting">Painting</option>
-                  <option value="ac-repair">AC Repair</option>
-                  <option value="beauty">Beauty & Wellness</option>
-                  <option value="carpentry">Carpentry</option>
-                  <option value="appliance">Appliance Repair</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Years of Experience *</label>
-                <select
-                  value={formData.skills.experience}
-                  onChange={(e) => handleInputChange('skills', 'experience', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                >
-                  <option value="">Select experience</option>
-                  <option value="0-1">0-1 years</option>
-                  <option value="1-3">1-3 years</option>
-                  <option value="3-5">3-5 years</option>
-                  <option value="5-10">5-10 years</option>
-                  <option value="10+">10+ years</option>
-                </select>
-              </div>
-            </div>
+            <h3 className="text-2xl font-semibold mb-4">Preferences Setup</h3>
             
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Language</label>
+              <select
+                value={formData.preferences.preferredLanguage}
+                onChange={(e) => handleInputChange('preferences', 'preferredLanguage', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="English">English</option>
+                <option value="Hindi">हिंदी (Hindi)</option>
+                <option value="Bengali">বাংলা (Bengali)</option>
+                <option value="Tamil">தமிழ் (Tamil)</option>
+                <option value="Telugu">తెలుగు (Telugu)</option>
+                <option value="Marathi">मराठी (Marathi)</option>
+                <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Communication Preference</label>
+              <select
+                value={formData.preferences.contactPreference}
+                onChange={(e) => handleInputChange('preferences', 'contactPreference', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="both">SMS + Email</option>
+                <option value="sms">SMS Only</option>
+                <option value="email">Email Only</option>
+                <option value="whatsapp">WhatsApp</option>
+              </select>
+            </div>
+
             <Card className="p-6 bg-green-50 border-green-200">
-              <h4 className="font-semibold text-green-800 mb-3">Skill Assessment Process</h4>
+              <h4 className="font-semibold text-green-800 mb-3">Verification Benefits</h4>
               <div className="space-y-3 text-sm text-green-700">
                 <div className="flex items-center">
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Online skill questionnaire (20 questions)
+                  Priority booking for high-demand services
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Video call with skill assessor (15 minutes)
+                  Access to premium and verified workers
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Practical demonstration if required
+                  Exclusive discounts and offers
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Skill certification upon passing
+                  Dedicated customer support
                 </div>
               </div>
             </Card>
@@ -394,70 +365,6 @@ export default function GetVerified() {
 
       case 4:
         return (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-semibold mb-4">Background Verification</h3>
-            
-            <Card className="p-6">
-              <h4 className="font-semibold mb-4">Verification Process</h4>
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <div className="w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">
-                    1
-                  </div>
-                  <div>
-                    <h5 className="font-medium">Identity Verification</h5>
-                    <p className="text-sm text-gray-600">Verify Aadhar and PAN details with government databases</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">
-                    2
-                  </div>
-                  <div>
-                    <h5 className="font-medium">Address Verification</h5>
-                    <p className="text-sm text-gray-600">Physical address verification through our field team</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">
-                    3
-                  </div>
-                  <div>
-                    <h5 className="font-medium">Reference Check</h5>
-                    <p className="text-sm text-gray-600">Contact previous employers or customers for references</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">
-                    4
-                  </div>
-                  <div>
-                    <h5 className="font-medium">Criminal Background Check</h5>
-                    <p className="text-sm text-gray-600">Police verification for criminal history (if applicable)</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-            
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <div className="flex items-start">
-                <Clock className="w-5 h-5 text-yellow-600 mt-0.5 mr-2" />
-                <div>
-                  <h4 className="font-medium text-yellow-800">Verification Timeline</h4>
-                  <p className="text-sm text-yellow-700 mt-1">
-                    Background verification typically takes 3-5 business days. We'll keep you updated via SMS and email throughout the process.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 5:
-        return (
           <div className="space-y-6 text-center">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle className="w-12 h-12 text-green-600" />
@@ -465,7 +372,7 @@ export default function GetVerified() {
             
             <h3 className="text-2xl font-semibold">Verification Complete!</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Congratulations! Your verification process is complete. You'll receive your verified badge and can start receiving customer bookings within 24 hours.
+              Congratulations! Your account has been verified. You now have access to all premium features and verified worker services.
             </p>
             
             <Card className="p-6 max-w-md mx-auto">
@@ -473,22 +380,35 @@ export default function GetVerified() {
               <div className="space-y-3 text-left">
                 <div className="flex items-center text-sm">
                   <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                  Download Nagrik Sewa Worker App
+                  Browse verified service providers
                 </div>
                 <div className="flex items-center text-sm">
                   <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                  Complete your profile setup
+                  Book services with priority support
                 </div>
                 <div className="flex items-center text-sm">
                   <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                  Set your availability and rates
+                  Access exclusive customer discounts
                 </div>
                 <div className="flex items-center text-sm">
                   <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                  Start receiving bookings
+                  Enjoy premium customer support
                 </div>
               </div>
             </Card>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/workers">
+                <Button size="lg" className="bg-brand-600 hover:bg-brand-700">
+                  Browse Services
+                </Button>
+              </Link>
+              <Link to="/dashboard">
+                <Button size="lg" variant="outline">
+                  Go to Dashboard
+                </Button>
+              </Link>
+            </div>
           </div>
         );
 
@@ -504,9 +424,9 @@ export default function GetVerified() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Shield className="w-20 h-20 mx-auto mb-6" />
-            <h1 className="text-5xl font-bold mb-6">Get Verified</h1>
+            <h1 className="text-5xl font-bold mb-6">Customer Verification</h1>
             <p className="text-xl text-brand-100 mb-8 max-w-3xl mx-auto">
-              Complete our comprehensive verification process to build trust with customers and unlock premium features on the Nagrik Sewa platform.
+              Get verified to unlock premium features, priority booking, and access to our best service providers on the Nagrik Sewa platform.
             </p>
           </div>
         </div>
@@ -523,7 +443,7 @@ export default function GetVerified() {
                 </div>
                 <CardTitle className="text-2xl">Login Required</CardTitle>
                 <CardDescription className="text-lg">
-                  You need to be logged in to access the verification process
+                  You need to be logged in to access the customer verification process
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -554,6 +474,7 @@ export default function GetVerified() {
                     <li>• Track your verification progress</li>
                     <li>• Receive notifications about status updates</li>
                     <li>• Access DigiLocker integration for faster verification</li>
+                    <li>• Link verification to your booking history</li>
                   </ul>
                 </div>
               </CardContent>
@@ -572,7 +493,7 @@ export default function GetVerified() {
                 ×
               </Button>
             </div>
-            <DigiLockerAuth onVerificationComplete={handleDigiLockerVerification} userType="worker" />
+            <DigiLockerAuth onVerificationComplete={handleDigiLockerVerification} userType="customer" />
           </div>
         </div>
       )}
@@ -656,106 +577,103 @@ export default function GetVerified() {
 
           {/* Benefits Section */}
           <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Benefits of Verification</h2>
-            <p className="text-xl text-gray-600">Why verified workers succeed on our platform</p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => (
-              <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
-                <benefit.icon className="w-12 h-12 text-brand-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-3">{benefit.title}</h3>
-                <p className="text-gray-600 text-sm">{benefit.description}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Verification Process */}
-      <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Progress Steps */}
-          <div className="mb-12">
-            <div className="flex justify-between items-center">
-              {verificationSteps.map((step, index) => (
-                <div key={step.step} className="flex flex-col items-center flex-1">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mb-2 ${
-                    currentStep >= step.step ? 'bg-brand-600' : 'bg-gray-300'
-                  }`}>
-                    {currentStep > step.step ? <CheckCircle className="w-6 h-6" /> : step.step}
-                  </div>
-                  <step.icon className={`w-6 h-6 mb-2 ${currentStep >= step.step ? 'text-brand-600' : 'text-gray-400'}`} />
-                  <h4 className={`text-sm font-medium text-center ${currentStep >= step.step ? 'text-brand-600' : 'text-gray-400'}`}>
-                    {step.title}
-                  </h4>
-                  <p className="text-xs text-gray-500 text-center mt-1">{step.description}</p>
-                  
-                  {index < verificationSteps.length - 1 && (
-                    <div className={`absolute h-0.5 w-20 mt-6 ${currentStep > step.step ? 'bg-brand-600' : 'bg-gray-300'}`} 
-                         style={{ left: `${(index + 1) * 20}%`, transform: 'translateX(-50%)' }} />
-                  )}
-                </div>
-              ))}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold mb-4">Benefits of Customer Verification</h2>
+                <p className="text-xl text-gray-600">Why verified customers get the best experience</p>
+              </div>
+              
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {benefits.map((benefit, index) => (
+                  <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
+                    <benefit.icon className="w-12 h-12 text-brand-600 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-3">{benefit.title}</h3>
+                    <p className="text-gray-600 text-sm">{benefit.description}</p>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
+          </section>
 
-          {/* Step Content */}
-          <Card className="p-8 mb-8">
-            {renderStepContent()}
-          </Card>
+          {/* Verification Process */}
+          <section className="py-16 bg-white">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+              {/* Progress Steps */}
+              <div className="mb-12">
+                <div className="flex justify-between items-center">
+                  {verificationSteps.map((step, index) => (
+                    <div key={step.step} className="flex flex-col items-center flex-1">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mb-2 ${
+                        currentStep >= step.step ? 'bg-brand-600' : 'bg-gray-300'
+                      }`}>
+                        {currentStep > step.step ? <CheckCircle className="w-6 h-6" /> : step.step}
+                      </div>
+                      <step.icon className={`w-6 h-6 mb-2 ${currentStep >= step.step ? 'text-brand-600' : 'text-gray-400'}`} />
+                      <h4 className={`text-sm font-medium text-center ${currentStep >= step.step ? 'text-brand-600' : 'text-gray-400'}`}>
+                        {step.title}
+                      </h4>
+                      <p className="text-xs text-gray-500 text-center mt-1">{step.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between">
-            <Button 
-              variant="outline" 
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-            >
-              Previous
-            </Button>
-            
-            <Button 
-              onClick={handleNext}
-              disabled={currentStep === 5}
-            >
-              {currentStep === 4 ? 'Submit for Verification' : 'Next Step'}
-            </Button>
-          </div>
-        </div>
-      </section>
+              {/* Step Content */}
+              <Card className="p-8 mb-8">
+                {renderStepContent()}
+              </Card>
 
-      {/* Contact Support */}
-      <section className="py-16 bg-gray-800 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Need Help with Verification?</h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Our support team is available to assist you throughout the verification process.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg"
-              className="bg-brand-600 hover:bg-brand-700"
-              onClick={() => makePhoneCall(CONTACT_INFO.MAIN_SUPPORT_PHONE)}
-            >
-              <Phone className="w-5 h-5 mr-2" />
-              Call Support
-            </Button>
-            <Button 
-              size="lg"
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-gray-800"
-              onClick={() => sendEmail(CONTACT_INFO.MAIN_EMAIL, "Verification Support Request")}
-            >
-              <Mail className="w-5 h-5 mr-2" />
-              Email Support
-            </Button>
-          </div>
-          </div>
-        </section>
+              {/* Navigation Buttons */}
+              {currentStep < 4 && (
+                <div className="flex justify-between">
+                  <Button 
+                    variant="outline" 
+                    onClick={handlePrevious}
+                    disabled={currentStep === 1}
+                  >
+                    Previous
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleNext}
+                    disabled={currentStep === 4}
+                  >
+                    {currentStep === 3 ? 'Complete Verification' : 'Next Step'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Contact Support */}
+          <section className="py-16 bg-gray-800 text-white">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <h2 className="text-3xl font-bold mb-4">Need Help with Verification?</h2>
+              <p className="text-xl text-gray-300 mb-8">
+                Our support team is available to assist you throughout the verification process.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  size="lg"
+                  className="bg-brand-600 hover:bg-brand-700"
+                  onClick={() => makePhoneCall(CONTACT_INFO.CUSTOMER_SUPPORT_PHONE)}
+                >
+                  <Phone className="w-5 h-5 mr-2" />
+                  Call Support
+                </Button>
+                <Button 
+                  size="lg"
+                  variant="outline"
+                  className="border-white text-white hover:bg-white hover:text-gray-800"
+                  onClick={() => sendEmail(CONTACT_INFO.MAIN_EMAIL, "Customer Verification Support")}
+                >
+                  <Mail className="w-5 h-5 mr-2" />
+                  Email Support
+                </Button>
+              </div>
+            </div>
+          </section>
         </>
       )}
     </div>

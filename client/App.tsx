@@ -48,6 +48,7 @@ import WorkerSupport from "./pages/workers/WorkerSupport";
 import FindCustomers from "./pages/FindCustomers";
 import CustomerSupport from "./pages/CustomerSupport";
 import JoinAsCustomer from "./pages/JoinAsCustomer";
+import CustomerVerification from "./pages/CustomerVerification";
 // import GovtSchemes from "./pages/workers/GovtSchemes";
 
 // Service Category Pages
@@ -127,6 +128,7 @@ const App = () => (
                       <Route path="/join-as-customer" element={<JoinAsCustomer />} />
                       <Route path="/find-customers" element={<FindCustomers />} />
                       <Route path="/customer-support" element={<CustomerSupport />} />
+                      <Route path="/customer-verification" element={<CustomerVerification />} />
                       <Route path="/skill-training" element={<SkillTraining />} />
                       <Route path="/get-verified" element={<GetVerified />} />
                       <Route path="/resume-builder" element={<ResumeBuilder />} />

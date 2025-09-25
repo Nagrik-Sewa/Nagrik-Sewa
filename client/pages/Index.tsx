@@ -41,12 +41,12 @@ export default function Index() {
   const cities = ["Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Ahmedabad"];
 
   const popularServices = [
-    { name: "House Cleaning", icon: "🏠", demand: "High" },
-    { name: "Plumbing", icon: "🔧", demand: "Medium" },
-    { name: "Electrical Work", icon: "⚡", demand: "High" },
-    { name: "Painting", icon: "🎨", demand: "Medium" },
-    { name: "Carpentry", icon: "🔨", demand: "Medium" },
-    { name: "Gardening", icon: "🌱", demand: "Low" },
+    { name: t('home.services.houseCleaning') || "House Cleaning", icon: "🏠", demand: "High" },
+    { name: t('home.services.plumbing') || "Plumbing", icon: "🔧", demand: "Medium" },
+    { name: t('home.services.electricalWork') || "Electrical Work", icon: "⚡", demand: "High" },
+    { name: t('home.services.painting') || "Painting", icon: "🎨", demand: "Medium" },
+    { name: t('home.services.carpentry') || "Carpentry", icon: "🔨", demand: "Medium" },
+    { name: t('home.services.gardening') || "Gardening", icon: "🌱", demand: "Low" },
   ];
 
   const features = [
@@ -329,10 +329,10 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              How It Works
+              {t('home.howItWorks.title') || 'How It Works'}
             </h2>
             <p className="text-xl text-gray-600">
-              Get connected with verified workers in just 3 simple steps
+              {t('home.howItWorks.subtitle') || 'Get connected with verified workers in just 3 simple steps'}
             </p>
           </div>
 
@@ -341,27 +341,27 @@ export default function Index() {
               <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-white font-bold text-2xl">1</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Search & Select</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('home.howItWorks.step1.title') || 'Search & Select'}</h3>
               <p className="text-gray-600">
-                Search for the service you need, view worker profiles, ratings, and reviews. Our AI matches you with the best options.
+                {t('home.howItWorks.step1.description') || 'Search for the service you need, view worker profiles, ratings, and reviews. Our AI matches you with the best options.'}
               </p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-white font-bold text-2xl">2</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Book & Track</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('home.howItWorks.step2.title') || 'Book & Track'}</h3>
               <p className="text-gray-600">
-                Book your preferred worker, make secure payments, and track their location in real-time as they arrive.
+                {t('home.howItWorks.step2.description') || 'Book your preferred worker, make secure payments, and track their location in real-time as they arrive.'}
               </p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-white font-bold text-2xl">3</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Get Work Done</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('home.howItWorks.step3.title') || 'Get Work Done'}</h3>
               <p className="text-gray-600">
-                Your verified worker completes the job professionally. Rate your experience and help others find great workers.
+                {t('home.howItWorks.step3.description') || 'Your verified worker completes the job professionally. Rate your experience and help others find great workers.'}
               </p>
             </div>
           </div>
@@ -376,10 +376,10 @@ export default function Index() {
               🔮 Future-Ready Platform
             </Badge>
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              Advanced Features
+              {t('home.advancedFeaturesSection.title') || 'Advanced Features'}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We're building the future of work with innovative features that empower both workers and customers.
+              {t('home.advancedFeaturesSection.subtitle') || 'We\'re building the future of work with innovative features that empower both workers and customers.'}
             </p>
           </div>
 
@@ -408,10 +408,10 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              What People Say
+              {t('home.testimonials.title') || 'What People Say'}
             </h2>
             <p className="text-xl text-gray-600">
-              Trusted by thousands of customers and workers across India
+              {t('home.testimonials.subtitle') || 'Trusted by thousands of customers and workers across India'}
             </p>
           </div>
 

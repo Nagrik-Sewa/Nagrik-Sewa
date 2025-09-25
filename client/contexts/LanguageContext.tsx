@@ -49,19 +49,21 @@ const translations: { [key in Language]: Translation } = {
     },
     footer: {
       verifiedWorkers: '25K+',
-      kycChecked: 'KYC Verified Workers',
+      kycChecked: 'KYC सत्यापित कार्यकर्ता',
       workersCount: '50K+',
-      acrossCities: 'Active in 640+ Districts',
-      govtRecognized: 'Government Recognized',
-      skillIndiaCertified: 'Skill India Certified',
-      companyDescription: 'Nagrik Sewa is India\'s first AI-powered home services platform that bridges the gap between skilled workers and customers. We empower workers with digital tools and provide customers with verified, skilled professionals.',
-      services: 'Services',
-      govtSchemes: 'Government Schemes',
-      contactUs: 'Contact Us',
-      emergencyHelpline: 'Emergency Helpline',
-      emergency: 'Emergency',
-      copyright: 'All rights reserved.',
-      madeBy: 'Made with ❤️ in India for India',
+      acrossCities: '640+ जिलों में सक्रिय',
+      govtRecognized: 'सरकारी मान्यता प्राप्त',
+      skillIndiaCertified: 'स्किल इंडिया प्रमाणित',
+      companyDescription: 'नागरिक सेवा भारत का पहला AI-संचालित घरेलू सेवा प्लेटफॉर्म है जो कुशल कार्यकर्ताओं और ग्राहकों के बीच की खाई को पाटता है। हम कार्यकर्ताओं को डिजिटल उपकरणों से सशक्त बनाते हैं और ग्राहकों को सत्यापित, कुशल पेशेवर प्रदान करते हैं।',
+      services: 'सेवाएं',
+      govtSchemes: 'सरकारी योजनाएं',
+      contactUs: 'संपर्क करें',
+      emergencyHelpline: 'आपातकालीन हेल्पलाइन',
+      emergency: 'आपातकाल',
+      copyright: 'सभी अधिकार सुरक्षित।',
+      madeBy: 'भारत में ❤️ से बनाया गया भारत के लिए',
+      happyCustomers: 'खुश ग्राहक',
+      skilledWorkers: 'कुशल कार्यकर्ता'
     },
     common: {
       loading: 'Loading...',
@@ -276,13 +278,54 @@ const translations: { [key in Language]: Translation } = {
       multilingualAI: 'बहुभाषी समर्थन',
       aiProfiles: 'बुद्धिमान मैचिंग',
       preferredLanguage: 'आपकी मातृभाषा में',
-      searchPlaceholder: 'सेवाएं खोजें...',
+      searchPlaceholder: 'आपको किस सेवा की आवश्यकता है?',
       findWorkers: 'कार्यकर्ता खोजें',
       orText: 'या',
       browseServices: 'सभी सेवाएं देखें',
-      popularServices: 'लोकप्रिय सेवाएं',
+      popularServices: 'लोकप्रिय सेवाएं:',
       featuresTitle: 'नागरिक सेवा क्यों चुनें?',
       featuresSubtitle: 'अत्याधुनिक तकनीक के साथ घरेलू सेवाओं का भविष्य अनुभव करें',
+      // Service names in Hindi
+      services: {
+        houseCleaning: 'घर की सफाई',
+        plumbing: 'प्लंबिंग',
+        electricalWork: 'बिजली का काम',
+        painting: 'पेंटिंग',
+        carpentry: 'बढ़ईगिरी',
+        gardening: 'बागवानी'
+      },
+      // Stats section
+      happyCustomers: 'खुश ग्राहक',
+      skilledWorkers: 'कुशल कार्यकर्ता',
+      servicesCompleted: 'पूर्ण सेवाएं',
+      citiesCovered: 'शहरों में सेवा',
+      // Testimonials
+      testimonials: {
+        title: 'लोग क्या कहते हैं',
+        subtitle: 'भारत भर के हजारों ग्राहकों और कार्यकर्ताओं द्वारा भरोसेमंद'
+      },
+      // How it works
+      howItWorks: {
+        title: 'यह कैसे काम करता है',
+        subtitle: 'केवल 3 सरल चरणों में सत्यापित कार्यकर्ताओं से जुड़ें',
+        step1: {
+          title: 'खोजें और चुनें',
+          description: 'आपकी आवश्यकता की सेवा खोजें, कार्यकर्ता प्रोफाइल, रेटिंग और समीक्षाएं देखें। हमारा AI आपको सर्वोत्तम विकल्पों से मिलाता है।'
+        },
+        step2: {
+          title: 'बुक करें और ट्रैक करें',
+          description: 'अपने पसंदीदा कार्यकर्ता को बुक करें, सुरक्षित भुगतान करें, और उनके आने पर उनके स्थान को रियल-टाइम में ट्रैक करें।'
+        },
+        step3: {
+          title: 'काम पूरा करवाएं',
+          description: 'आपका सत्यापित कार्यकर्ता काम को पेशेवर रूप से पूरा करता है। अपने अनुभव को रेट करें और दूसरों को बेहतरीन कार्यकर्ता खोजने में मदद करें।'
+        }
+      },
+      // Advanced Features
+      advancedFeaturesSection: {
+        title: 'उन्नत सुविधाएं',
+        subtitle: 'हम नवीन सुविधाओं के साथ काम का भविष्य बना रहे हैं जो कार्यकर्ताओं और ग्राहकों दोनों को सशक्त बनाती हैं।'
+      },
       features: {
         aiMatching: {
           title: 'AI-संचालित मैचिंग',

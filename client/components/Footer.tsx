@@ -53,7 +53,7 @@ export function Footer() {
                 <p className="font-semibold">
                   {loading ? '...' : formatNumber(stats?.totalCustomers || 35000)}
                 </p>
-                <p className="text-sm text-gray-400">Happy Customers</p>
+                <p className="text-sm text-gray-400">{t('footer.happyCustomers') || 'Happy Customers'}</p>
               </div>
             </div>
             <div className="flex items-center justify-center space-x-3">
@@ -62,7 +62,7 @@ export function Footer() {
                 <p className="font-semibold">
                   {loading ? '...' : formatNumber(stats?.totalWorkers || 15000)}
                 </p>
-                <p className="text-sm text-gray-400">Skilled Workers</p>
+                <p className="text-sm text-gray-400">{t('footer.skilledWorkers') || 'Skilled Workers'}</p>
               </div>
             </div>
             <div className="flex items-center justify-center space-x-3">
@@ -175,7 +175,7 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-400 text-sm">
                 © 2025 Nagrik Sewa. {t("footer.copyright")}<br />
-                <span className="block mt-1">Made with ❤️ by Pushkar Kumar Saini</span>
+                <span className="block mt-1">{t("footer.madeBy") || 'Made with ❤️ in India for India'}</span>
               </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/privacy" className="text-gray-400 hover:text-white text-sm">{t("navigation.privacy")}</Link>
