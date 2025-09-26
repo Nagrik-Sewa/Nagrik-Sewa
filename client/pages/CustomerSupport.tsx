@@ -1,90 +1,40 @@
-import React, { useState } from 'react';
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Textarea } from "../components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
-import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import DigiLockerAuth from '../components/DigiLockerAuth';
+import { useState } from "react";
 import { 
   Phone, 
   Mail, 
   MessageCircle, 
   Clock, 
   HelpCircle, 
-  User,
   Search,
-  FileText,
-  Shield,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  LogIn,
-  UserPlus,
-  Verified,
   ChevronDown,
   ChevronUp,
+  AlertCircle,
+  CheckCircle,
+  Users,
+  Shield,
   CreditCard,
   Settings,
-  Users
-} from 'lucide-react';
+  FileText,
+  LogIn,
+  UserPlus
+} from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
+import { Card } from "../components/ui/card";
 import { CONTACT_INFO, makePhoneCall, sendEmail } from '../constants/contact';
 
-const CustomerSupport = () => {
-  const { user, isAuthenticated } = useAuth();
-  const [showDigiLocker, setShowDigiLocker] = useState(false);
+export default function CustomerSupport() {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
-  
-  // Pre-populate form data for authenticated users
   const [formData, setFormData] = useState({
-    name: user ? `${user.firstName} ${user.lastName}` : '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    category: '',
-    subject: '',
-    message: '',
-    priority: user?.isDigiLockerVerified ? 'high' : 'medium'
+    name: "",
+    email: "",
+    phone: "",
+    category: "",
+    subject: "",
+    message: ""
   });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission
-    console.log('Support request submitted:', formData);
-    alert('Your support request has been submitted! We will get back to you within 24 hours.');
-    
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      category: '',
-      subject: '',
-      message: '',
-      priority: 'medium'
-    });
-  };
-
-  const handleDigiLockerVerification = (verificationData: any) => {
-    console.log('DigiLocker verification completed:', verificationData);
-    setShowDigiLocker(false);
-    alert('DigiLocker verification completed successfully! Your support requests will now be prioritized.');
-  };
-
-  const supportCategories = [
-    { id: 'booking', label: 'Booking Issues', icon: FileText },
-    { id: 'payment', label: 'Payment Problems', icon: CreditCard },
-    { id: 'worker', label: 'Worker Related', icon: User },
-    { id: 'technical', label: 'Technical Issues', icon: Settings },
-    { id: 'account', label: 'Account Problems', icon: Shield },
-    { id: 'other', label: 'Other', icon: Info }
-  ];
 
   const faqCategories = [
     {
@@ -185,7 +135,7 @@ const CustomerSupport = () => {
     {
       icon: Phone,
       title: "Phone Support",
-      description: "Speak directly with our customer support team",
+      description: "Speak directly with our support team",
       contact: CONTACT_INFO.CUSTOMER_SUPPORT_PHONE,
       availability: CONTACT_INFO.PHONE_AVAILABILITY,
       color: "bg-blue-50 border-blue-200 text-blue-800",
@@ -194,41 +144,38 @@ const CustomerSupport = () => {
     {
       icon: MessageCircle,
       title: "Live Chat",
-      description: "Get instant help through our AI chatbot",
+      description: "Get instant help through chat",
       contact: "Start Chat",
       availability: CONTACT_INFO.CHAT_AVAILABILITY,
       color: "bg-green-50 border-green-200 text-green-800",
-      action: () => {
-        const chatbotButton = document.querySelector('[data-chatbot-trigger]') as HTMLElement;
-        if (chatbotButton) chatbotButton.click();
-      }
+      action: () => console.log("Start chat") // You can implement chat functionality here
     },
     {
       icon: Mail,
-      title: "Email Support", 
+      title: "Email Support",
       description: "Send us detailed queries",
       contact: CONTACT_INFO.MAIN_EMAIL,
       availability: CONTACT_INFO.EMAIL_RESPONSE_TIME,
       color: "bg-purple-50 border-purple-200 text-purple-800",
-      action: () => sendEmail(CONTACT_INFO.MAIN_EMAIL, "Customer Support Request")
+      action: () => sendEmail(CONTACT_INFO.MAIN_EMAIL, "Support Request")
     }
   ];
 
   const emergencyContacts = [
     {
-      title: "Customer Emergency",
+      title: "Emergency Helpline",
       number: CONTACT_INFO.EMERGENCY_HELPLINE,
-      description: "For immediate assistance during service issues"
+      description: "For immediate emergency assistance"
     },
     {
-      title: "Safety Helpline", 
+      title: "Safety Helpline",
       number: CONTACT_INFO.SAFETY_HELPLINE,
       description: "Report safety concerns or incidents"
     },
     {
-      title: "Booking Emergency",
+      title: "Technical Emergency",
       number: CONTACT_INFO.TECHNICAL_EMERGENCY,
-      description: "Critical booking or payment issues"
+      description: "Critical technical issues during service"
     }
   ];
 
@@ -240,16 +187,27 @@ const CustomerSupport = () => {
     )
   })).filter(category => category.faqs.length > 0);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle form submission
+    console.log("Support form submitted:", formData);
+    alert("Thank you for contacting us! We'll get back to you within 4 hours.");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-brand-600 to-brand-700 text-white py-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <HelpCircle className="w-16 h-16 mx-auto mb-4" />
             <h1 className="text-4xl font-bold mb-4">Customer Help & Support</h1>
             <p className="text-xl text-brand-100 mb-8">
-              We're here to help you 24/7. Find answers or get in touch with our customer support team.
+              We're here to help you 24/7. Find answers or get in touch with our support team.
             </p>
             
             {/* Search Bar */}
@@ -262,79 +220,56 @@ const CustomerSupport = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-white text-gray-900"
               />
+            </div>
           </div>
         </div>
       </div>
 
-        
-        {/* Login Prompt for Non-Authenticated Users */}
-        {!isAuthenticated && (
-          <section className="mb-16">
-            <Card className="border-brand-200 bg-gradient-to-r from-brand-50 to-blue-50">
-              <CardContent className="py-12">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <LogIn className="w-8 h-8 text-brand-600" />
-                  </div>
-                  <h2 className="text-3xl font-bold text-brand-700 mb-4">
-                    Login for Better Support Experience
-                  </h2>
-                  <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-                    Sign in to your account for faster support, priority assistance, and access to advanced verification options like DigiLocker.
-                  </p>
-                  
-                  <div className="grid md:grid-cols-2 gap-6 mb-8">
-                    <div className="bg-white rounded-lg p-6 shadow-sm">
-                      <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-3" />
-                      <h3 className="font-semibold mb-2">Priority Support</h3>
-                      <p className="text-sm text-gray-600">Get faster responses and dedicated assistance</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-6 shadow-sm">
-                      <Shield className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-                      <h3 className="font-semibold mb-2">DigiLocker Verification</h3>
-                      <p className="text-sm text-gray-600">Verify your identity for enhanced security</p>
-                    </div>
-                  </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link to="/login">
-                      <Button size="lg" className="bg-brand-600 hover:bg-brand-700 shadow-lg">
-                        <LogIn className="w-5 h-5 mr-2" />
-                        Sign In
-                      </Button>
-                    </Link>
-                    <Link to="/register">
-                      <Button size="lg" variant="outline" className="border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white">
-                        <UserPlus className="w-5 h-5 mr-2" />
-                        Create Account
-                      </Button>
-                    </Link>
+        
+        {/* Customer Registration Prompt */}
+        <section className="mb-16">
+          <Card className="border-brand-200 bg-gradient-to-r from-brand-50 to-blue-50">
+            <div className="p-12">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Users className="w-8 h-8 text-brand-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-brand-700 mb-4">
+                  Join as a Customer for Enhanced Support
+                </h2>
+                <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+                  Create your customer account to get priority support, personalized assistance, and access to exclusive customer benefits.
+                </p>
+                
+                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-white rounded-lg p-6 shadow-sm">
+                    <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-3" />
+                    <h3 className="font-semibold mb-2">Priority Support</h3>
+                    <p className="text-sm text-gray-600">Get faster responses and dedicated assistance</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-6 shadow-sm">
+                    <Shield className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+                    <h3 className="font-semibold mb-2">Account Protection</h3>
+                    <p className="text-sm text-gray-600">Secure your bookings and personal information</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </section>
-        )}
 
-        {/* DigiLocker Verification Modal */}
-        {showDigiLocker && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-4 border-b flex justify-between items-center">
-                <h2 className="text-xl font-semibold">DigiLocker Verification</h2>
-                <Button variant="ghost" onClick={() => setShowDigiLocker(false)}>
-                  ×
-                </Button>
-              </div>
-              <div className="p-6">
-                <DigiLockerAuth 
-                  onVerificationComplete={handleDigiLockerVerification}
-                  userType="customer"
-                />
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button size="lg" className="bg-brand-600 hover:bg-brand-700 shadow-lg">
+                    <Users className="w-5 h-5 mr-2" />
+                    Register as Customer
+                  </Button>
+                  <Button size="lg" variant="outline" className="border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white">
+                    <LogIn className="w-5 h-5 mr-2" />
+                    Customer Login
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          </Card>
+        </section>
 
         {/* Contact Methods */}
         <section className="mb-16">
@@ -384,89 +319,171 @@ const CustomerSupport = () => {
           </div>
         </section>
 
-        {/* DigiLocker Verification for Authenticated Users */}
-        {isAuthenticated && (
-          <section className="mb-16">
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-              <CardHeader>
-                <CardTitle className="flex items-center text-blue-700">
-                  <Shield className="w-6 h-6 mr-2" />
-                  Enhance Your Support Experience
-                </CardTitle>
-                <CardDescription>
-                  {user?.isDigiLockerVerified ? (
-                    <div className="flex items-center text-green-600">
-                      <Verified className="w-4 h-4 mr-1" />
-                      Your identity is verified with DigiLocker
-                    </div>
-                  ) : (
-                    "Verify your identity with DigiLocker for priority support and faster resolution"
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {user?.isDigiLockerVerified ? (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                        <div>
-                          <p className="font-semibold text-green-800">DigiLocker Verified</p>
-                          <p className="text-sm text-green-600">You have priority support access</p>
-                        </div>
-                      </div>
-                      <Badge className="bg-green-100 text-green-800 border-green-300">
-                        <Shield className="w-3 h-3 mr-1" />
-                        Verified
-                      </Badge>
-                    </div>
-                    <div className="mt-4 grid md:grid-cols-3 gap-4 text-sm">
-                      <div className="flex items-center text-green-700">
-                        <Clock className="w-4 h-4 mr-1" />
-                        <span>Faster Response</span>
-                      </div>
-                      <div className="flex items-center text-green-700">
-                        <User className="w-4 h-4 mr-1" />
-                        <span>Dedicated Agent</span>
-                      </div>
-                      <div className="flex items-center text-green-700">
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        <span>Priority Queue</span>
-                      </div>
-                    </div>
+        {/* Customer Account Benefits */}
+        <section className="mb-16">
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <div className="p-6">
+              <div className="flex items-center text-blue-700 mb-4">
+                <Shield className="w-6 h-6 mr-2" />
+                <h2 className="text-2xl font-bold">Customer Account Benefits</h2>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Create your customer account to access exclusive benefits and enhanced support experience.
+              </p>
+              
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <h4 className="font-semibold text-sm">Booking History</h4>
+                    <p className="text-xs text-gray-600">Track all your services</p>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div className="text-center p-4 bg-white rounded-lg">
-                        <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                        <h4 className="font-semibold text-sm">Priority Support</h4>
-                        <p className="text-xs text-gray-600">Skip the queue</p>
-                      </div>
-                      <div className="text-center p-4 bg-white rounded-lg">
-                        <User className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                        <h4 className="font-semibold text-sm">Dedicated Agent</h4>
-                        <p className="text-xs text-gray-600">Personal assistance</p>
-                      </div>
-                      <div className="text-center p-4 bg-white rounded-lg">
-                        <Shield className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                        <h4 className="font-semibold text-sm">Enhanced Security</h4>
-                        <p className="text-xs text-gray-600">Verified identity</p>
-                      </div>
-                    </div>
-                    <Button 
-                      onClick={() => setShowDigiLocker(true)}
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Shield className="w-4 h-4 mr-2" />
-                      Verify with DigiLocker
-                    </Button>
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <h4 className="font-semibold text-sm">Priority Support</h4>
+                    <p className="text-xs text-gray-600">Faster assistance</p>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </section>
-        )}
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <Shield className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <h4 className="font-semibold text-sm">Secure Payments</h4>
+                    <p className="text-xs text-gray-600">Protected transactions</p>
+                  </div>
+                </div>
+                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  <Shield className="w-4 h-4 mr-2" />
+                  Create Customer Account
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        {/* Customer Success Stories */}
+        <section className="mb-16">
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-lg p-8">
+            <div className="text-center mb-8">
+              <Users className="w-12 h-12 mx-auto mb-4 text-yellow-600" />
+              <h2 className="text-3xl font-bold text-yellow-800 mb-4">Customer Success Stories</h2>
+              <p className="text-lg text-yellow-700 max-w-2xl mx-auto">
+                Join thousands of satisfied customers who trust us for their daily service needs.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-yellow-200">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Meera Singh</h3>
+                  <p className="text-sm text-gray-600 mb-3">Working Professional, Delhi</p>
+                  <p className="text-sm text-gray-700">"Quick service booking and reliable professionals. Saved me hours every week!"</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-yellow-200">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Settings className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Rahul Gupta</h3>
+                  <p className="text-sm text-gray-600 mb-3">Homeowner, Mumbai</p>
+                  <p className="text-sm text-gray-700">"Excellent customer support and verified service providers. Highly recommended!"</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-yellow-200">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Ankita Sharma</h3>
+                  <p className="text-sm text-gray-600 mb-3">Business Owner, Bangalore</p>
+                  <p className="text-sm text-gray-700">"Safe, secure, and affordable services. The app makes booking so convenient!"</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <Button size="lg" className="bg-yellow-600 hover:bg-yellow-700">
+                <Users className="w-5 h-5 mr-2" />
+                Book Your First Service
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Customer Benefits & Features */}
+        <section className="mb-16">
+          <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+            <div className="p-8">
+              <div className="text-center mb-8">
+                <Settings className="w-12 h-12 mx-auto mb-4 text-purple-600" />
+                <h2 className="text-3xl font-bold mb-4">Customer Benefits & Features</h2>
+                <p className="text-gray-600">Experience the best in service booking with our customer-focused features.</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <CheckCircle className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                  <h3 className="font-semibold mb-2">Easy Booking</h3>
+                  <p className="text-sm text-gray-600">Book services in just a few clicks</p>
+                </div>
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <Shield className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                  <h3 className="font-semibold mb-2">Verified Providers</h3>
+                  <p className="text-sm text-gray-600">All service providers are verified</p>
+                </div>
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <Users className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                  <h3 className="font-semibold mb-2">24/7 Support</h3>
+                  <p className="text-sm text-gray-600">Round-the-clock customer assistance</p>
+                </div>
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <CreditCard className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                  <h3 className="font-semibold mb-2">Secure Payments</h3>
+                  <p className="text-sm text-gray-600">Multiple secure payment options</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
+                  <Settings className="w-5 h-5 mr-2" />
+                  Explore Services
+                </Button>
+                <Button size="lg" variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white">
+                  <Shield className="w-5 h-5 mr-2" />
+                  Learn More
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        {/* Customer Protection & Safety */}
+        <section className="mb-16">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6">
+            <div className="flex items-center mb-4">
+              <Shield className="w-6 h-6 text-green-600 mr-2" />
+              <h2 className="text-2xl font-bold text-green-800">Customer Protection & Safety</h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <Shield className="w-8 h-8 text-green-600 mb-3" />
+                <h3 className="font-semibold text-green-800 mb-1">Service Guarantee</h3>
+                <p className="text-sm text-green-700">100% satisfaction guarantee on all services</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <CreditCard className="w-8 h-8 text-green-600 mb-3" />
+                <h3 className="font-semibold text-green-800 mb-1">Secure Transactions</h3>
+                <p className="text-sm text-green-700">Safe and encrypted payment processing</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 border border-green-200">
+                <Users className="w-8 h-8 text-green-600 mb-3" />
+                <h3 className="font-semibold text-green-800 mb-1">Background Verified</h3>
+                <p className="text-sm text-green-700">All service providers are background checked</p>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* FAQ Section */}
         <section className="mb-16">
@@ -529,16 +546,6 @@ const CustomerSupport = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
-              {isAuthenticated && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center text-blue-800">
-                    <Info className="w-4 h-4 mr-2" />
-                    <span className="text-sm font-medium">
-                      Your account information has been pre-filled for faster support
-                    </span>
-                  </div>
-                </div>
-              )}
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
@@ -595,11 +602,13 @@ const CustomerSupport = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   <option value="">Select a category</option>
-                  {supportCategories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.label}
-                    </option>
-                  ))}
+                  <option value="booking">Booking & Payment</option>
+                  <option value="account">Account & Profile</option>
+                  <option value="safety">Safety & Quality</option>
+                  <option value="technical">Technical Issues</option>
+                  <option value="refund">Refund & Cancellation</option>
+                  <option value="service">Service Provider</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
 
@@ -632,7 +641,7 @@ const CustomerSupport = () => {
               </div>
 
               <Button type="submit" className="w-full bg-brand-600 hover:bg-brand-700">
-                Send Support Request
+                Send Message
               </Button>
             </form>
           </div>
@@ -640,7 +649,7 @@ const CustomerSupport = () => {
 
         {/* Service Status */}
         <section className="mb-16">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6">
             <div className="flex items-center mb-4">
               <CheckCircle className="w-6 h-6 text-green-600 mr-2" />
               <h2 className="text-2xl font-bold text-green-800">Service Status</h2>
@@ -665,6 +674,4 @@ const CustomerSupport = () => {
       </div>
     </div>
   );
-};
-
-export default CustomerSupport;
+}
