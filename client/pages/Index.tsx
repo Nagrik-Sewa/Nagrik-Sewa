@@ -41,49 +41,49 @@ export default function Index() {
   const cities = ["Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Ahmedabad"];
 
   const popularServices = [
-    { name: t('home.services.houseCleaning') || "House Cleaning", icon: "🏠", demand: "High" },
-    { name: t('home.services.plumbing') || "Plumbing", icon: "🔧", demand: "Medium" },
-    { name: t('home.services.electricalWork') || "Electrical Work", icon: "⚡", demand: "High" },
-    { name: t('home.services.painting') || "Painting", icon: "🎨", demand: "Medium" },
-    { name: t('home.services.carpentry') || "Carpentry", icon: "🔨", demand: "Medium" },
-    { name: t('home.services.gardening') || "Gardening", icon: "🌱", demand: "Low" },
+    { name: t ('House Cleaning'), icon: "🏠", demand: "High" },
+    { name: t ('Plumbing'), icon: "🔧", demand: "Medium" },
+    { name: t ('Electrical Work'), icon: "⚡", demand: "High" },
+    { name: t ('Painting'), icon: "🎨", demand: "Medium" },
+    { name: t ('Carpentry'), icon: "🔨", demand: "Medium" },
+    { name: t ('Gardening'), icon: "🌱", demand: "Low" },
   ];
 
   const features = [
     {
       icon: Brain,
-      title: t('home.features.aiMatching.title') || "AI-Powered Matching",
-      description: t('home.features.aiMatching.description') || "Smart algorithm matches you with the best workers based on location, skills, and ratings.",
+      title: t ("AI-Powered Matching"),
+      description: t ("Smart algorithm matches you with the best workers based on location, skills, and ratings."),
       color: "text-blue-600"
     },
     {
       icon: Globe,
-      title: t('home.features.multiLanguage.title') || "Multi-Language Support",
-      description: t('home.features.multiLanguage.description') || "Platform available in 11+ Indian languages with voice assistant support.",
+      title: t ("Multi-Language Support"),
+      description: t ("Platform available in 11+ Indian languages with voice assistant support."),
       color: "text-green-600"
     },
     {
       icon: Shield,
-      title: t('home.features.verified.title') || "Verified Workers",
-      description: t('home.features.verified.description') || "All workers undergo KYC, Aadhaar verification, and background checks.",
+      title: t ("Verified Workers"),
+      description: t ("All workers undergo KYC, Aadhaar verification, and background checks."),
       color: "text-purple-600"
     },
     {
       icon: Navigation,
-      title: t('home.features.tracking.title') || "Real-Time Tracking",
-      description: t('home.features.tracking.description') || "Track your worker's location and job progress in real-time with GPS.",
+      title: t ("Real-Time Tracking"),
+      description: t ("Track your worker's location and job progress in real-time with GPS."),
       color: "text-orange-600"
     },
     {
       icon: FileText,
-      title: t('home.features.resume.title') || "Digital Resume Builder",
-      description: t('home.features.resume.description') || "Workers can build professional resumes showcasing skills and ratings.",
+      title: t ("Digital Resume Builder"),
+      description: t ("Workers can build professional resumes showcasing skills and ratings."),
       color: "text-indigo-600"
     },
     {
       icon: AlertTriangle,
-      title: t('home.features.emergency.title') || "Emergency SOS",
-      description: t('home.features.emergency.description') || "One-click emergency button for immediate help and safety alerts.",
+      title: t("Emergency SOS"),
+      description: t("One-click emergency button for immediate help and safety alerts."),
       color: "text-red-600"
     }
   ];
@@ -91,31 +91,31 @@ export default function Index() {
   const advancedFeatures = [
     {
       icon: GraduationCap,
-      title: t('home.advancedFeatures.training.title') || "Skill Training & Upskilling",
-      description: t('home.advancedFeatures.training.description') || "Access to government-certified training programs and skill development courses.",
+      title: t ("Skill Training & Upskilling"),
+      description: t("Access to government-certified training programs and skill development courses."),
     },
     {
       icon: Building,
-      title: t('home.advancedFeatures.schemes.title') || "Government Schemes",
-      description: t('home.advancedFeatures.schemes.description') || "Discover and apply for relevant government schemes and benefits.",
+      title: t ("Government Schemes"),
+      description: t ("Discover and apply for relevant government schemes and benefits."),
     },
     {
       icon: Activity,
-      title: t('home.advancedFeatures.analytics.title') || "Performance Analytics",
-      description: t('home.advancedFeatures.analytics.description') || "Track your service history, earnings, and customer feedback.",
+      title: t("Performance Analytics"),
+      description: t("Track your service history, earnings, and customer feedback."),
     },
     {
       icon: Users,
-      title: t('home.advancedFeatures.community.title') || "Worker Community",
-      description: t('home.advancedFeatures.community.description') || "Connect with fellow workers, share experiences, and learn together.",
+      title: t ("Worker Community"),
+      description: t ("Connect with fellow workers, share experiences, and learn together."),
     }
   ];
 
   const stats = [
-    { number: "50,000+", label: t('home.stats.activeWorkers') || "Active Workers", icon: Users },
-    { number: "1M+", label: t('home.stats.servicesCompleted') || "Services Completed", icon: CheckCircle },
-    { number: "25+", label: t('home.stats.citiesCovered') || "Cities Covered", icon: MapPin },
-    { number: "4.8/5", label: "Average Rating", icon: Star },
+    { number: "50,000+", label: t("Active Workers"), icon: Users },
+    { number: "1M+", label: t("Services Completed"), icon: CheckCircle },
+    { number: "25+", label: t("Cities Covered"), icon: MapPin },
+    { number: "4.8/5", label: t("Average Rating"), icon: Star },
   ];
 
   const testimonials = [
@@ -149,18 +149,18 @@ export default function Index() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-brand-100 text-brand-800 border-brand-200">
-              {t('home.heroBadge') || '🚀 Now Available in 25+ Cities Across India'}
+              {t ('🚀 Now Available in 25+ Cities Across India')}
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              {t('home.heroTitle') || 'AI-Powered Home Services'}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-500"> {t('home.heroTitleHighlight') || 'Made Simple'} </span>
-              {t('home.heroTitleEnd') || 'for Everyone'}
+              {t ('AI-Powered Home Services')}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-500"> {t ('Made Simple')} </span>
+              {t ('for Everyone')}
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              {t('home.heroDescription') || "India's premier digital platform connecting customers with verified service professionals through advanced AI technology."}
-              <span className="font-semibold text-brand-600">{t('home.intelligentChatbot') || 'Expert AI assistance'}</span>,
-              <span className="font-semibold text-orange-600"> {t('home.multilingualAI') || 'multilingual support'}</span>, and
-              <span className="font-semibold text-purple-600"> {t('home.aiProfiles') || 'intelligent matching'}</span> - {t('home.preferredLanguage') || 'all in your native language'}.
+              {t( "India's premier digital platform connecting customers with verified service professionals through advanced AI technology.")}
+              <span className="font-semibold text-brand-600">{t ('Expert AI assistance')}</span>,
+              <span className="font-semibold text-orange-600"> {t ('multilingual support')}</span>, and
+              <span className="font-semibold text-purple-600"> {t ('intelligent matching')}</span> - {t ('all in your native language')}.
             </p>
 
             {/* Search Bar */}
@@ -329,10 +329,10 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              {t('home.howItWorks.title') || 'How It Works'}
+              {t('How It Works') || 'How It Works'}
             </h2>
             <p className="text-xl text-gray-600">
-              {t('home.howItWorks.subtitle') || 'Get connected with verified workers in just 3 simple steps'}
+              {t('Get connected with verified workers in just 3 simple steps') || 'Get connected with verified workers in just 3 simple steps'}
             </p>
           </div>
 
@@ -341,27 +341,27 @@ export default function Index() {
               <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-white font-bold text-2xl">1</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('home.howItWorks.step1.title') || 'Search & Select'}</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t ('Search & Select')}</h3>
               <p className="text-gray-600">
-                {t('home.howItWorks.step1.description') || 'Search for the service you need, view worker profiles, ratings, and reviews. Our AI matches you with the best options.'}
+                {t ('Search for the service you need, view worker profiles, ratings, and reviews. Our AI matches you with the best options.')}
               </p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-white font-bold text-2xl">2</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('home.howItWorks.step2.title') || 'Book & Track'}</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t ('Book & Track')}</h3>
               <p className="text-gray-600">
-                {t('home.howItWorks.step2.description') || 'Book your preferred worker, make secure payments, and track their location in real-time as they arrive.'}
+                {t ('Book your preferred worker, make secure payments, and track their location in real-time as they arrive.')}
               </p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-white font-bold text-2xl">3</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('home.howItWorks.step3.title') || 'Get Work Done'}</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t ('Get Work Done')}</h3>
               <p className="text-gray-600">
-                {t('home.howItWorks.step3.description') || 'Your verified worker completes the job professionally. Rate your experience and help others find great workers.'}
+                {t ('Your verified worker completes the job professionally. Rate your experience and help others find great workers.')}
               </p>
             </div>
           </div>
@@ -376,10 +376,10 @@ export default function Index() {
               🔮 Future-Ready Platform
             </Badge>
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              {t('home.advancedFeaturesSection.title') || 'Advanced Features'}
+              {t ('Advanced Features')}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {t('home.advancedFeaturesSection.subtitle') || 'We\'re building the future of work with innovative features that empower both workers and customers.'}
+              {t ('We\'re building the future of work with innovative features that empower both workers and customers.')}
             </p>
           </div>
 
@@ -408,10 +408,10 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              {t('home.testimonials.title') || 'What People Say'}
+              {t ('What People Say')}
             </h2>
             <p className="text-xl text-gray-600">
-              {t('home.testimonials.subtitle') || 'Trusted by thousands of customers and workers across India'}
+              {t ('Trusted by thousands of customers and workers across India')}
             </p>
           </div>
 
