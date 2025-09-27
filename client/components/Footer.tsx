@@ -98,7 +98,7 @@ export function Footer() {
                 <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-500 hover:bg-transparent">
                   <Facebook className="w-5 h-5" />
                 </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-cyan-500 hover:bg-transparent">
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-transparent">
                   <XLogo className="w-5 h-5" />
                 </Button>
                 <Button variant="ghost" size="sm" className="text-gray-400 hover:text-pink-500 hover:bg-transparent">
