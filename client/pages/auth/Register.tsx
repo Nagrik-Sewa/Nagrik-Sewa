@@ -9,13 +9,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, EyeOff, Loader2, User, Wrench } from 'lucide-react';
 import { GoogleLoginButton } from '@/components/GoogleLoginButton';
+import { PhoneInput, usePhoneValidation } from '@/components/PhoneInput';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    phone: '',
+    phone: '+91 ', // Default Indian country code
     password: '',
     confirmPassword: '',
     role: 'customer' as 'customer' | 'worker',
@@ -25,16 +26,41 @@ const Register: React.FC = () => {
   const [error, setError] = useState('');
 
   const { register, isAuthenticated } = useAuth();
+  const { validatePhoneNumber } = usePhoneValidation();
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    const { name, value } = e.target;
+    
+    // Handle phone number to maintain +91 prefix
+    if (name === 'phone') {
+      let phoneValue = value;
+      // Ensure phone always starts with +91
+      if (!phoneValue.startsWith('+91')) {
+        phoneValue = '+91 ' + phoneValue.replace(/^(\+91\s*)/, '');
+      }
+      // Remove any non-digit characters except +, space, and the initial +91
+      phoneValue = phoneValue.replace(/^(\+91\s*)(.*)$/, (match, prefix, number) => {
+        return prefix + number.replace(/[^\d]/g, '');
+      });
+      // Limit to 10 digits after +91
+      if (phoneValue.length > 14) { // +91 + space + 10 digits = 14 characters
+        phoneValue = phoneValue.substring(0, 14);
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        [name]: phoneValue,
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +70,14 @@ const Register: React.FC = () => {
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate phone number
+    const phoneValidation = validatePhoneNumber(formData.phone);
+    if (!phoneValidation.isValid) {
+      setError(phoneValidation.error || 'Invalid phone number');
       setIsLoading(false);
       return;
     }
@@ -136,17 +170,13 @@ const Register: React.FC = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone (Optional)</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+91 9876543210"
-              />
-            </div>
+            <PhoneInput
+              value={formData.phone}
+              onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
+              required
+              label="Phone Number"
+              showHint={true}
+            />
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>

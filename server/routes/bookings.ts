@@ -161,9 +161,7 @@ router.post('/', optionalAuth, validateInput(schemas.createBooking), async (req:
       try {
         await sendBookingNotificationSMS(
           customer.phone,
-          booking.bookingId,
-          service.name,
-          `${schedule.requestedDate.toDateString()} at ${schedule.requestedTime}`
+          `New booking confirmed: ${service.name} on ${schedule.requestedDate.toDateString()} at ${schedule.requestedTime}`
         );
       } catch (smsError) {
         console.error('Failed to send booking SMS:', smsError);

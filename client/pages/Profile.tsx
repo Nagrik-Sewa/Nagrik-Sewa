@@ -52,7 +52,7 @@ const Profile: React.FC = () => {
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     email: user?.email || '',
-    phone: user?.phone || '',
+    phone: user?.phone || '+91 ',
     bio: '',
     address: {
       street: '',
@@ -85,7 +85,21 @@ const Profile: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    if (name.includes('.')) {
+    
+    if (name === 'phone') {
+      // Handle phone number to maintain +91 prefix
+      let phoneValue = value;
+      if (!phoneValue.startsWith('+91')) {
+        phoneValue = '+91 ' + phoneValue.replace(/^(\+91\s*)/, '');
+      }
+      phoneValue = phoneValue.replace(/^(\+91\s*)(.*)$/, (match, prefix, number) => {
+        return prefix + number.replace(/[^\d]/g, '');
+      });
+      if (phoneValue.length > 14) {
+        phoneValue = phoneValue.substring(0, 14);
+      }
+      setFormData(prev => ({ ...prev, phone: phoneValue }));
+    } else if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setFormData(prev => ({
         ...prev,
@@ -265,17 +279,13 @@ const Profile: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Phone
-                  </Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleInputChange}
+                  <PhoneInput
+                    label="Phone"
+                    value={formData.phone || '+91 '}
+                    onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
                     disabled={!isEditing}
+                    showHint={false}
+                    className="font-mono"
                   />
                 </div>
               </div>
