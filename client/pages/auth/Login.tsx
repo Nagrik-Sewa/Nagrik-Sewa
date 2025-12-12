@@ -127,6 +127,14 @@ const Login: React.FC = () => {
               </div>
             </div>
 
+            {/* Google OAuth temporarily disabled until properly configured */}
+            <div className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-center text-sm text-gray-500">
+              Google Sign-In (Configure OAuth in .env)
+              <br />
+              <span className="text-xs">Set VITE_GOOGLE_CLIENT_ID with a valid Google OAuth Client ID</span>
+            </div>
+
+            {/* 
             <GoogleLoginButton 
               mode="login"
               onSuccess={() => {
@@ -136,6 +144,7 @@ const Login: React.FC = () => {
                 setError(error);
               }}
             />
+            */}
 
             <div className="text-center">
               <span className="text-sm text-gray-600">

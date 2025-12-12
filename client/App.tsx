@@ -141,7 +141,8 @@ const queryClient = new QueryClient({
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <GoogleAuthProvider>
+      {/* GoogleAuthProvider temporarily disabled to prevent OAuth errors */}
+      {/* <GoogleAuthProvider> */}
         <ThemeProvider>
           <LanguageProvider>
             <FontProvider>
@@ -278,7 +279,7 @@ const App = () => (
             </FontProvider>
           </LanguageProvider>
         </ThemeProvider>
-      </GoogleAuthProvider>
+      {/* </GoogleAuthProvider> */}
     </QueryClientProvider>
   </ErrorBoundary>
 );const container = document.getElementById("root");

@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, EyeOff, Loader2, User, Wrench } from 'lucide-react';
 import { GoogleLoginButton } from '@/components/GoogleLoginButton';
 import { PhoneInput, usePhoneValidation } from '@/components/PhoneInput';
+import { OTPVerification } from '@/components/OTPVerification';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -24,6 +25,7 @@ const Register: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [registrationData, setRegistrationData] = useState<any>(null);
 
   const { register, isAuthenticated } = useAuth();
   const { validatePhoneNumber } = usePhoneValidation();
@@ -83,7 +85,7 @@ const Register: React.FC = () => {
     }
 
     try {
-      await register({
+      const result = await register({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -91,12 +93,35 @@ const Register: React.FC = () => {
         password: formData.password,
         role: formData.role,
       });
+      
+      // Registration successful, show OTP verification
+      setRegistrationData(result.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleVerificationComplete = () => {
+    // User is now verified and logged in, redirect to dashboard
+    // The navigation will happen automatically due to isAuthenticated check
+  };
+
+  // Show OTP verification if registration was successful
+  if (registrationData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <OTPVerification
+          userId={registrationData.userId}
+          phone={formData.phone}
+          email={formData.email}
+          onVerificationComplete={handleVerificationComplete}
+          testOTP={registrationData.testOTP}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -239,6 +264,14 @@ const Register: React.FC = () => {
               </div>
             </div>
 
+            {/* Google OAuth temporarily disabled until properly configured */}
+            <div className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-center text-sm text-gray-500">
+              Google Sign-In (Configure OAuth in .env)
+              <br />
+              <span className="text-xs">Set VITE_GOOGLE_CLIENT_ID with a valid Google OAuth Client ID</span>
+            </div>
+
+            {/* 
             <GoogleLoginButton 
               mode="register"
               onSuccess={() => {
@@ -248,6 +281,7 @@ const Register: React.FC = () => {
                 setError(error);
               }}
             />
+            */}
 
             <div className="text-center">
               <span className="text-sm text-gray-600">

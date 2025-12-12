@@ -21,6 +21,7 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
 
   // Check if Google OAuth is configured
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const isGoogleConfigured = googleClientId && googleClientId !== 'your_google_oauth_client_id_here';
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
@@ -92,19 +93,21 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
 
   return (
     <div className="w-full">
-      {googleClientId ? (
+      {isGoogleConfigured ? (
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
           onError={handleGoogleError}
           text={mode === 'register' ? 'signup_with' : 'signin_with'}
           theme="outline"
           size="large"
-          width="100%"
+          width="400"
           logo_alignment="left"
         />
       ) : (
         <div className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-center text-sm text-gray-500">
           Google authentication is not configured
+          <br />
+          <span className="text-xs">Set VITE_GOOGLE_CLIENT_ID in .env file</span>
         </div>
       )}
     </div>

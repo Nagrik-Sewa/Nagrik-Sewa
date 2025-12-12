@@ -18,9 +18,10 @@ const MockGoogleProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 export const GoogleAuthProvider: React.FC<GoogleAuthProviderProps> = ({ children }) => {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const isGoogleConfigured = googleClientId && googleClientId !== 'your_google_oauth_client_id_here';
 
-  if (!googleClientId) {
-    console.warn('Google OAuth Client ID not found. Google authentication will not be available.');
+  if (!isGoogleConfigured) {
+    console.warn('Google OAuth Client ID not properly configured. Google authentication will not be available.');
     // Return a mock provider that prevents the "must be used within GoogleOAuthProvider" error
     return <MockGoogleProvider>{children}</MockGoogleProvider>;
   }

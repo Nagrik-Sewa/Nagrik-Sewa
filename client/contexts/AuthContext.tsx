@@ -28,7 +28,8 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  register: (data: RegisterData) => Promise<any>;
+  verifyOTP: (userId: string, phoneOTP?: string, emailOTP?: string) => Promise<any>;
   logout: () => void;
   updateUser: (data: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -105,23 +106,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await api.post('/auth/register', data);
       console.log('Registration response:', response.data);
       
-      const { user, token } = response.data.data; // Note: response.data.data based on server structure
-      
-      console.log('Setting token and user...', { user, token });
-      localStorage.setItem('authToken', token);
-      setUser(user);
-      
-      console.log('User state updated, isAuthenticated should be true');
+      // Registration returns userId and requires OTP verification
+      // Don't set user/token yet - need OTP verification first
+      const { userId, requiresVerification, testOTP } = response.data.data;
       
       toast({
-        title: "Welcome to Nagrik Sewa! 🇮🇳",
-        description: `Account created successfully! Welcome ${user.firstName}. You are now logged in.`,
+        title: "Registration Initiated! 🇮🇳",
+        description: `Verification codes sent to your phone and email. Please check and verify to complete registration.${testOTP ? ` (Test OTPs - Phone: ${testOTP.phone}, Email: ${testOTP.email})` : ''}`,
       });
+
+      // Return the response so the component can handle OTP verification
+      return response.data;
     } catch (error: any) {
       console.error('Registration failed:', error);
       const message = error.response?.data?.message || 'Registration failed';
       toast({
         title: "Registration failed",
+        description: message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const verifyOTP = async (userId: string, phoneOTP?: string, emailOTP?: string) => {
+    try {
+      const response = await api.post('/auth/verify-otp', { userId, phoneOTP, emailOTP });
+      console.log('OTP verification response:', response.data);
+      
+      // If verification is complete, user gets token and is logged in
+      if (response.data.data.token) {
+        const { user, token } = response.data.data;
+        localStorage.setItem('authToken', token);
+        setUser(user);
+        
+        toast({
+          title: "Welcome to Nagrik Sewa! 🇮🇳",
+          description: `Account verified successfully! Welcome ${user.firstName}. You are now logged in.`,
+        });
+      } else {
+        // Partial verification
+        toast({
+          title: "Partial Verification Complete",
+          description: response.data.message,
+        });
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('OTP verification failed:', error);
+      const message = error.response?.data?.message || 'OTP verification failed';
+      toast({
+        title: "Verification failed",
         description: message,
         variant: "destructive",
       });
@@ -173,6 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated,
     login,
     register,
+    verifyOTP,
     logout,
     updateUser,
     refreshUser,
