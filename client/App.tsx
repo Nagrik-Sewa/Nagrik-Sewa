@@ -17,37 +17,76 @@ import { SocketProvider } from "./contexts/SocketContext";
 import { ChatbotProvider } from "./contexts/ChatbotContext";
 import { GoogleAuthProvider } from "./components/GoogleAuthProvider";
 
-// Pages
-import Index from "./pages/Index";
-import Services from "./pages/Services";
-import Workers from "./pages/Workers";
-import WorkerDetails from "./pages/WorkerDetails.tsx";
-import Bookings from "./pages/Bookings.tsx";
-import BookingDetails from "./pages/BookingDetails.tsx";
-import BookService from "./pages/BookService.tsx";
-import Profile from "./pages/Profile.tsx";
-import Dashboard from "./pages/Dashboard";
-import LocationDemo from "./pages/LocationDemo";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import Support from "./pages/Support";
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
-import VerifyEmail from "./pages/auth/VerifyEmail";
+// Lazy load pages for better performance
+import { Suspense, lazy } from "react";
 import { PostLoginVerification } from "./components/PostLoginVerification";
-import NotFound from "./pages/NotFound";
+import { Loader2 } from "lucide-react";
 
-// Worker Pages
-import JoinAsWorker from "./pages/workers/JoinAsWorker";
-import SkillTraining from "./pages/workers/SkillTraining";
-import GetVerified from "./pages/workers/GetVerified";
-import ResumeBuilder from "./pages/workers/ResumeBuilder";
-import WorkerSupport from "./pages/workers/WorkerSupport";
-import FindCustomers from "./pages/FindCustomers";
-import CustomerSupport from "./pages/CustomerSupport";
-import JoinAsCustomer from "./pages/JoinAsCustomer";
+// Lazy loaded pages
+const Index = lazy(() => import("./pages/Index"));
+const Services = lazy(() => import("./pages/Services"));
+const Workers = lazy(() => import("./pages/Workers"));
+const WorkerDetails = lazy(() => import("./pages/WorkerDetails.tsx"));
+const Bookings = lazy(() => import("./pages/Bookings.tsx"));
+const BookingDetails = lazy(() => import("./pages/BookingDetails.tsx"));
+const BookService = lazy(() => import("./pages/BookService.tsx"));
+const Profile = lazy(() => import("./pages/Profile.tsx"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const LocationDemo = lazy(() => import("./pages/LocationDemo"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Support = lazy(() => import("./pages/Support"));
+const Login = lazy(() => import("./pages/auth/Login"));
+const Register = lazy(() => import("./pages/auth/Register"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Lazy loaded worker pages
+const JoinAsWorker = lazy(() => import("./pages/workers/JoinAsWorker"));
+const SkillTraining = lazy(() => import("./pages/workers/SkillTraining"));
+const GetVerified = lazy(() => import("./pages/workers/GetVerified"));
+const ResumeBuilder = lazy(() => import("./pages/workers/ResumeBuilder"));
+const WorkerSupport = lazy(() => import("./pages/workers/WorkerSupport"));
+const FindCustomers = lazy(() => import("./pages/FindCustomers"));
+const CustomerSupport = lazy(() => import("./pages/CustomerSupport"));
+const JoinAsCustomer = lazy(() => import("./pages/JoinAsCustomer"));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="flex flex-col items-center space-y-4">
+      <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+      <p className="text-lg font-medium text-gray-600">Loading...</p>
+    </div>
+  </div>
+);
+
+// Error boundary fallback component
+const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => (
+  <div className="flex flex-col items-center justify-center min-h-screen p-8">
+    <div className="text-center max-w-md">
+      <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">Something went wrong</h2>
+      <p className="text-gray-600 mb-6">We're sorry, but something went wrong. Please try refreshing the page.</p>
+      <div className="space-x-4">
+        <Button onClick={resetErrorBoundary} variant="default">
+          Try again
+        </Button>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          Refresh page
+        </Button>
+      </div>
+      {process.env.NODE_ENV === 'development' && (
+        <details className="mt-6 text-left bg-gray-100 p-4 rounded">
+          <summary className="cursor-pointer font-medium">Error details (dev only)</summary>
+          <pre className="mt-2 text-sm text-red-600 whitespace-pre-wrap">{error.message}</pre>
+        </details>
+      )}
+    </div>
+  </div>
+);
 import CustomerVerification from "./pages/CustomerVerification";
 // import GovtSchemes from "./pages/workers/GovtSchemes";
 
@@ -65,46 +104,66 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ChatbotWidget } from "./components/chat/ChatbotWidget";
 import { ScrollToTop } from "./components/ScrollToTop";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 10, // 10 minutes (renamed from cacheTime)
+      gcTime: 1000 * 60 * 10, // 10 minutes
       retry: (failureCount, error: any) => {
-        if (error?.status === 401 || error?.status === 403) {
+        // Don't retry on 4xx errors
+        if (error?.status >= 400 && error?.status < 500) {
           return false;
         }
         return failureCount < 3;
       },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      refetchOnWindowFocus: false, // Disable refetch on window focus for better UX
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: (failureCount, error: any) => {
+        // Don't retry mutations on client errors
+        if (error?.status >= 400 && error?.status < 500) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: 1000,
     },
   },
 });
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <GoogleAuthProvider>
-      <ThemeProvider>
-        <LanguageProvider>
-          <FontProvider>
-            <LocationProvider>
-              <AuthProvider>
-                <SocketProvider>
-                  <ChatbotProvider>
-                  <TooltipProvider>
-                    <Toaster />
-                    <Sonner />
-                    <BrowserRouter 
-                      future={{
-                        v7_startTransition: true,
-                        v7_relativeSplatPath: true,
-                      }}
-                    >
-                      <ScrollToTop />
-                <div className="min-h-screen flex flex-col bg-background">
-                  <Navigation />
-                  <main className="flex-1">
-                    <Routes>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <GoogleAuthProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <FontProvider>
+              <LocationProvider>
+                <AuthProvider>
+                  <SocketProvider>
+                    <ChatbotProvider>
+                      <TooltipProvider>
+                        <Toaster />
+                        <Sonner />
+                        <BrowserRouter 
+                          future={{
+                            v7_startTransition: true,
+                            v7_relativeSplatPath: true,
+                          }}
+                        >
+                          <ScrollToTop />
+                          <div className="min-h-screen flex flex-col bg-background">
+                            <Navigation />
+                            <main className="flex-1">
+                              <Suspense fallback={<PageLoader />}>
+                                <Routes>
                       {/* Public routes */}
                       <Route path="/" element={<Index />} />
                       <Route path="/services" element={<Services />} />
@@ -205,24 +264,24 @@ const App = () => (
                       {/* 404 route */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
-                  </main>
-                  <Footer />
-                </div>
-                <ChatbotWidget />
-              </BrowserRouter>
-            </TooltipProvider>
-          </ChatbotProvider>
-        </SocketProvider>
-      </AuthProvider>
-      </LocationProvider>
-    </FontProvider>
-  </LanguageProvider>
-</ThemeProvider>
-</GoogleAuthProvider>
-</QueryClientProvider>
-);
-
-const container = document.getElementById("root");
+                              </Suspense>
+                            </main>
+                            <Footer />
+                          </div>
+                          <ChatbotWidget />
+                        </BrowserRouter>
+                      </TooltipProvider>
+                    </ChatbotProvider>
+                  </SocketProvider>
+                </AuthProvider>
+              </LocationProvider>
+            </FontProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </GoogleAuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
+);const container = document.getElementById("root");
 if (!container) throw new Error("Failed to find the root element");
 
 // Only create root if it doesn't exist

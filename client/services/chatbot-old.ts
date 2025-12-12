@@ -268,7 +268,39 @@ Please respond helpfully and keep it brief (2-3 sentences):`;
 
   // Get contextual information based on user intent
   private getContextualInfo(intent: any, session: ChatSession): string {
-    const kb = this.getKnowledgeBase();
+    // Use predefined knowledge base
+    const kb = {
+      services: {
+        categories: [
+          'plumbing', 'electrical', 'cleaning', 'carpentry', 'painting',
+          'appliance repair', 'gardening', 'pest control'
+        ]
+      },
+      emergencyKeywords: [
+        'emergency', 'urgent', 'help', 'broke', 'leak', 'fire', 'safety'
+      ],
+      commonIssues: {
+        plumbing: ['leak', 'blockage', 'no water', 'low pressure'],
+        electrical: ['no power', 'short circuit', 'flickering lights'],
+        cleaning: ['deep cleaning', 'regular cleaning', 'move-in cleaning']
+      },
+      booking: {
+        steps: ['Select Service', 'Choose Date & Time', 'Confirm Details', 'Make Payment'],
+        cancellation: {
+          policy: 'Free cancellation up to 2 hours before scheduled time'
+        }
+      },
+      worker: {
+        requirements: {
+          documents: ['Aadhaar Card', 'PAN Card', 'Police Verification'],
+          skills: ['Technical Skills', 'Communication', 'Reliability']
+        },
+        earnings: {
+          commission: '15% platform fee',
+          payment: 'Weekly direct bank transfer'
+        }
+      }
+    };
     
     switch (intent.primary) {
       case 'booking':

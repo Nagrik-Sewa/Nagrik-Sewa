@@ -201,6 +201,76 @@ Please respond helpfully and keep it brief (2-3 sentences):`;
     return this.activeSessions.get(sessionId);
   }
 
+  // Resume enhancement methods
+  async enhanceResume(resumeData: any, language: string = 'en'): Promise<string> {
+    try {
+      if (!this.model) {
+        throw new Error('AI service is not available');
+      }
+
+      const prompt = `Please enhance this resume for better job opportunities:
+
+Resume Data:
+${JSON.stringify(resumeData, null, 2)}
+
+Please provide specific suggestions for improvement and enhanced content. Focus on:
+1. Professional summary enhancement
+2. Skills optimization
+3. Experience description improvements
+4. Achievement quantification
+
+Respond in ${language} language.`;
+
+      const result = await this.model.generateContent(prompt);
+      return result.response.text().trim();
+
+    } catch (error) {
+      console.error('Resume enhancement error:', error);
+      throw new Error('Failed to enhance resume. Please try again later.');
+    }
+  }
+
+  async generateResumeContent(jobTitle: string, experience: number, skills: string[], language: string = 'en'): Promise<any> {
+    try {
+      if (!this.model) {
+        throw new Error('AI service is not available');
+      }
+
+      const prompt = `Generate professional resume content for:
+
+Job Title: ${jobTitle}
+Experience Level: ${experience} years
+Skills: ${skills.join(', ')}
+
+Please create:
+1. Professional summary (3-4 sentences)
+2. Key achievements (5 bullet points)
+3. Skill descriptions
+4. Career objective
+
+Respond in ${language} language and format as JSON with properties: professionalSummary, keyAchievements (array), skillDescriptions (array), careerObjective.`;
+
+      const result = await this.model.generateContent(prompt);
+      const response = result.response.text().trim();
+      
+      try {
+        return JSON.parse(response);
+      } catch {
+        // If JSON parsing fails, return structured text
+        return {
+          professionalSummary: response,
+          keyAchievements: [response],
+          skillDescriptions: skills,
+          careerObjective: response
+        };
+      }
+
+    } catch (error) {
+      console.error('Resume generation error:', error);
+      throw new Error('Failed to generate resume content. Please try again later.');
+    }
+  }
+
   closeChatSession(sessionId: string): void {
     const session = this.activeSessions.get(sessionId);
     if (session) {
