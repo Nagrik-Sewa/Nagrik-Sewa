@@ -59,20 +59,20 @@ export function Navigation() {
       icon: Users,
       dropdown: [
         { href: "/join-as-worker", label: t("navigation.joinAsWorker") },
-        { href: "/find-customers", label: "Find Customers" },
+        { href: "/find-customers", label: t("navigation.findCustomers") },
         { href: "/get-verified", label: t("navigation.getVerified") },
         { href: "/worker-support", label: t("navigation.workerSupport") },
       ],
     },
     {
       href: "#customers",
-      label: "For Customers",
+      label: t("navigation.forCustomers"),
       icon: Users,
       dropdown: [
-        { href: "/join-as-customer", label: "Join as Customer" },
-        { href: "/workers", label: "Find Workers" },
-        { href: "/get-verified", label: "Get Verified" },
-        { href: "/customer-support", label: "Customer Support" },
+        { href: "/join-as-customer", label: t("navigation.joinAsCustomer") },
+        { href: "/workers", label: t("navigation.workers") },
+        { href: "/get-verified", label: t("navigation.getVerified") },
+        { href: "/customer-support", label: t("navigation.support") },
       ],
     },
   ];

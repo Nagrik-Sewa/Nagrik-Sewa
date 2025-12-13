@@ -28,12 +28,15 @@ const translations: { [key in Language]: Translation } = {
       bookings: 'My Bookings',
       dashboard: 'Dashboard',
       forWorkers: 'For Workers',
+      forCustomers: 'For Customers',
       browseWorkers: 'Browse Workers',
       joinAsWorker: 'Join as Worker',
+      joinAsCustomer: 'Join as Customer',
       skillTraining: 'Skill Training',
       resumeBuilder: 'Resume Builder',
       getVerified: 'Get Verified',
       workerSupport: 'Worker Support',
+      findCustomers: 'Find Customers',
       helpSupport: 'Help & Support',
       support: 'Support',
       serviceCategories: 'Service Categories',
@@ -63,7 +66,8 @@ const translations: { [key in Language]: Translation } = {
       copyright: 'All rights reserved.',
       madeBy: 'Made with ❤️ in India for India',
       happyCustomers: 'Happy Customers',
-      skilledWorkers: 'Skilled Workers'
+      skilledWorkers: 'Skilled Workers',
+      districtsCovered: 'Districts Covered'
     },
     common: {
       loading: 'Loading...',
@@ -81,6 +85,9 @@ const translations: { [key in Language]: Translation } = {
       language: 'Language',
       selectState: 'Select State',
       selectDistrict: 'Select District',
+      joinAsWorker: 'Join as Worker',
+      joinAsCustomer: 'Join as Customer',
+      watchDemo: 'Watch Demo',
     },
     services: {
       homeService: 'Home Services',
@@ -126,8 +133,25 @@ const translations: { [key in Language]: Translation } = {
       orText: 'or',
       browseServices: 'Browse All Services',
       popularServices: 'Popular Services',
+      demands: {
+        high: 'High',
+        medium: 'Medium',
+        low: 'Low'
+      },
+      services: {
+        houseCleaning: 'House Cleaning',
+        plumbing: 'Plumbing',
+        electricalWork: 'Electrical Work',
+        painting: 'Painting',
+        carpentry: 'Carpentry',
+        gardening: 'Gardening'
+      },
       featuresTitle: 'Why Choose Nagrik Sewa?',
       featuresSubtitle: 'Experience the future of home services with cutting-edge technology',
+      badges: {
+        techBadge: '✨ Powered by Advanced Technology',
+        futureReady: '🔮 Future-Ready Platform'
+      },
       features: {
         aiMatching: {
           title: 'AI-Powered Matching',
@@ -154,6 +178,10 @@ const translations: { [key in Language]: Translation } = {
           description: 'One-click emergency button for immediate help and safety alerts.'
         }
       },
+      advancedFeaturesSection: {
+        title: 'Advanced Features',
+        subtitle: "We're building the future of work with innovative features that empower both workers and customers."
+      },
       advancedFeatures: {
         training: {
           title: 'Skill Training & Upskilling',
@@ -176,7 +204,8 @@ const translations: { [key in Language]: Translation } = {
         activeWorkers: 'Active Workers',
         happyCustomers: 'Happy Customers',
         servicesCompleted: 'Services Completed',
-        citiesCovered: 'Cities Covered'
+        citiesCovered: 'Cities Covered',
+        averageRating: 'Average Rating'
       },
       getStarted: 'Get Started Today'
     },
@@ -206,11 +235,14 @@ const translations: { [key in Language]: Translation } = {
       bookings: 'मेरी बुकिंग',
       dashboard: 'डैशबोर्ड',
       forWorkers: 'कार्यकर्ताओं के लिए',
+      forCustomers: 'ग्राहकों के लिए',
       joinAsWorker: 'कार्यकर्ता के रूप में जुड़ें',
+      joinAsCustomer: 'ग्राहक के रूप में जुड़ें',
       skillTraining: 'कौशल प्रशिक्षण',
       resumeBuilder: 'रिज्यूमे बिल्डर',
       getVerified: 'सत्यापित हों',
       workerSupport: 'कार्यकर्ता सहायता',
+      findCustomers: 'ग्राहक खोजें',
       helpSupport: 'सहायता एवं समर्थन',
       support: 'सहायता',
       serviceCategories: 'सेवा श्रेणियां',
@@ -221,6 +253,27 @@ const translations: { [key in Language]: Translation } = {
       cleaning: 'सफाई',
       gardening: 'बागवानी',
       logout: 'लॉग आउट',
+      privacy: 'गोपनीयता नीति',
+      terms: 'सेवा की शर्तें',
+    },
+    footer: {
+      verifiedWorkers: '25K+',
+      kycChecked: 'KYC सत्यापित कार्यकर्ता',
+      workersCount: '50K+',
+      acrossCities: '640+ जिलों में सक्रिय',
+      govtRecognized: 'सरकारी मान्यता प्राप्त',
+      skillIndiaCertified: 'स्किल इंडिया प्रमाणित',
+      companyDescription: 'नागरिक सेवा भारत का पहला AI-संचालित घरेलू सेवाओं का प्लेटफॉर्म है जो कुशल कार्यकर्ताओं और ग्राहकों के बीच की खाई को पाटता है। हम कार्यकर्ताओं को डिजिटल टूल्स से सशक्त बनाते हैं और ग्राहकों को सत्यापित, कुशल पेशेवर प्रदान करते हैं।',
+      services: 'सेवाएं',
+      govtSchemes: 'सरकारी योजनाएं',
+      contactUs: 'संपर्क करें',
+      emergencyHelpline: 'आपातकालीन हेल्पलाइन',
+      emergency: 'आपातकाल',
+      copyright: 'सर्वाधिकार सुरक्षित।',
+      madeBy: 'भारत में भारत के लिए ❤️ से बनाया गया',
+      happyCustomers: 'खुश ग्राहक',
+      skilledWorkers: 'कुशल कार्यकर्ता',
+      districtsCovered: 'कवर किए गए जिले'
     },
     common: {
       loading: 'लोड हो रहा है...',
@@ -238,6 +291,9 @@ const translations: { [key in Language]: Translation } = {
       language: 'भाषा',
       selectState: 'राज्य चुनें',
       selectDistrict: 'जिला चुनें',
+      joinAsWorker: 'कार्यकर्ता के रूप में जुड़ें',
+      joinAsCustomer: 'ग्राहक के रूप में जुड़ें',
+      watchDemo: 'डेमो देखें',
     },
     services: {
       homeService: 'घरेलू सेवाएं',
@@ -283,6 +339,15 @@ const translations: { [key in Language]: Translation } = {
       orText: 'या',
       browseServices: 'सभी सेवाएं देखें',
       popularServices: 'लोकप्रिय सेवाएं:',
+      demands: {
+        high: 'उच्च',
+        medium: 'मध्यम',
+        low: 'कम'
+      },
+      badges: {
+        techBadge: '✨ उन्नत तकनीक से संचालित',
+        futureReady: '🔮 भविष्य-तैयार प्लेटफॉर्म'
+      },
       featuresTitle: 'नागरिक सेवा क्यों चुनें?',
       featuresSubtitle: 'अत्याधुनिक तकनीक के साथ घरेलू सेवाओं का भविष्य अनुभव करें',
       // Service names in Hindi
@@ -299,6 +364,7 @@ const translations: { [key in Language]: Translation } = {
       skilledWorkers: 'कुशल कार्यकर्ता',
       servicesCompleted: 'पूर्ण सेवाएं',
       citiesCovered: 'शहरों में सेवा',
+      averageRating: 'औसत रेटिंग',
       // Testimonials
       testimonials: {
         title: 'लोग क्या कहते हैं',

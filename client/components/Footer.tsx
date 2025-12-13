@@ -69,7 +69,7 @@ export function Footer() {
               <Award className="w-8 h-8 text-yellow-400" />
               <div>
                 <p className="font-semibold">640+</p>
-                <p className="text-sm text-gray-400">Districts Covered</p>
+                <p className="text-sm text-gray-400">{t('footer.districtsCovered') || 'Districts Covered'}</p>
               </div>
             </div>
           </div>

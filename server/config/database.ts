@@ -18,9 +18,22 @@ class Database {
     }
 
     try {
+      const shouldSkip = process.env.SKIP_DB_CONNECTION === 'true';
       const mongoUri = process.env.MONGODB_URI;
+
+      // Allow skipping DB locally to unblock front-end dev when Mongo isn't available
       if (!mongoUri) {
-        throw new Error('MONGODB_URI environment variable is not defined');
+        const message = 'MONGODB_URI environment variable is not defined';
+        if (shouldSkip || process.env.NODE_ENV === 'development') {
+          console.warn(`${message}; skipping MongoDB connection.`);
+          return;
+        }
+        throw new Error(message);
+      }
+
+      if (shouldSkip) {
+        console.warn('SKIP_DB_CONNECTION is true; skipping MongoDB connection.');
+        return;
       }
 
       const options: mongoose.ConnectOptions = {

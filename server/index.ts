@@ -37,6 +37,11 @@ export function createServer() {
 
   // Initialize database connection with retry logic
   database.connect().catch(error => {
+    if (process.env.SKIP_DB_CONNECTION === 'true' || process.env.NODE_ENV === 'development') {
+      console.warn('Database connection failed or skipped; continuing without DB. Reason:', error instanceof Error ? error.message : error);
+      return;
+    }
+
     console.error('Failed to connect to database:', error);
     process.exit(1);
   });
