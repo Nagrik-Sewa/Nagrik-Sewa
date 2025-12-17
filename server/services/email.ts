@@ -25,51 +25,267 @@ const transporter = nodemailer.createTransport({
 const getEmailTemplate = (template: string, data: any) => {
   const templates = {
     'email-verification': `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">Welcome to Nagrik Sewa! 🇮🇳</h2>
-        <p>Hello ${data.name},</p>
-        <p>Thank you for registering with Nagrik Sewa. Please verify your email address by clicking the button below:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${data.verificationLink}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-            Verify Email Address
-          </a>
-        </div>
-        <p>Or copy and paste this link in your browser:</p>
-        <p style="word-break: break-all; color: #6b7280;">${data.verificationLink}</p>
-        <p>This link will expire in 24 hours.</p>
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-        <p style="color: #6b7280; font-size: 14px;">
-          If you didn't create an account with Nagrik Sewa, please ignore this email.
-        </p>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f8fafc; padding: 40px 20px;">
+          <tr>
+            <td align="center">
+              <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <!-- Header with Indian flag colors -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #FF9933 0%, #138808 50%, #000080 100%); padding: 3px 0;"></td>
+                </tr>
+                <tr>
+                  <td style="background-color: #ffffff; padding: 40px 30px; text-align: center;">
+                    <h1 style="margin: 0; color: #138808; font-size: 28px; font-weight: bold;">
+                      🇮🇳 नागरिक सेवा
+                    </h1>
+                    <p style="margin: 10px 0 0 0; color: #64748b; font-size: 14px;">
+                      Connecting Communities, Building Trust
+                    </p>
+                  </td>
+                </tr>
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 30px 40px;">
+                    <h2 style="margin: 0 0 20px 0; color: #138808; font-size: 24px; font-weight: 600;">
+                      Welcome to Nagrik Sewa! 🎉
+                    </h2>
+                    <p style="margin: 0 0 15px 0; color: #334155; font-size: 16px; line-height: 1.6;">
+                      Hello <strong>${data.name}</strong>,
+                    </p>
+                    <p style="margin: 0 0 25px 0; color: #64748b; font-size: 15px; line-height: 1.6;">
+                      Thank you for joining Nagrik Sewa! We're excited to have you on board. Please verify your email address to unlock all features and start your journey with us.
+                    </p>
+                    <!-- CTA Button -->
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="padding: 20px 0;">
+                          <a href="${data.verificationLink}" style="display: inline-block; background: linear-gradient(135deg, #138808 0%, #0d6006 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(19, 136, 8, 0.3);">
+                            ✓ Verify Email Address
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin: 20px 0 10px 0; color: #64748b; font-size: 13px; line-height: 1.6;">
+                      Or copy and paste this link in your browser:
+                    </p>
+                    <p style="margin: 0; padding: 15px; background-color: #f8fafc; border-radius: 8px; word-break: break-all; color: #138808; font-size: 13px; font-family: monospace;">
+                      ${data.verificationLink}
+                    </p>
+                    <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #fff5eb 0%, #ffe8d1 100%); border-left: 4px solid #FF9933; border-radius: 8px;">
+                      <p style="margin: 0; color: #92400e; font-size: 14px;">
+                        ⏱️ <strong>Important:</strong> This verification link will expire in 24 hours.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #f8fafc; padding: 30px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+                    <p style="margin: 0 0 10px 0; color: #94a3b8; font-size: 13px;">
+                      If you didn't create an account with Nagrik Sewa, please ignore this email.
+                    </p>
+                    <p style="margin: 10px 0 0 0; color: #cbd5e1; font-size: 12px;">
+                      © ${new Date().getFullYear()} Nagrik Sewa. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
     `,
     'email-otp': `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">Email Verification - Nagrik Sewa</h2>
-        <p>Hello ${data.name},</p>
-        <p>Your email verification code is:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1f2937;">
-            ${data.otp}
-          </div>
-        </div>
-        <p>This code will expire in 10 minutes.</p>
-        <p>If you didn't request this verification, please ignore this email.</p>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f8fafc; padding: 40px 20px;">
+          <tr>
+            <td align="center">
+              <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <!-- Header with Indian flag colors -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #FF9933 0%, #138808 50%, #000080 100%); padding: 3px 0;"></td>
+                </tr>
+                <tr>
+                  <td style="background-color: #ffffff; padding: 40px 30px; text-align: center;">
+                    <h1 style="margin: 0; color: #138808; font-size: 28px; font-weight: bold;">
+                      🇮🇳 नागरिक सेवा
+                    </h1>
+                    <p style="margin: 10px 0 0 0; color: #64748b; font-size: 14px;">
+                      Secure Email Verification
+                    </p>
+                  </td>
+                </tr>
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 30px 40px; text-align: center;">
+                    <div style="margin-bottom: 30px;">
+                      <div style="display: inline-block; background: linear-gradient(135deg, #138808 0%, #0d6006 100%); border-radius: 50%; padding: 20px; margin-bottom: 20px;">
+                        <span style="font-size: 40px;">🔐</span>
+                      </div>
+                    </div>
+                    <h2 style="margin: 0 0 15px 0; color: #138808; font-size: 24px; font-weight: 600;">
+                      Email Verification Code
+                    </h2>
+                    <p style="margin: 0 0 30px 0; color: #334155; font-size: 16px; line-height: 1.6;">
+                      Hello <strong>${data.name}</strong>,
+                    </p>
+                    <p style="margin: 0 0 30px 0; color: #64748b; font-size: 15px; line-height: 1.6;">
+                      Enter this verification code to confirm your email address:
+                    </p>
+                    <!-- OTP Display -->
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="padding: 0 0 30px 0;">
+                          <div style="display: inline-block; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 3px solid #138808; border-radius: 12px; padding: 25px 40px; box-shadow: 0 8px 20px rgba(19, 136, 8, 0.15);">
+                            <div style="font-size: 42px; font-weight: bold; letter-spacing: 12px; color: #138808; font-family: 'Courier New', monospace;">
+                              ${data.otp}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                    <!-- Info Box -->
+                    <div style="margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #fff5eb 0%, #ffe8d1 100%); border-left: 4px solid #FF9933; border-radius: 8px; text-align: left;">
+                      <p style="margin: 0 0 8px 0; color: #92400e; font-size: 14px; font-weight: 600;">
+                        ⚡ Quick Tips:
+                      </p>
+                      <p style="margin: 0 0 5px 0; color: #92400e; font-size: 13px;">
+                        • This code expires in <strong>10 minutes</strong>
+                      </p>
+                      <p style="margin: 0; color: #92400e; font-size: 13px;">
+                        • Never share this code with anyone
+                      </p>
+                    </div>
+                    <div style="margin-top: 25px; padding: 20px; background-color: #fef2f2; border-radius: 8px; text-align: left;">
+                      <p style="margin: 0; color: #991b1b; font-size: 13px;">
+                        🛡️ <strong>Security Notice:</strong> If you didn't request this verification, please ignore this email and ensure your account is secure.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #f8fafc; padding: 30px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+                    <p style="margin: 0 0 10px 0; color: #94a3b8; font-size: 13px;">
+                      This is an automated message from Nagrik Sewa
+                    </p>
+                    <p style="margin: 10px 0 0 0; color: #cbd5e1; font-size: 12px;">
+                      © ${new Date().getFullYear()} Nagrik Sewa. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
     `,
     'phone-otp': `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">Phone Verification - Nagrik Sewa</h2>
-        <p>Hello ${data.name},</p>
-        <p>Your phone verification code is:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1f2937;">
-            ${data.otp}
-          </div>
-        </div>
-        <p>Enter this code in the app to verify your phone number.</p>
-        <p>This code will expire in 10 minutes.</p>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f8fafc; padding: 40px 20px;">
+          <tr>
+            <td align="center">
+              <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <!-- Header with Indian flag colors -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #FF9933 0%, #138808 50%, #000080 100%); padding: 3px 0;"></td>
+                </tr>
+                <tr>
+                  <td style="background-color: #ffffff; padding: 40px 30px; text-align: center;">
+                    <h1 style="margin: 0; color: #138808; font-size: 28px; font-weight: bold;">
+                      🇮🇳 नागरिक सेवा
+                    </h1>
+                    <p style="margin: 10px 0 0 0; color: #64748b; font-size: 14px;">
+                      Secure Phone Verification
+                    </p>
+                  </td>
+                </tr>
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 30px 40px; text-align: center;">
+                    <div style="margin-bottom: 30px;">
+                      <div style="display: inline-block; background: linear-gradient(135deg, #FF9933 0%, #ff7e0d 100%); border-radius: 50%; padding: 20px; margin-bottom: 20px;">
+                        <span style="font-size: 40px;">📱</span>
+                      </div>
+                    </div>
+                    <h2 style="margin: 0 0 15px 0; color: #138808; font-size: 24px; font-weight: 600;">
+                      Phone Verification Code
+                    </h2>
+                    <p style="margin: 0 0 30px 0; color: #334155; font-size: 16px; line-height: 1.6;">
+                      Hello <strong>${data.name}</strong>,
+                    </p>
+                    <p style="margin: 0 0 30px 0; color: #64748b; font-size: 15px; line-height: 1.6;">
+                      Enter this verification code in the app to verify your phone number:
+                    </p>
+                    <!-- OTP Display -->
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="padding: 0 0 30px 0;">
+                          <div style="display: inline-block; background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 3px solid #FF9933; border-radius: 12px; padding: 25px 40px; box-shadow: 0 8px 20px rgba(255, 153, 51, 0.15);">
+                            <div style="font-size: 42px; font-weight: bold; letter-spacing: 12px; color: #ea580c; font-family: 'Courier New', monospace;">
+                              ${data.otp}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                    <!-- Info Box -->
+                    <div style="margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #138808; border-radius: 8px; text-align: left;">
+                      <p style="margin: 0 0 8px 0; color: #14532d; font-size: 14px; font-weight: 600;">
+                        ⚡ Quick Tips:
+                      </p>
+                      <p style="margin: 0 0 5px 0; color: #14532d; font-size: 13px;">
+                        • This code expires in <strong>10 minutes</strong>
+                      </p>
+                      <p style="margin: 0; color: #14532d; font-size: 13px;">
+                        • Never share this code with anyone
+                      </p>
+                    </div>
+                    <div style="margin-top: 25px; padding: 20px; background-color: #fef2f2; border-radius: 8px; text-align: left;">
+                      <p style="margin: 0; color: #991b1b; font-size: 13px;">
+                        🛡️ <strong>Security Notice:</strong> If you didn't request this verification, please ignore this email and ensure your account is secure.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #f8fafc; padding: 30px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+                    <p style="margin: 0 0 10px 0; color: #94a3b8; font-size: 13px;">
+                      This is an automated message from Nagrik Sewa
+                    </p>
+                    <p style="margin: 10px 0 0 0; color: #cbd5e1; font-size: 12px;">
+                      © ${new Date().getFullYear()} Nagrik Sewa. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
     `
   };
 

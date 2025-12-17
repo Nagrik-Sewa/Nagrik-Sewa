@@ -51,31 +51,67 @@ export function Navigation() {
 
   const isActivePath = (path: string) => location.pathname === path;
 
-  const navLinks: NavLink[] = [
-    { href: "/", label: t("navigation.home"), icon: HomeIcon },
-    {
-      href: "#workers",
-      label: t("navigation.forWorkers"),
-      icon: Users,
-      dropdown: [
-        { href: "/join-as-worker", label: t("navigation.joinAsWorker") },
-        { href: "/find-customers", label: t("navigation.findCustomers") },
-        { href: "/get-verified", label: t("navigation.getVerified") },
-        { href: "/worker-support", label: t("navigation.workerSupport") },
-      ],
-    },
-    {
-      href: "#customers",
-      label: t("navigation.forCustomers"),
-      icon: Users,
-      dropdown: [
-        { href: "/join-as-customer", label: t("navigation.joinAsCustomer") },
-        { href: "/workers", label: t("navigation.workers") },
-        { href: "/get-verified", label: t("navigation.getVerified") },
-        { href: "/customer-support", label: t("navigation.support") },
-      ],
-    },
-  ];
+  // Role-based navigation links
+  const getNavLinks = (): NavLink[] => {
+    if (!isAuthenticated) {
+      return [
+        { href: "/", label: t("navigation.home"), icon: HomeIcon },
+        {
+          href: "#workers",
+          label: t("navigation.forWorkers"),
+          icon: Users,
+          dropdown: [
+            { href: "/join-as-worker", label: t("navigation.joinAsWorker") },
+            { href: "/find-customers", label: t("navigation.findCustomers") },
+            { href: "/get-verified", label: t("navigation.getVerified") },
+            { href: "/worker-support", label: t("navigation.workerSupport") },
+          ],
+        },
+        {
+          href: "#customers",
+          label: t("navigation.forCustomers"),
+          icon: Users,
+          dropdown: [
+            { href: "/join-as-customer", label: t("navigation.joinAsCustomer") },
+            { href: "/workers", label: t("navigation.workers") },
+            { href: "/get-verified", label: t("navigation.getVerified") },
+            { href: "/customer-support", label: t("navigation.support") },
+          ],
+        },
+      ];
+    }
+
+    // Admin navigation
+    if (user?.role === 'admin') {
+      return [
+        { href: "/", label: t("navigation.home"), icon: HomeIcon },
+        { href: "/admin", label: "Admin Dashboard", icon: Shield },
+        { href: "/workers", label: "Manage Workers", icon: Users },
+        { href: "/bookings", label: "All Bookings", icon: Calendar },
+      ];
+    }
+
+    // Worker navigation
+    if (user?.role === 'worker') {
+      return [
+        { href: "/", label: t("navigation.home"), icon: HomeIcon },
+        { href: "/dashboard", label: "My Dashboard", icon: Briefcase },
+        { href: "/find-customers", label: "Find Customers", icon: Users },
+        { href: "/bookings", label: "My Bookings", icon: Calendar },
+        { href: "/resume-builder", label: "Resume Builder", icon: FileText },
+      ];
+    }
+
+    // Customer navigation
+    return [
+      { href: "/", label: t("navigation.home"), icon: HomeIcon },
+      { href: "/workers", label: "Find Workers", icon: Users },
+      { href: "/services", label: "Services", icon: Briefcase },
+      { href: "/bookings", label: "My Bookings", icon: Calendar },
+    ];
+  };
+
+  const navLinks = getNavLinks();
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

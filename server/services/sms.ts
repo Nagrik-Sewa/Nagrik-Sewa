@@ -58,7 +58,7 @@ export const sendSMS = async (options: SMSOptions): Promise<{ success: boolean; 
 
 // Template for OTP SMS
 export const sendOTPSMS = async (phoneNumber: string, otp: string, name?: string): Promise<{ success: boolean; messageId?: string; error?: string }> => {
-  const message = `Hello${name ? ' ' + name : ''}! Your Nagrik Sewa verification code is: ${otp}. This code expires in 10 minutes. Do not share this code with anyone.`;
+  const message = `🇮🇳 नागरिक सेवा\n\nHello${name ? ' ' + name : ''}!\n\n🔐 Your verification code: ${otp}\n\n⏱️ Valid for 10 minutes\n🛡️ Keep it secure - never share!\n\nThank you for choosing Nagrik Sewa.`;
   
   return sendSMS({
     to: phoneNumber,
