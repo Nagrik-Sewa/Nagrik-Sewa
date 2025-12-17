@@ -29,7 +29,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<any>;
-  verifyOTP: (userId: string, phoneOTP?: string, emailOTP?: string) => Promise<any>;
+  verifyOTP: (email: string, phoneOTP?: string, emailOTP?: string) => Promise<any>;
   logout: () => void;
   updateUser: (data: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -95,6 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Login failed",
         description: message,
         variant: "destructive",
+        duration: 5000, // Show error for 5 seconds
       });
       throw error;
     }
@@ -106,9 +107,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await api.post('/auth/register', data);
       console.log('Registration response:', response.data);
       
-      // Registration returns userId and requires OTP verification
+      // Registration returns email and requires OTP verification
       // Don't set user/token yet - need OTP verification first
-      const { userId, requiresVerification } = response.data.data;
+      const { email, requiresVerification } = response.data.data;
       
       toast({
         title: "Registration Initiated! 🇮🇳",
@@ -124,14 +125,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Registration failed",
         description: message,
         variant: "destructive",
+        duration: 5000,
       });
       throw error;
     }
   };
 
-  const verifyOTP = async (userId: string, phoneOTP?: string, emailOTP?: string) => {
+  const verifyOTP = async (email: string, phoneOTP?: string, emailOTP?: string) => {
     try {
-      const response = await api.post('/auth/verify-otp', { userId, phoneOTP, emailOTP });
+      const response = await api.post('/auth/verify-otp', { email, phoneOTP, emailOTP });
       console.log('OTP verification response:', response.data);
       
       // If verification is complete, user gets token and is logged in
@@ -160,6 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Verification failed",
         description: message,
         variant: "destructive",
+        duration: 5000,
       });
       throw error;
     }

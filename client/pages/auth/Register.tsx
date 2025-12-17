@@ -113,11 +113,9 @@ const Register: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <OTPVerification
-          userId={registrationData.userId}
-          phone={formData.phone}
           email={formData.email}
+          phone={formData.phone}
           onVerificationComplete={handleVerificationComplete}
-          testOTP={registrationData.testOTP}
         />
       </div>
     );

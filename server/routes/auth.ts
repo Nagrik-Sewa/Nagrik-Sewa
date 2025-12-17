@@ -145,8 +145,8 @@ router.post('/register', async (req, res) => {
     // Remove any remaining spaces or special characters
     normalizedPhone = normalizedPhone.replace(/\s+/g, '');
 
-    // Create user with required address object but mark as unverified
-    const user = new User({
+    // Store user data temporarily (don't save to database yet)
+    const pendingUserData = {
       firstName,
       lastName: lastName || '',
       email,
@@ -159,21 +159,17 @@ router.post('/register', async (req, res) => {
         pincode: '110001',
         country: 'India'
       },
-      isEmailVerified: false,
-      isPhoneVerified: false,
-      loginAttempts: 0,
-      isTwoFactorEnabled: false,
       languagePreference: 'hi',
       notificationPreferences: {
         email: true,
         sms: true,
         push: true,
         whatsapp: true
-      },
-      accountStatus: 'pending' // Mark as pending until OTP verification
-    });
+      }
+    };
 
-    await user.save();
+    // Store pending user with email as identifier
+    OTPService.storePendingUser(email, pendingUserData as any);
 
     // Generate OTP for phone verification
     const phoneOTP = OTPService.generateOTP();
@@ -216,15 +212,9 @@ router.post('/register', async (req, res) => {
       success: true,
       message: 'Registration initiated. Please verify your phone and email with the OTP codes sent.',
       data: {
-        userId: user._id,
-        email: user.email,
-        phone: user.phone,
-        requiresVerification: true,
-        // For development/testing - remove in production
-        testOTP: {
-          phone: phoneOTP,
-          email: emailOTP
-        }
+        email: email,
+        phone: normalizedPhone,
+        requiresVerification: true
       }
     });
 
@@ -241,34 +231,33 @@ router.post('/register', async (req, res) => {
 // Verify OTP endpoint
 router.post('/verify-otp', async (req, res) => {
   try {
-    const { userId, phoneOTP, emailOTP } = req.body;
+    const { email, phoneOTP, emailOTP } = req.body;
 
     // Validation
-    if (!userId || (!phoneOTP && !emailOTP)) {
+    if (!email || (!phoneOTP && !emailOTP)) {
       return res.status(400).json({
         success: false,
-        message: 'User ID and at least one OTP (phone or email) are required'
+        message: 'Email and at least one OTP (phone or email) are required'
       });
     }
 
-    // Find user
-    const user = await User.findById(userId);
-    if (!user) {
+    // Get pending user data
+    const pendingUserData = OTPService.getPendingUser(email);
+    if (!pendingUserData) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'Registration session expired or not found. Please register again.'
       });
     }
 
-    let phoneVerified = user.isPhoneVerified;
-    let emailVerified = user.isEmailVerified;
+    let phoneVerified = false;
+    let emailVerified = false;
 
     // Verify phone OTP if provided
-    if (phoneOTP && !user.isPhoneVerified) {
-      const phoneVerification = OTPService.verifyOTP(user.phone, phoneOTP);
+    if (phoneOTP) {
+      const phoneVerification = OTPService.verifyOTP(pendingUserData.phone, phoneOTP);
       if (phoneVerification.success) {
         phoneVerified = true;
-        user.isPhoneVerified = true;
       } else {
         return res.status(400).json({
           success: false,
@@ -278,11 +267,10 @@ router.post('/verify-otp', async (req, res) => {
     }
 
     // Verify email OTP if provided
-    if (emailOTP && !user.isEmailVerified) {
-      const emailVerification = OTPService.verifyOTP(user.email, emailOTP);
+    if (emailOTP) {
+      const emailVerification = OTPService.verifyOTP(email, emailOTP);
       if (emailVerification.success) {
         emailVerified = true;
-        user.isEmailVerified = true;
       } else {
         return res.status(400).json({
           success: false,
@@ -291,10 +279,47 @@ router.post('/verify-otp', async (req, res) => {
       }
     }
 
-    // If both are verified, activate the account
+    // If both are verified, create the user in database
     if (phoneVerified && emailVerified) {
-      user.accountStatus = 'active';
+      // Create user in database now
+      const user = new User({
+        firstName: pendingUserData.firstName,
+        lastName: pendingUserData.lastName,
+        email: pendingUserData.email,
+        password: pendingUserData.password,
+        phone: pendingUserData.phone,
+        role: pendingUserData.role,
+        address: pendingUserData.address,
+        isEmailVerified: true,
+        isPhoneVerified: true,
+        loginAttempts: 0,
+        isTwoFactorEnabled: false,
+        languagePreference: pendingUserData.languagePreference || 'hi',
+        notificationPreferences: pendingUserData.notificationPreferences,
+        accountStatus: 'active'
+      });
+
       await user.save();
+
+      // Clean up pending user data
+      OTPService.removePendingUser(email);
+
+      // Send welcome email
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'Welcome to Nagrik Sewa - Registration Successful! 🇮🇳',
+          template: 'welcome',
+          data: {
+            name: user.firstName,
+            email: user.email,
+            dashboardLink: process.env.CLIENT_URL ? `${process.env.CLIENT_URL}/dashboard` : 'https://nagriksewa.co.in/dashboard'
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Don't fail registration if welcome email fails
+      }
 
       // Generate JWT token now that user is verified
       const token = jwt.sign(
@@ -305,7 +330,7 @@ router.post('/verify-otp', async (req, res) => {
 
       res.json({
         success: true,
-        message: 'Account verified successfully! You can now login.',
+        message: 'Account verified and created successfully! You can now login.',
         data: {
           user: {
             id: user._id,
@@ -321,17 +346,14 @@ router.post('/verify-otp', async (req, res) => {
         }
       });
     } else {
-      // Save partial verification progress
-      await user.save();
-      
       res.json({
         success: true,
         message: 'Partial verification completed. Please verify both phone and email.',
         data: {
-          userId: user._id,
-          phoneVerified: user.isPhoneVerified,
-          emailVerified: user.isEmailVerified,
-          requiresVerification: !(user.isPhoneVerified && user.isEmailVerified)
+          email: email,
+          phoneVerified: phoneVerified,
+          emailVerified: emailVerified,
+          requiresVerification: true
         }
       });
     }
@@ -349,20 +371,69 @@ router.post('/verify-otp', async (req, res) => {
 // Resend OTP endpoint
 router.post('/resend-otp', async (req, res) => {
   try {
-    const { userId, type } = req.body; // type: 'phone' or 'email'
+    const { email, type } = req.body; // type: 'phone' or 'email'
 
-    if (!userId || !type) {
+    if (!email || !type) {
       return res.status(400).json({
         success: false,
-        message: 'User ID and OTP type are required'
+        message: 'Email and OTP type are required'
       });
     }
 
-    const user = await User.findById(userId);
+    // Check for pending user first
+    const pendingUserData = OTPService.getPendingUser(email);
+    if (pendingUserData) {
+      // Resend OTP for pending registration
+      if (type === 'phone') {
+        const phoneOTP = OTPService.generateOTP();
+        OTPService.storeOTP(pendingUserData.phone, phoneOTP);
+
+        try {
+          await sendSMS({
+            to: pendingUserData.phone,
+            message: `Your Nagrik Sewa verification code is: ${phoneOTP}. Valid for 10 minutes.`,
+            otp: phoneOTP
+          });
+        } catch (smsError) {
+          console.error('Failed to send SMS OTP:', smsError);
+        }
+
+        return res.json({
+          success: true,
+          message: 'Phone OTP resent successfully'
+        });
+
+      } else if (type === 'email') {
+        const emailOTP = OTPService.generateOTP();
+        OTPService.storeOTP(email, emailOTP);
+
+        try {
+          await sendEmail({
+            to: email,
+            subject: 'Verify Your Nagrik Sewa Account',
+            template: 'email-otp',
+            data: {
+              name: pendingUserData.firstName,
+              otp: emailOTP
+            }
+          });
+        } catch (emailError) {
+          console.error('Failed to send Email OTP:', emailError);
+        }
+
+        return res.json({
+          success: true,
+          message: 'Email OTP resent successfully'
+        });
+      }
+    }
+
+    // Check for existing user (for post-registration verification)
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'Registration not found. Please register first.'
       });
     }
 
@@ -470,7 +541,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.JWT_SECRET || 'fallback_secret',
       { expiresIn: '7d' }
@@ -488,7 +559,9 @@ router.post('/login', async (req, res) => {
           phone: user.phone,
           role: user.role
         },
-        token
+        tokens: {
+          accessToken: accessToken
+        }
       }
     });
 

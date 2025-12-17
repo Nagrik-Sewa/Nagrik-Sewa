@@ -7,22 +7,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, Phone, Mail } from 'lucide-react';
 
 interface OTPVerificationProps {
-  userId: string;
-  phone: string;
   email: string;
+  phone: string;
   onVerificationComplete: () => void;
-  testOTP?: {
-    phone: string;
-    email: string;
-  };
 }
 
 export const OTPVerification: React.FC<OTPVerificationProps> = ({
-  userId,
-  phone,
   email,
-  onVerificationComplete,
-  testOTP
+  phone,
+  onVerificationComplete
 }) => {
   const [phoneOTP, setPhoneOTP] = useState('');
   const [emailOTP, setEmailOTP] = useState('');
@@ -36,7 +29,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
 
     setIsVerifying(true);
     try {
-      const result = await verifyOTP(userId, phoneOTP || undefined, emailOTP || undefined);
+      const result = await verifyOTP(email, phoneOTP || undefined, emailOTP || undefined);
       
       if (result.data.token) {
         // Verification complete - user is now logged in

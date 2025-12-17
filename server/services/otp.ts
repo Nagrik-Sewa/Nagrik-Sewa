@@ -10,9 +10,51 @@ interface OTPData {
 // In-memory OTP storage (in production, use Redis or database)
 const otpStorage = new Map<string, OTPData>();
 
+// Temporary storage for pending registrations (before OTP verification)
+interface PendingUserData {
+  firstName: string;
+  lastName?: string;
+  email: string;
+  password: string;
+  phone: string;
+  role: string;
+  address?: any;
+  languagePreference?: string;
+  notificationPreferences?: any;
+  expiresAt: Date;
+}
+
+const pendingUsers = new Map<string, PendingUserData>();
+
 export class OTPService {
   private static readonly OTP_EXPIRY_MINUTES = 10;
   private static readonly MAX_ATTEMPTS = 3;
+
+  // Store pending user registration data
+  static storePendingUser(identifier: string, userData: PendingUserData): void {
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + this.OTP_EXPIRY_MINUTES);
+    userData.expiresAt = expiresAt;
+    pendingUsers.set(identifier, userData);
+  }
+
+  // Retrieve pending user data
+  static getPendingUser(identifier: string): PendingUserData | undefined {
+    const userData = pendingUsers.get(identifier);
+    if (userData && userData.expiresAt > new Date()) {
+      return userData;
+    }
+    // Clean up expired data
+    if (userData) {
+      pendingUsers.delete(identifier);
+    }
+    return undefined;
+  }
+
+  // Remove pending user after successful verification
+  static removePendingUser(identifier: string): void {
+    pendingUsers.delete(identifier);
+  }
 
   // Generate a 6-digit OTP
   static generateOTP(): string {
