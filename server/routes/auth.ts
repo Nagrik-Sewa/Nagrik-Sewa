@@ -135,13 +135,23 @@ router.post('/register', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Normalize phone number (remove country code and spaces if present)
+    let normalizedPhone = phone;
+    if (normalizedPhone.startsWith('+91')) {
+      normalizedPhone = normalizedPhone.substring(3).trim();
+    } else if (normalizedPhone.startsWith('91')) {
+      normalizedPhone = normalizedPhone.substring(2).trim();
+    }
+    // Remove any remaining spaces or special characters
+    normalizedPhone = normalizedPhone.replace(/\s+/g, '');
+
     // Create user with required address object but mark as unverified
     const user = new User({
       firstName,
       lastName: lastName || '',
       email,
       password: hashedPassword,
-      phone,
+      phone: normalizedPhone,
       role,
       address: {
         city: 'Delhi', // Default city
@@ -167,7 +177,9 @@ router.post('/register', async (req, res) => {
 
     // Generate OTP for phone verification
     const phoneOTP = OTPService.generateOTP();
-    OTPService.storeOTP(phone, phoneOTP);
+    // Store OTP with both normalized and original phone format for verification
+    OTPService.storeOTP(normalizedPhone, phoneOTP);
+    OTPService.storeOTP(phone, phoneOTP); // Also store with original format
 
     // Generate OTP for email verification
     const emailOTP = OTPService.generateOTP();
@@ -176,7 +188,7 @@ router.post('/register', async (req, res) => {
     // Send OTP via SMS (if service is configured)
     try {
       await sendSMS({
-        to: phone,
+        to: normalizedPhone, // Use normalized phone for SMS
         message: `Your Nagrik Sewa verification code is: ${phoneOTP}. Valid for 10 minutes.`,
         otp: phoneOTP
       });
