@@ -37,12 +37,7 @@ export const sendSMS = async (options: SMSOptions): Promise<{ success: boolean; 
     console.log(' SMS NOTIFICATION (Development Mode)');
     console.log('');
     console.log(' To:', phoneNumber);
-    console.log(' Message:', options.message);
-    
-    if (options.otp) {
-      console.log(' OTP CODE:', options.otp);
-    }
-    
+    console.log(' Message sent successfully');
     console.log('');
     
     return { success: true, messageId: 'dev-mode-sms-' + Date.now() };

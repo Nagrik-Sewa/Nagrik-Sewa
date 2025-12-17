@@ -193,7 +193,7 @@ router.post('/register', async (req, res) => {
         otp: phoneOTP
       });
     } catch (smsError) {
-      console.log('SMS OTP (for testing):', phoneOTP);
+      console.error('Failed to send SMS OTP:', smsError);
     }
 
     // Send OTP via Email (using EmailJS)
@@ -208,7 +208,7 @@ router.post('/register', async (req, res) => {
         }
       });
     } catch (emailError) {
-      console.log('Email OTP (for testing):', emailOTP);
+      console.error('Failed to send Email OTP:', emailError);
     }
 
     // Don't return token yet - user needs to verify first
@@ -377,13 +377,12 @@ router.post('/resend-otp', async (req, res) => {
           otp: phoneOTP
         });
       } catch (smsError) {
-        console.log('SMS OTP (for testing):', phoneOTP);
+        console.error('Failed to send SMS OTP:', smsError);
       }
 
       res.json({
         success: true,
-        message: 'Phone OTP resent successfully',
-        testOTP: phoneOTP // Remove in production
+        message: 'Phone OTP resent successfully'
       });
 
     } else if (type === 'email' && !user.isEmailVerified) {
@@ -401,13 +400,12 @@ router.post('/resend-otp', async (req, res) => {
           }
         });
       } catch (emailError) {
-        console.log('Email OTP (for testing):', emailOTP);
+        console.error('Failed to send Email OTP:', emailError);
       }
 
       res.json({
         success: true,
-        message: 'Email OTP resent successfully',
-        testOTP: emailOTP // Remove in production
+        message: 'Email OTP resent successfully'
       });
     } else {
       res.status(400).json({

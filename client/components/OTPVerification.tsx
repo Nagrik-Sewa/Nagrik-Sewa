@@ -58,14 +58,6 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
         <CardTitle className="text-center">Verify Your Account</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {testOTP && (
-          <Alert>
-            <AlertDescription>
-              <strong>Test Mode:</strong> Phone OTP: {testOTP.phone}, Email OTP: {testOTP.email}
-            </AlertDescription>
-          </Alert>
-        )}
-        
         <div className="space-y-2">
           <label className="text-sm font-medium flex items-center gap-2">
             <Phone className="w-4 h-4" />

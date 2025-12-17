@@ -108,11 +108,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Registration returns userId and requires OTP verification
       // Don't set user/token yet - need OTP verification first
-      const { userId, requiresVerification, testOTP } = response.data.data;
+      const { userId, requiresVerification } = response.data.data;
       
       toast({
         title: "Registration Initiated! 🇮🇳",
-        description: `Verification codes sent to your phone and email. Please check and verify to complete registration.${testOTP ? ` (Test OTPs - Phone: ${testOTP.phone}, Email: ${testOTP.email})` : ''}`,
+        description: "Verification codes sent to your phone and email. Please check and verify to complete registration.",
       });
 
       // Return the response so the component can handle OTP verification

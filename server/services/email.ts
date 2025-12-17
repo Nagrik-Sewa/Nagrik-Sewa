@@ -339,10 +339,7 @@ export const sendEmail = async (options: EmailOptions): Promise<{ success: boole
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('📧 To:', options.to);
     console.log('📧 Subject:', options.subject);
-    
-    if (options.data?.otp) {
-      console.log('🔢 OTP CODE:', options.data.otp);
-    }
+    console.log('📧 Email sent successfully');
     
     if (options.data?.verificationLink) {
       console.log('🔗 Verification Link:', options.data.verificationLink);
