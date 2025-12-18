@@ -15,6 +15,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
+  // Show loading skeleton while checking auth state
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -27,9 +28,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // For testing purposes, allow access without authentication
-  // Only check role if user is authenticated and role is required
-  if (requiredRole && isAuthenticated && user?.role !== requiredRole) {
+  // Redirect to login if not authenticated
+  // Pass current location so we can redirect back after login
+  if (!isAuthenticated) {
+    console.log('[ProtectedRoute] Not authenticated, redirecting to login');
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Check role-based access if required
+  if (requiredRole && user?.role !== requiredRole) {
+    console.log('[ProtectedRoute] Role mismatch, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 

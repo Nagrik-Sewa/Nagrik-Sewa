@@ -74,10 +74,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
+      // Normalize email on frontend as well
+      const normalizedEmail = email.trim().toLowerCase();
+      
       console.log('=== AUTHCONTEXT: Starting login request ===');
-      console.log('Email:', email);
+      console.log('Email (normalized):', normalizedEmail);
       console.log('API Base URL:', api.defaults.baseURL);
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', { email: normalizedEmail, password });
       console.log('=== AUTHCONTEXT: Login response received ===');
       console.log('Response status:', response.status);
       console.log('Response data:', response.data);
@@ -114,8 +117,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (data: RegisterData) => {
     try {
-      console.log('Starting registration...', data);
-      const response = await api.post('/auth/register', data);
+      // Normalize email
+      const normalizedData = {
+        ...data,
+        email: data.email.trim().toLowerCase(),
+        firstName: data.firstName.trim(),
+        lastName: data.lastName?.trim() || ''
+      };
+      
+      console.log('Starting registration...', { ...normalizedData, password: '[HIDDEN]' });
+      const response = await api.post('/auth/register', normalizedData);
       console.log('Registration response:', response.data);
       
       // Registration returns email and requires OTP verification
@@ -144,7 +155,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const verifyOTP = async (email: string, phoneOTP?: string, emailOTP?: string) => {
     try {
-      const response = await api.post('/auth/verify-otp', { email, phoneOTP, emailOTP });
+      // Normalize email
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      console.log('Verifying OTP for:', normalizedEmail);
+      const response = await api.post('/auth/verify-otp', { email: normalizedEmail, phoneOTP, emailOTP });
       console.log('OTP verification response:', response.data);
       
       // If verification is complete, user gets token and is logged in

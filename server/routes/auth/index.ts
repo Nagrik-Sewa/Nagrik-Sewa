@@ -22,7 +22,12 @@ router.use('/', googleAuthRouter);
 // Register new user
 router.post('/register', validateInput(schemas.register), async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, phone, password, firstName, lastName, role, address } = req.body;
+    const { email: rawEmail, phone, password, firstName, lastName, role, address } = req.body;
+
+    // Normalize email
+    const email = rawEmail?.trim().toLowerCase();
+
+    console.log('[REGISTER-ALT] Request:', { email, phone, role, hasPassword: !!password });
 
     // Check if user already exists
     const existingUser = await User.findOne({
@@ -109,18 +114,31 @@ router.post('/register', validateInput(schemas.register), async (req: Request, r
 // Login with email and password
 router.post('/login', validateInput(schemas.login), async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { email: rawEmail, password } = req.body;
+
+    // Normalize email
+    const email = rawEmail?.trim().toLowerCase();
+
+    console.log('[LOGIN-ALT] Attempt:', { email, hasPassword: !!password });
 
     // Find user and include password field
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
+      console.log('[LOGIN-ALT] User not found:', email);
       res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
       return;
     }
+
+    console.log('[LOGIN-ALT] User found:', {
+      id: user._id,
+      email: user.email,
+      hasPassword: !!user.password,
+      passwordHashPrefix: user.password?.substring(0, 7)
+    });
 
     // Check if account is locked
     if (user.isAccountLocked()) {
@@ -133,6 +151,7 @@ router.post('/login', validateInput(schemas.login), async (req: Request, res: Re
 
     // Verify password
     const isValidPassword = await user.comparePassword(password);
+    console.log('[LOGIN-ALT] Password valid:', isValidPassword);
 
     if (!isValidPassword) {
       await user.incLoginAttempts();

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -17,17 +17,35 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
   const { t } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
 
+  // Get the intended destination or default to dashboard
   const from = location.state?.from?.pathname || '/dashboard';
 
-  // Redirect after successful authentication
-  // Temporarily disabled for debugging
-  // if (isAuthenticated) {
-  //   return <Navigate to={from} replace />;
-  // }
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      console.log('[Login] Already authenticated, redirecting to:', from);
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate, from]);
+
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // If already authenticated, show nothing (will redirect via useEffect)
+  if (isAuthenticated) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,31 +57,25 @@ const Login: React.FC = () => {
     setIsLoading(true);
     setError('');
 
-    console.log('=== LOGIN.TSX: LOGIN ATTEMPT ===');
-    console.log('Email:', email);
-    console.log('Password length:', password.length);
+    console.log('[Login] Attempting login for:', email);
 
     try {
       await login(email, password);
-      console.log('=== LOGIN.TSX: LOGIN SUCCESS ===');
-      // Don't set isLoading to false here - let redirect happen
+      console.log('[Login] Login successful, navigating to:', from);
+      // Navigate to dashboard (or the page they were trying to access)
+      navigate(from, { replace: true });
     } catch (err: any) {
-      console.error('=== LOGIN.TSX: LOGIN FAILED ===');
-      console.error('Full error object:', err);
-      console.error('Error response:', err.response);
-      console.error('Error response data:', err.response?.data);
-      console.error('Error status:', err.response?.status);
+      console.error('[Login] Login failed:', err.response?.data?.message || err.message);
       
-      // Show user-friendly message on UI (visible for 2.5 seconds)
-      setError('Invalid email or password');
+      // Show user-friendly error message
+      const errorMessage = err.response?.data?.message || 'Invalid email or password';
+      setError(errorMessage);
       setIsLoading(false);
       
-      // Auto-clear error after 2.5 seconds
+      // Auto-clear error after 5 seconds
       setTimeout(() => {
         setError('');
-      }, 2500);
-      
-      return false;
+      }, 5000);
     }
   };
 

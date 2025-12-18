@@ -110,15 +110,29 @@ router.post('/register-admin', async (req, res) => {
 // Register endpoint
 router.post('/register', async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone, role = 'customer' } = req.body;
+    const { firstName, lastName, email: rawEmail, password, phone, role = 'customer' } = req.body;
+
+    // Debug logging (safe - no passwords)
+    console.log('[REGISTER] Request received:', {
+      firstName,
+      lastName,
+      email: rawEmail,
+      phone,
+      role,
+      hasPassword: !!password,
+      passwordLength: password?.length
+    });
 
     // Validation
-    if (!firstName || !email || !password || !phone) {
+    if (!firstName || !rawEmail || !password || !phone) {
       return res.status(400).json({
         success: false,
         message: 'First name, email, password, and phone are required'
       });
     }
+
+    // Normalize email: trim whitespace and convert to lowercase
+    const email = rawEmail.trim().toLowerCase();
 
     // Check if user already exists
     const existingUser = await User.findOne({ 
@@ -132,9 +146,6 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     // Normalize phone number (remove country code and spaces if present)
     let normalizedPhone = phone;
     if (normalizedPhone.startsWith('+91')) {
@@ -146,11 +157,12 @@ router.post('/register', async (req, res) => {
     normalizedPhone = normalizedPhone.replace(/\s+/g, '');
 
     // Store user data temporarily (don't save to database yet)
+    // Password is stored as plain text here; mongoose pre-save hook will hash it when user.save() is called
     const pendingUserData = {
-      firstName,
-      lastName: lastName || '',
-      email,
-      password: hashedPassword,
+      firstName: firstName.trim(),
+      lastName: (lastName || '').trim(),
+      email, // Already normalized
+      password, // Plain text - will be hashed by mongoose pre-save hook
       phone: normalizedPhone,
       role,
       address: {
@@ -167,6 +179,8 @@ router.post('/register', async (req, res) => {
         whatsapp: true
       }
     };
+
+    console.log('[REGISTER] Storing pending user data for:', email);
 
     // Store pending user with email as identifier
     OTPService.storePendingUser(email, pendingUserData as any);
@@ -231,7 +245,12 @@ router.post('/register', async (req, res) => {
 // Verify OTP endpoint
 router.post('/verify-otp', async (req, res) => {
   try {
-    const { email, phoneOTP, emailOTP } = req.body;
+    const { email: rawEmail, phoneOTP, emailOTP } = req.body;
+
+    // Normalize email
+    const email = rawEmail?.trim().toLowerCase();
+
+    console.log('[VERIFY-OTP] Request received:', { email, hasPhoneOTP: !!phoneOTP, hasEmailOTP: !!emailOTP });
 
     // Validation
     if (!email || (!phoneOTP && !emailOTP)) {
@@ -244,11 +263,19 @@ router.post('/verify-otp', async (req, res) => {
     // Get pending user data
     const pendingUserData = OTPService.getPendingUser(email);
     if (!pendingUserData) {
+      console.log('[VERIFY-OTP] No pending user found for:', email);
       return res.status(404).json({
         success: false,
         message: 'Registration session expired or not found. Please register again.'
       });
     }
+
+    console.log('[VERIFY-OTP] Pending user found:', {
+      email: pendingUserData.email,
+      phone: pendingUserData.phone,
+      hasPassword: !!pendingUserData.password,
+      passwordLength: pendingUserData.password?.length
+    });
 
     let phoneVerified = false;
     let emailVerified = false;
@@ -281,11 +308,14 @@ router.post('/verify-otp', async (req, res) => {
 
     // If both are verified, create the user in database
     if (phoneVerified && emailVerified) {
+      console.log('[VERIFY-OTP] Both OTPs verified, creating user...');
+
       // Create user in database now
+      // Password will be hashed by mongoose pre-save hook
       const user = new User({
         firstName: pendingUserData.firstName,
         lastName: pendingUserData.lastName,
-        email: pendingUserData.email,
+        email: pendingUserData.email, // Already normalized
         phone: pendingUserData.phone,
         role: pendingUserData.role,
         address: pendingUserData.address,
@@ -299,9 +329,14 @@ router.post('/verify-otp', async (req, res) => {
       });
 
       // Set password explicitly (required because it has select: false)
+      // The pre-save hook will hash this plain text password
       user.password = pendingUserData.password;
+
+      console.log('[VERIFY-OTP] About to save user with password length:', pendingUserData.password?.length);
       
       await user.save();
+
+      console.log('[VERIFY-OTP] User saved successfully:', user._id);
 
       // Clean up pending user data
       OTPService.removePendingUser(email);
@@ -500,40 +535,51 @@ router.post('/resend-otp', async (req, res) => {
 // Login endpoint
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email: rawEmail, password } = req.body;
 
-    console.log('Login attempt for email:', email);
+    console.log('[LOGIN] Attempt received:', {
+      rawEmail,
+      hasPassword: !!password,
+      passwordLength: password?.length
+    });
 
     // Validation
-    if (!email || !password) {
+    if (!rawEmail || !password) {
+      console.log('[LOGIN] Missing credentials');
       return res.status(400).json({
         success: false,
         message: 'Email and password are required'
       });
     }
 
+    // Normalize email: trim whitespace and convert to lowercase
+    const email = rawEmail.trim().toLowerCase();
+    console.log('[LOGIN] Normalized email:', email);
+
     // Find user with password field included
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      console.log('User not found with email:', email);
+      console.log('[LOGIN] User not found with email:', email);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
-    console.log('User found:', {
+    console.log('[LOGIN] User found:', {
       id: user._id,
       email: user.email,
       role: user.role,
       isEmailVerified: user.isEmailVerified,
       isPhoneVerified: user.isPhoneVerified,
-      hasPassword: !!user.password
+      hasPassword: !!user.password,
+      passwordHashLength: user.password?.length,
+      passwordHashPrefix: user.password?.substring(0, 7) // Shows $2a$12$ or similar
     });
 
-    // Verify password
+    // Verify password using bcrypt.compare
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    console.log('Password valid:', isPasswordValid);
+    console.log('[LOGIN] Password comparison result:', isPasswordValid);
     
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -949,15 +995,23 @@ router.post('/dev-reset-password', async (req, res) => {
       });
     }
 
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
+    // Set the new password directly - it will be hashed by mongoose pre-save hook
+    // Using findOneAndUpdate to bypass the pre-save hook and hash manually
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
     
-    // Also ensure verification flags are set
-    user.isEmailVerified = true;
-    user.isPhoneVerified = true;
-    
-    await user.save();
+    // Update password directly in database to avoid pre-save hook
+    await User.updateOne(
+      { email },
+      { 
+        $set: { 
+          password: hashedPassword,
+          isEmailVerified: true,
+          isPhoneVerified: true
+        }
+      }
+    );
+
+    console.log('[DEV-RESET] Password reset for:', email, 'New hash prefix:', hashedPassword.substring(0, 7));
 
     res.json({
       success: true,

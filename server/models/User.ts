@@ -280,8 +280,16 @@ userSchema.virtual('isLocked').get(function() {
 });
 
 // Pre-save hash password
+const BCRYPT_HASH_REGEX = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
+
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
+
+  const passwordValue = this.password as unknown as string;
+  if (typeof passwordValue === 'string' && BCRYPT_HASH_REGEX.test(passwordValue)) {
+    // Password already hashed elsewhere (e.g., pending registration flow); skip rehashing
+    return next();
+  }
   
   try {
     const salt = await bcrypt.genSalt(12);
