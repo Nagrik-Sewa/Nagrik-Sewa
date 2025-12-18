@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Users, 
   CheckCircle, 
   Star, 
   MapPin, 
   Clock, 
-  DollarSign,
+  IndianRupee,
   Shield,
   Smartphone,
   Award,
@@ -29,24 +29,84 @@ import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { CONTACT_INFO, makePhoneCall, sendEmail } from "../../constants/contact";
+import { statsApi } from "../../lib/api";
+import { indianStates } from "../../data/indianLocations";
+import { useAuth } from "../../contexts/AuthContext";
+import { OTPVerification } from "../../components/OTPVerification";
+import { useToast } from "../../hooks/use-toast";
 
 export default function JoinAsWorker() {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+  const { toast } = useToast();
+  
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     email: "",
     city: "",
+    password: "",
+    confirmPassword: "",
     skills: "",
     experience: "",
     aadhar: "",
     message: ""
   });
 
+  const [districtSearch, setDistrictSearch] = useState("");
+  const [showDistrictDropdown, setShowDistrictDropdown] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [registrationEmail, setRegistrationEmail] = useState("");
+  const [registrationPhone, setRegistrationPhone] = useState("");
+  
+  // Get all districts from all states
+  const allDistricts = indianStates.flatMap(state => 
+    state.districts.map(district => ({ district, state: state.name }))
+  );
+  
+  // Filter districts based on search
+  const filteredDistricts = districtSearch.length > 0
+    ? allDistricts.filter(item => 
+        item.district.toLowerCase().includes(districtSearch.toLowerCase())
+      ).slice(0, 10) // Limit to 10 results
+    : [];
+
+  const [platformStats, setPlatformStats] = useState({
+    totalWorkers: 0,
+    totalBookings: 0,
+    averageEarning: 25000,
+    workerSatisfaction: 4.8,
+    loading: true
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await statsApi.getPlatformStats();
+        const data = response.data;
+        setPlatformStats({
+          totalWorkers: data.totalWorkers || 0,
+          totalBookings: data.totalBookings || 0,
+          averageEarning: 25000, // This would need to be calculated separately
+          workerSatisfaction: 4.8, // This would need to be calculated separately
+          loading: false
+        });
+      } catch (error) {
+        console.error('Error fetching platform stats:', error);
+        // Keep default values on error
+        setPlatformStats(prev => ({ ...prev, loading: false }));
+      }
+    };
+    
+    fetchStats();
+  }, []);
+
   const benefits = [
     {
-      icon: DollarSign,
+      icon: IndianRupee,
       title: "High Earning Potential",
       description: "Earn ₹15,000 - ₹50,000+ monthly based on your skills, experience, and availability. Top performers earn even more!"
     },
@@ -143,14 +203,116 @@ export default function JoinAsWorker() {
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    if (name === 'phone') {
+      // Always maintain +91 prefix
+      let phoneValue = value;
+      if (!phoneValue.startsWith('+91')) {
+        phoneValue = '+91 ' + phoneValue.replace(/^(\+91\s*)/, '');
+      }
+      // Remove non-digit characters except +91 prefix
+      phoneValue = phoneValue.replace(/^(\+91\s*)(.*)$/, (match, prefix, number) => {
+        return prefix + number.replace(/[^\d]/g, '');
+      });
+      setFormData({ ...formData, phone: phoneValue });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Worker application submitted:", formData);
-    alert("Thank you for your application! We'll contact you within 24 hours for the next steps.");
+    
+    // Validate form data
+    if (!formData.name || !formData.email || !formData.phone || !formData.city || !formData.skills || !formData.experience || !formData.password) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate password confirmation
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Split name into first and last name
+    const nameParts = formData.name.trim().split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ') || firstName;
+
+    setIsSubmitting(true);
+
+    try {
+      const registrationData = {
+        firstName,
+        lastName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        role: 'worker' as const,
+        // Additional worker data can be stored in profile later
+        district: formData.city,
+        skills: formData.skills,
+        experience: formData.experience
+      };
+
+      console.log('Submitting worker registration:', registrationData);
+      
+      // Register the worker - this will send OTP to email and phone
+      const response = await register(registrationData);
+      
+      // Store email and phone for OTP verification
+      setRegistrationEmail(formData.email);
+      setRegistrationPhone(formData.phone);
+      
+      // Show OTP verification screen
+      setShowOTPVerification(true);
+      
+    } catch (error: any) {
+      console.error('Worker registration failed:', error);
+      toast({
+        title: "Registration Failed",
+        description: error.response?.data?.message || "Unable to submit application. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const handleVerificationComplete = () => {
+    toast({
+      title: "Welcome to Nagrik Sewa!",
+      description: "Your worker account has been created successfully. Redirecting to dashboard...",
+    });
+    
+    // Redirect to dashboard after a short delay
+    setTimeout(() => {
+      navigate('/dashboard');
+    }, 2000);
+  };
+
+  // Show OTP verification if registration was successful
+  if (showOTPVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <OTPVerification
+          email={registrationEmail}
+          phone={registrationPhone}
+          onVerificationComplete={handleVerificationComplete}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -166,25 +328,34 @@ export default function JoinAsWorker() {
                 Transform your skills into a thriving business. Connect with thousands of customers and earn ₹15,000 - ₹50,000+ monthly on India's most trusted service platform.
               </p>
               <div className="flex flex-wrap gap-4 mb-8">
-                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2">
+                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2 hover:scale-110 transition-transform duration-300 cursor-pointer">
                   <CheckCircle className="w-5 h-5 mr-2" />
                   <span>Verified Platform</span>
                 </div>
-                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2">
-                  <DollarSign className="w-5 h-5 mr-2" />
+                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2 hover:scale-110 transition-transform duration-300 cursor-pointer">
+                  <IndianRupee className="w-5 h-5 mr-2" />
                   <span>High Earnings</span>
                 </div>
-                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2">
+                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2 hover:scale-110 transition-transform duration-300 cursor-pointer">
                   <Clock className="w-5 h-5 mr-2" />
                   <span>Flexible Hours</span>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-white text-brand-600 hover:bg-gray-100 shadow-lg text-lg px-8 py-4">
+                <Button 
+                  size="lg" 
+                  className="bg-white text-brand-600 hover:bg-gray-100 shadow-lg text-lg px-8 py-4"
+                  onClick={() => navigate('/register?role=worker')}
+                >
                   <UserPlus className="w-5 h-5 mr-2" />
                   Apply Now
                 </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-brand-600 text-lg px-8 py-4">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-white bg-white/20 text-white hover:bg-white hover:text-brand-600 text-lg px-8 py-4"
+                  onClick={() => makePhoneCall(CONTACT_INFO.MAIN_SUPPORT_PHONE)}
+                >
                   <Phone className="w-5 h-5 mr-2" />
                   Call: {CONTACT_INFO.MAIN_SUPPORT_PHONE}
                 </Button>
@@ -194,21 +365,29 @@ export default function JoinAsWorker() {
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8">
                 <h3 className="text-2xl font-bold mb-6">Platform Stats</h3>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center hover:scale-105 transition-transform duration-300 cursor-pointer">
                     <span>Active Workers</span>
-                    <Badge variant="secondary" className="bg-white/20 text-white">10,000+</Badge>
+                    <Badge variant="secondary" className="bg-white/20 text-white">
+                      {platformStats.loading ? '...' : `${platformStats.totalWorkers.toLocaleString()}+`}
+                    </Badge>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center hover:scale-105 transition-transform duration-300 cursor-pointer">
                     <span>Monthly Jobs</span>
-                    <Badge variant="secondary" className="bg-white/20 text-white">50,000+</Badge>
+                    <Badge variant="secondary" className="bg-white/20 text-white">
+                      {platformStats.loading ? '...' : `${platformStats.totalBookings.toLocaleString()}+`}
+                    </Badge>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center hover:scale-105 transition-transform duration-300 cursor-pointer">
                     <span>Average Monthly Earning</span>
-                    <Badge variant="secondary" className="bg-white/20 text-white">₹25,000</Badge>
+                    <Badge variant="secondary" className="bg-white/20 text-white">
+                      ₹{platformStats.averageEarning.toLocaleString()}
+                    </Badge>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center hover:scale-105 transition-transform duration-300 cursor-pointer">
                     <span>Worker Satisfaction</span>
-                    <Badge variant="secondary" className="bg-white/20 text-white">4.8 ⭐</Badge>
+                    <Badge variant="secondary" className="bg-white/20 text-white">
+                      {platformStats.workerSatisfaction} ⭐
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -225,7 +404,7 @@ export default function JoinAsWorker() {
             {benefits.map((benefit, index) => {
               const IconComponent = benefit.icon;
               return (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
+                <Card key={index} className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
                   <CardHeader>
                     <IconComponent className="w-12 h-12 text-brand-600 mb-4" />
                     <CardTitle className="text-xl">{benefit.title}</CardTitle>
@@ -281,7 +460,11 @@ export default function JoinAsWorker() {
             ))}
           </div>
           <div className="text-center">
-            <Button size="lg" className="bg-brand-600 hover:bg-brand-700">
+            <Button 
+              size="lg" 
+              className="bg-brand-600 hover:bg-brand-700"
+              onClick={() => navigate('/services')}
+            >
               View All Categories
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
@@ -295,7 +478,7 @@ export default function JoinAsWorker() {
           <h2 className="text-3xl font-bold text-center mb-12">Success Stories from Our Workers</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+              <Card key={index} className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
                     <div className="flex text-yellow-400 mr-2">
@@ -365,24 +548,75 @@ export default function JoinAsWorker() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
+                    <label className="block text-sm font-medium mb-2">Password *</label>
+                    <Input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="Enter a strong password"
+                      required
+                      minLength={8}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">At least 8 characters</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Confirm Password *</label>
+                    <Input
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      placeholder="Re-enter your password"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
                     <label className="block text-sm font-medium mb-2">Phone Number *</label>
                     <Input
                       name="phone"
-                      value={formData.phone}
+                      value={formData.phone || '+91 '}
                       onChange={handleInputChange}
                       placeholder="+91 9876543210"
                       required
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">City *</label>
+                  <div className="relative">
+                    <label className="block text-sm font-medium mb-2">District *</label>
                     <Input
                       name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      placeholder="Your city/area"
+                      value={districtSearch || formData.city}
+                      onChange={(e) => {
+                        setDistrictSearch(e.target.value);
+                        setFormData({ ...formData, city: e.target.value });
+                        setShowDistrictDropdown(true);
+                      }}
+                      onFocus={() => setShowDistrictDropdown(true)}
+                      placeholder="Start typing district name..."
                       required
+                      autoComplete="off"
                     />
+                    {showDistrictDropdown && filteredDistricts.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                        {filteredDistricts.map((item, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-2 hover:bg-brand-50 cursor-pointer border-b last:border-b-0"
+                            onClick={() => {
+                              setFormData({ ...formData, city: item.district });
+                              setDistrictSearch(item.district);
+                              setShowDistrictDropdown(false);
+                            }}
+                          >
+                            <div className="font-medium">{item.district}</div>
+                            <div className="text-sm text-gray-600">{item.state}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -456,9 +690,18 @@ export default function JoinAsWorker() {
                   </label>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full">
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  Submit Application
+                <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-5 h-5 mr-2" />
+                      Submit Application
+                    </>
+                  )}
                 </Button>
 
                 <div className="text-center">
@@ -483,14 +726,18 @@ export default function JoinAsWorker() {
             Join thousands of successful service providers who earn ₹15,000 - ₹50,000+ monthly with Nagrik Sewa
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-brand-600 hover:bg-gray-100 shadow-lg">
+            <Button 
+              size="lg" 
+              className="bg-white text-brand-600 hover:bg-gray-100 shadow-lg"
+              onClick={() => navigate('/register?role=worker')}
+            >
               <UserPlus className="w-5 h-5 mr-2" />
               Apply Now
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
-              className="border-white text-white hover:bg-white hover:text-brand-600"
+              className="border-white bg-white/20 text-white hover:bg-white hover:text-brand-600"
               onClick={() => makePhoneCall(CONTACT_INFO.MAIN_SUPPORT_PHONE)}
             >
               <Phone className="w-5 h-5 mr-2" />

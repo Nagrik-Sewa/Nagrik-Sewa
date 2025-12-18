@@ -23,22 +23,47 @@ const Login: React.FC = () => {
 
   const from = location.state?.from?.pathname || '/dashboard';
 
-  // Temporarily disable auto-redirect for testing
+  // Redirect after successful authentication
+  // Temporarily disabled for debugging
   // if (isAuthenticated) {
   //   return <Navigate to={from} replace />;
   // }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Prevent multiple submissions
+    if (isLoading) return;
+    
     setIsLoading(true);
     setError('');
 
+    console.log('=== LOGIN.TSX: LOGIN ATTEMPT ===');
+    console.log('Email:', email);
+    console.log('Password length:', password.length);
+
     try {
       await login(email, password);
+      console.log('=== LOGIN.TSX: LOGIN SUCCESS ===');
+      // Don't set isLoading to false here - let redirect happen
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
-    } finally {
+      console.error('=== LOGIN.TSX: LOGIN FAILED ===');
+      console.error('Full error object:', err);
+      console.error('Error response:', err.response);
+      console.error('Error response data:', err.response?.data);
+      console.error('Error status:', err.response?.status);
+      
+      // Show user-friendly message on UI (visible for 2.5 seconds)
+      setError('Invalid email or password');
       setIsLoading(false);
+      
+      // Auto-clear error after 2.5 seconds
+      setTimeout(() => {
+        setError('');
+      }, 2500);
+      
+      return false;
     }
   };
 
@@ -54,8 +79,10 @@ const Login: React.FC = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>
+                  {error}
+                </AlertDescription>
               </Alert>
             )}
 

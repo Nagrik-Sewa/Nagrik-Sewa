@@ -74,8 +74,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('=== AUTHCONTEXT: Starting login request ===');
+      console.log('Email:', email);
+      console.log('API Base URL:', api.defaults.baseURL);
       const response = await api.post('/auth/login', { email, password });
-      console.log('Login response:', response.data);
+      console.log('=== AUTHCONTEXT: Login response received ===');
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
       
       // Handle the correct response structure from server
       const { user, tokens } = response.data.data;
@@ -89,7 +94,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: `Logged in successfully as ${user.firstName}`,
       });
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('=== AUTHCONTEXT: Login error ===');
+      console.error('Error object:', error);
+      console.error('Error response:', error.response);
+      console.error('Response status:', error.response?.status);
+      console.error('Response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
       const message = error.response?.data?.message || 'Login failed';
       toast({
         title: "Login failed",
@@ -174,8 +185,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast({
       title: "Logged out",
       description: "You have been logged out successfully",
-    });
-  };
+    });    // Redirect to home page after logout
+    window.location.href = '/';  };
 
   const updateUser = async (data: Partial<User>) => {
     try {

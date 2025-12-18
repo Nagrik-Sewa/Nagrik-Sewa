@@ -330,10 +330,10 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              {t('home.howItWorks.title')}
+              How It Works
             </h2>
             <p className="text-xl text-gray-600">
-              {t('home.howItWorks.subtitle')}
+              Get started in three simple steps
             </p>
           </div>
 
@@ -342,27 +342,27 @@ export default function Index() {
               <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-white font-bold text-2xl">1</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('home.howItWorks.step1.title')}</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Choose a Service</h3>
               <p className="text-gray-600">
-                {t('home.howItWorks.step1.description')}
+                Browse through our wide range of verified home services and select what you need
               </p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-white font-bold text-2xl">2</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('home.howItWorks.step2.title')}</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Book & Schedule</h3>
               <p className="text-gray-600">
-                {t('home.howItWorks.step2.description')}
+                Pick your preferred time slot and confirm your booking instantly
               </p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-white font-bold text-2xl">3</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('home.howItWorks.step3.title')}</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Get Service Done</h3>
               <p className="text-gray-600">
-                {t('home.howItWorks.step3.description')}
+                Our verified professionals arrive on time and deliver quality service
               </p>
             </div>
           </div>

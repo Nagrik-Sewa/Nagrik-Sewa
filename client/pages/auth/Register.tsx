@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,9 @@ import { PhoneInput, usePhoneValidation } from '@/components/PhoneInput';
 import { OTPVerification } from '@/components/OTPVerification';
 
 const Register: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const roleParam = searchParams.get('role');
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -20,7 +23,7 @@ const Register: React.FC = () => {
     phone: '+91 ', // Default Indian country code
     password: '',
     confirmPassword: '',
-    role: 'customer' as 'customer' | 'worker',
+    role: (roleParam === 'worker' ? 'worker' : 'customer') as 'customer' | 'worker',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +32,13 @@ const Register: React.FC = () => {
 
   const { register, isAuthenticated } = useAuth();
   const { validatePhoneNumber } = usePhoneValidation();
+
+  // Update role if URL param changes
+  useEffect(() => {
+    if (roleParam === 'worker' || roleParam === 'customer') {
+      setFormData(prev => ({ ...prev, role: roleParam as 'customer' | 'worker' }));
+    }
+  }, [roleParam]);
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;

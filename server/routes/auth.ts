@@ -286,7 +286,6 @@ router.post('/verify-otp', async (req, res) => {
         firstName: pendingUserData.firstName,
         lastName: pendingUserData.lastName,
         email: pendingUserData.email,
-        password: pendingUserData.password,
         phone: pendingUserData.phone,
         role: pendingUserData.role,
         address: pendingUserData.address,
@@ -299,6 +298,9 @@ router.post('/verify-otp', async (req, res) => {
         accountStatus: 'active'
       });
 
+      // Set password explicitly (required because it has select: false)
+      user.password = pendingUserData.password;
+      
       await user.save();
 
       // Clean up pending user data
@@ -500,6 +502,8 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Login attempt for email:', email);
+
     // Validation
     if (!email || !password) {
       return res.status(400).json({
@@ -511,14 +515,26 @@ router.post('/login', async (req, res) => {
     // Find user with password field included
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
+      console.log('User not found with email:', email);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
+    console.log('User found:', {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      isEmailVerified: user.isEmailVerified,
+      isPhoneVerified: user.isPhoneVerified,
+      hasPassword: !!user.password
+    });
+
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log('Password valid:', isPasswordValid);
+    
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -526,13 +542,18 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Check if account is verified
-    if (!user.isEmailVerified || !user.isPhoneVerified) {
+    // Check if account is verified (skip for development or admin accounts)
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const isAdmin = user.role === 'admin';
+    
+    if (!isDevelopment && !isAdmin && (!user.isEmailVerified || !user.isPhoneVerified)) {
       return res.status(403).json({
         success: false,
         message: 'Account not verified. Please verify your email and phone number.',
         data: {
           userId: user._id,
+          email: user.email,
+          phone: user.phone,
           requiresVerification: true,
           isEmailVerified: user.isEmailVerified,
           isPhoneVerified: user.isPhoneVerified
@@ -804,6 +825,154 @@ router.post('/resend-otp', authMiddleware, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to resend OTP'
+    });
+  }
+});
+
+// Get current authenticated user
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const userId = (req as any).user?.userId || (req as any).user?._id;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+
+    const user = await User.findById(userId).select('-password -__v');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          _id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          avatar: user.avatar,
+          isEmailVerified: user.isEmailVerified,
+          isPhoneVerified: user.isPhoneVerified,
+          isDigiLockerVerified: user.isDigiLockerVerified,
+          preferences: user.preferences
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get current user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch user data'
+    });
+  }
+});
+
+// Debug endpoint - check if user exists (development only)
+router.post('/check-user', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    const user = await User.findOne({ email }).select('-password');
+    
+    if (!user) {
+      return res.json({
+        success: false,
+        message: 'User not found',
+        exists: false
+      });
+    }
+
+    res.json({
+      success: true,
+      exists: true,
+      data: {
+        email: user.email,
+        role: user.role,
+        isEmailVerified: user.isEmailVerified,
+        isPhoneVerified: user.isPhoneVerified,
+        accountStatus: user.accountStatus
+      }
+    });
+
+  } catch (error) {
+    console.error('Check user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check user'
+    });
+  }
+});
+
+// Development only - Reset password for testing
+router.post('/dev-reset-password', async (req, res) => {
+  try {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({
+        success: false,
+        message: 'This endpoint is only available in development'
+      });
+    }
+
+    const { email, newPassword } = req.body;
+    
+    if (!email || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and new password are required'
+      });
+    }
+
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    
+    // Also ensure verification flags are set
+    user.isEmailVerified = true;
+    user.isPhoneVerified = true;
+    
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `Password updated successfully for ${email}`,
+      data: {
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reset password'
     });
   }
 });

@@ -180,6 +180,141 @@ export const indianStates: State[] = [
     ]
   },
   {
+    code: 'CT',
+    name: 'Chhattisgarh',
+    districts: [
+      'Balod', 'Baloda Bazar', 'Balrampur', 'Bastar', 'Bemetara', 'Bijapur',
+      'Bilaspur', 'Dantewada', 'Dhamtari', 'Durg', 'Gariaband', 'Gaurela Pendra Marwahi',
+      'Janjgir Champa', 'Jashpur', 'Kabirdham', 'Kanker', 'Kondagaon', 'Korba',
+      'Koriya', 'Mahasamund', 'Mungeli', 'Narayanpur', 'Raigarh', 'Raipur',
+      'Rajnandgaon', 'Sukma', 'Surajpur', 'Surguja'
+    ]
+  },
+  {
+    code: 'GA',
+    name: 'Goa',
+    districts: [
+      'North Goa', 'South Goa'
+    ]
+  },
+  {
+    code: 'HP',
+    name: 'Himachal Pradesh',
+    districts: [
+      'Bilaspur', 'Chamba', 'Hamirpur', 'Kangra', 'Kinnaur', 'Kullu',
+      'Lahaul and Spiti', 'Mandi', 'Shimla', 'Sirmaur', 'Solan', 'Una'
+    ]
+  },
+  {
+    code: 'JH',
+    name: 'Jharkhand',
+    districts: [
+      'Bokaro', 'Chatra', 'Deoghar', 'Dhanbad', 'Dumka', 'East Singhbhum',
+      'Garhwa', 'Giridih', 'Godda', 'Gumla', 'Hazaribagh', 'Jamtara',
+      'Khunti', 'Koderma', 'Latehar', 'Lohardaga', 'Pakur', 'Palamu',
+      'Ramgarh', 'Ranchi', 'Sahebganj', 'Seraikela Kharsawan', 'Simdega',
+      'West Singhbhum'
+    ]
+  },
+  {
+    code: 'MP',
+    name: 'Madhya Pradesh',
+    districts: [
+      'Agar Malwa', 'Alirajpur', 'Anuppur', 'Ashoknagar', 'Balaghat', 'Barwani',
+      'Betul', 'Bhind', 'Bhopal', 'Burhanpur', 'Chhatarpur', 'Chhindwara',
+      'Damoh', 'Datia', 'Dewas', 'Dhar', 'Dindori', 'Guna', 'Gwalior',
+      'Harda', 'Hoshangabad', 'Indore', 'Jabalpur', 'Jhabua', 'Katni',
+      'Khandwa', 'Khargone', 'Mandla', 'Mandsaur', 'Morena', 'Narsinghpur',
+      'Neemuch', 'Niwari', 'Panna', 'Raisen', 'Rajgarh', 'Ratlam', 'Rewa',
+      'Sagar', 'Satna', 'Sehore', 'Seoni', 'Shahdol', 'Shajapur', 'Sheopur',
+      'Shivpuri', 'Sidhi', 'Singrauli', 'Tikamgarh', 'Ujjain', 'Umaria',
+      'Vidisha'
+    ]
+  },
+  {
+    code: 'MN',
+    name: 'Manipur',
+    districts: [
+      'Bishnupur', 'Chandel', 'Churachandpur', 'Imphal East', 'Imphal West',
+      'Jiribam', 'Kakching', 'Kamjong', 'Kangpokpi', 'Noney', 'Pherzawl',
+      'Senapati', 'Tamenglong', 'Tengnoupal', 'Thoubal', 'Ukhrul'
+    ]
+  },
+  {
+    code: 'ML',
+    name: 'Meghalaya',
+    districts: [
+      'East Garo Hills', 'East Jaintia Hills', 'East Khasi Hills',
+      'North Garo Hills', 'Ri Bhoi', 'South Garo Hills', 'South West Garo Hills',
+      'South West Khasi Hills', 'West Garo Hills', 'West Jaintia Hills',
+      'West Khasi Hills'
+    ]
+  },
+  {
+    code: 'MZ',
+    name: 'Mizoram',
+    districts: [
+      'Aizawl', 'Champhai', 'Hnahthial', 'Khawzawl', 'Kolasib', 'Lawngtlai',
+      'Lunglei', 'Mamit', 'Saiha', 'Saitual', 'Serchhip'
+    ]
+  },
+  {
+    code: 'NL',
+    name: 'Nagaland',
+    districts: [
+      'Dimapur', 'Kiphire', 'Kohima', 'Longleng', 'Mokokchung', 'Mon',
+      'Noklak', 'Peren', 'Phek', 'Tuensang', 'Wokha', 'Zunheboto'
+    ]
+  },
+  {
+    code: 'OR',
+    name: 'Odisha',
+    districts: [
+      'Angul', 'Balangir', 'Balasore', 'Bargarh', 'Bhadrak', 'Boudh',
+      'Cuttack', 'Deogarh', 'Dhenkanal', 'Gajapati', 'Ganjam', 'Jagatsinghpur',
+      'Jajpur', 'Jharsuguda', 'Kalahandi', 'Kandhamal', 'Kendrapara', 'Kendujhar',
+      'Khordha', 'Koraput', 'Malkangiri', 'Mayurbhanj', 'Nabarangpur', 'Nayagarh',
+      'Nuapada', 'Puri', 'Rayagada', 'Sambalpur', 'Subarnapur', 'Sundargarh'
+    ]
+  },
+  {
+    code: 'SK',
+    name: 'Sikkim',
+    districts: [
+      'East Sikkim', 'North Sikkim', 'South Sikkim', 'West Sikkim'
+    ]
+  },
+  {
+    code: 'TG',
+    name: 'Telangana',
+    districts: [
+      'Adilabad', 'Bhadradri Kothagudem', 'Hyderabad', 'Jagtial', 'Jangaon',
+      'Jayashankar Bhupalpally', 'Jogulamba Gadwal', 'Kamareddy', 'Karimnagar',
+      'Khammam', 'Komaram Bheem', 'Mahabubabad', 'Mahabubnagar', 'Mancherial',
+      'Medak', 'Medchal Malkajgiri', 'Mulugu', 'Nagarkurnool', 'Nalgonda',
+      'Narayanpet', 'Nirmal', 'Nizamabad', 'Peddapalli', 'Rajanna Sircilla',
+      'Rangareddy', 'Sangareddy', 'Siddipet', 'Suryapet', 'Vikarabad',
+      'Wanaparthy', 'Warangal Rural', 'Warangal Urban', 'Yadadri Bhuvanagiri'
+    ]
+  },
+  {
+    code: 'TR',
+    name: 'Tripura',
+    districts: [
+      'Dhalai', 'Gomati', 'Khowai', 'North Tripura', 'Sepahijala',
+      'South Tripura', 'Unakoti', 'West Tripura'
+    ]
+  },
+  {
+    code: 'UT',
+    name: 'Uttarakhand',
+    districts: [
+      'Almora', 'Bageshwar', 'Chamoli', 'Champawat', 'Dehradun', 'Haridwar',
+      'Nainital', 'Pauri Garhwal', 'Pithoragarh', 'Rudraprayag', 'Tehri Garhwal',
+      'Udham Singh Nagar', 'Uttarkashi'
+    ]
+  },
+  {
     code: 'JK',
     name: 'Jammu and Kashmir',
     type: 'ut',
