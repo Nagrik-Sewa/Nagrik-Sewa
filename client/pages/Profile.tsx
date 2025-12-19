@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import VerifiedBadge, { GovVerifiedBadge, VerifiedBadgeWithTooltip } from '@/components/VerifiedBadge';
 import DigiLockerAuth from '@/components/DigiLockerAuth';
+import { PhoneInput } from '@/components/PhoneInput';
 import { 
   User, 
   Mail, 

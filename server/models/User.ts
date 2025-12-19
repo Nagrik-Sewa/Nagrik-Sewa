@@ -117,9 +117,10 @@ const userSchema = new Schema<IUser>({
   },
   lastName: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
-    maxlength: 50
+    maxlength: 50,
+    default: ''
   },
   role: {
     type: String,

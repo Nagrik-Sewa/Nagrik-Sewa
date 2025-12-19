@@ -27,9 +27,13 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
       return;
     }
 
+    // Trim OTP values to remove any accidental whitespace
+    const trimmedPhoneOTP = phoneOTP?.trim();
+    const trimmedEmailOTP = emailOTP?.trim();
+
     setIsVerifying(true);
     try {
-      const result = await verifyOTP(email, phoneOTP || undefined, emailOTP || undefined);
+      const result = await verifyOTP(email, trimmedPhoneOTP || undefined, trimmedEmailOTP || undefined);
       
       if (result.data.token) {
         // Verification complete - user is now logged in
@@ -38,8 +42,14 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
         // Partial verification - need both OTPs
         // Component will remain visible for additional verification
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('OTP verification failed:', error);
+      // Error toast is already shown in AuthContext
+      // Reset OTP fields if session expired
+      if (error.response?.data?.errorCode === 'SESSION_EXPIRED') {
+        setPhoneOTP('');
+        setEmailOTP('');
+      }
     } finally {
       setIsVerifying(false);
     }

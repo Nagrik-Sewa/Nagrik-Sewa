@@ -131,6 +131,14 @@ router.post('/register', async (req, res) => {
       });
     }
 
+    // Additional password validation
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long'
+      });
+    }
+
     // Normalize email: trim whitespace and convert to lowercase
     const email = rawEmail.trim().toLowerCase();
 
@@ -250,13 +258,20 @@ router.post('/verify-otp', async (req, res) => {
     // Normalize email
     const email = rawEmail?.trim().toLowerCase();
 
-    console.log('[VERIFY-OTP] Request received:', { email, hasPhoneOTP: !!phoneOTP, hasEmailOTP: !!emailOTP });
+    console.log('[VERIFY-OTP] Request received:', { email, hasPhoneOTP: !!phoneOTP, hasEmailOTP: !!emailOTP, phoneOTPValue: phoneOTP, emailOTPValue: emailOTP });
 
     // Validation
-    if (!email || (!phoneOTP && !emailOTP)) {
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Email and at least one OTP (phone or email) are required'
+        message: 'Email is required'
+      });
+    }
+
+    if (!phoneOTP && !emailOTP) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one OTP (phone or email) is required'
       });
     }
 
@@ -264,9 +279,10 @@ router.post('/verify-otp', async (req, res) => {
     const pendingUserData = OTPService.getPendingUser(email);
     if (!pendingUserData) {
       console.log('[VERIFY-OTP] No pending user found for:', email);
-      return res.status(404).json({
+      return res.status(400).json({
         success: false,
-        message: 'Registration session expired or not found. Please register again.'
+        message: 'Registration session expired or not found. Please register again.',
+        errorCode: 'SESSION_EXPIRED'
       });
     }
 
@@ -310,11 +326,20 @@ router.post('/verify-otp', async (req, res) => {
     if (phoneVerified && emailVerified) {
       console.log('[VERIFY-OTP] Both OTPs verified, creating user...');
 
+      // Validate pending user data
+      if (!pendingUserData.password) {
+        console.error('[VERIFY-OTP] No password in pending user data');
+        return res.status(500).json({
+          success: false,
+          message: 'Registration data corrupted. Please register again.'
+        });
+      }
+
       // Create user in database now
       // Password will be hashed by mongoose pre-save hook
       const user = new User({
         firstName: pendingUserData.firstName,
-        lastName: pendingUserData.lastName,
+        lastName: pendingUserData.lastName || '',
         email: pendingUserData.email, // Already normalized
         phone: pendingUserData.phone,
         role: pendingUserData.role,
@@ -334,9 +359,17 @@ router.post('/verify-otp', async (req, res) => {
 
       console.log('[VERIFY-OTP] About to save user with password length:', pendingUserData.password?.length);
       
-      await user.save();
-
-      console.log('[VERIFY-OTP] User saved successfully:', user._id);
+      try {
+        await user.save();
+        console.log('[VERIFY-OTP] User saved successfully:', user._id);
+      } catch (saveError: any) {
+        console.error('[VERIFY-OTP] Error saving user:', saveError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to create user account',
+          error: saveError.message || 'Database error'
+        });
+      }
 
       // Clean up pending user data
       OTPService.removePendingUser(email);
@@ -910,7 +943,8 @@ router.get('/me', authMiddleware, async (req, res) => {
           isEmailVerified: user.isEmailVerified,
           isPhoneVerified: user.isPhoneVerified,
           isDigiLockerVerified: user.isDigiLockerVerified,
-          preferences: user.preferences
+          languagePreference: user.languagePreference,
+          notificationPreferences: user.notificationPreferences
         }
       }
     });

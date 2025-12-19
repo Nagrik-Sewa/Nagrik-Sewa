@@ -155,11 +155,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const verifyOTP = async (email: string, phoneOTP?: string, emailOTP?: string) => {
     try {
-      // Normalize email
+      // Normalize email and OTP values
       const normalizedEmail = email.trim().toLowerCase();
+      const cleanPhoneOTP = phoneOTP?.trim();
+      const cleanEmailOTP = emailOTP?.trim();
       
       console.log('Verifying OTP for:', normalizedEmail);
-      const response = await api.post('/auth/verify-otp', { email: normalizedEmail, phoneOTP, emailOTP });
+      const response = await api.post('/auth/verify-otp', { 
+        email: normalizedEmail, 
+        phoneOTP: cleanPhoneOTP, 
+        emailOTP: cleanEmailOTP 
+      });
       console.log('OTP verification response:', response.data);
       
       // If verification is complete, user gets token and is logged in
@@ -184,9 +190,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       console.error('OTP verification failed:', error);
       const message = error.response?.data?.message || 'OTP verification failed';
+      const errorCode = error.response?.data?.errorCode;
+      
+      // Provide more specific error messages
+      let description = message;
+      if (errorCode === 'SESSION_EXPIRED') {
+        description = 'Your registration session has expired. Please register again.';
+      } else if (error.response?.status === 500) {
+        description = 'Server error occurred. Please try again or contact support.';
+      }
+      
       toast({
         title: "Verification failed",
-        description: message,
+        description: description,
         variant: "destructive",
         duration: 5000,
       });
