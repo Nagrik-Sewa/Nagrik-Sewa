@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { User } from '../models/User';
+import { WorkerProfile } from '../models/WorkerProfile';
 import { authenticate as authMiddleware } from '../middleware/auth';
 import { sendEmail } from '../services/email';
 import { sendSMS } from '../services/sms';
@@ -110,7 +111,18 @@ router.post('/register-admin', async (req, res) => {
 // Register endpoint
 router.post('/register', async (req, res) => {
   try {
-    const { firstName, lastName, email: rawEmail, password, phone, role = 'customer' } = req.body;
+    const { 
+      firstName, 
+      lastName, 
+      email: rawEmail, 
+      password, 
+      phone, 
+      role = 'customer',
+      // Worker-specific fields
+      district,
+      primarySkill,
+      experience
+    } = req.body;
 
     // Debug logging (safe - no passwords)
     console.log('[REGISTER] Request received:', {
@@ -120,7 +132,10 @@ router.post('/register', async (req, res) => {
       phone,
       role,
       hasPassword: !!password,
-      passwordLength: password?.length
+      passwordLength: password?.length,
+      district,
+      primarySkill,
+      experience
     });
 
     // Validation
@@ -129,6 +144,16 @@ router.post('/register', async (req, res) => {
         success: false,
         message: 'First name, email, password, and phone are required'
       });
+    }
+
+    // Worker-specific validation
+    if (role === 'worker') {
+      if (!district || !primarySkill || !experience) {
+        return res.status(400).json({
+          success: false,
+          message: 'District, primary skill, and experience are required for workers'
+        });
+      }
     }
 
     // Additional password validation
@@ -166,7 +191,7 @@ router.post('/register', async (req, res) => {
 
     // Store user data temporarily (don't save to database yet)
     // Password is stored as plain text here; mongoose pre-save hook will hash it when user.save() is called
-    const pendingUserData = {
+    const pendingUserData: any = {
       firstName: firstName.trim(),
       lastName: (lastName || '').trim(),
       email, // Already normalized
@@ -174,7 +199,7 @@ router.post('/register', async (req, res) => {
       phone: normalizedPhone,
       role,
       address: {
-        city: 'Delhi', // Default city
+        city: district || 'Delhi', // Use provided district or default
         state: 'Delhi',
         pincode: '110001',
         country: 'India'
@@ -187,6 +212,15 @@ router.post('/register', async (req, res) => {
         whatsapp: true
       }
     };
+
+    // Store worker-specific fields if role is worker
+    if (role === 'worker') {
+      pendingUserData.workerData = {
+        district,
+        primarySkill,
+        experience
+      };
+    }
 
     console.log('[REGISTER] Storing pending user data for:', email);
 
@@ -369,6 +403,99 @@ router.post('/verify-otp', async (req, res) => {
           message: 'Failed to create user account',
           error: saveError.message || 'Database error'
         });
+      }
+
+      // Create worker profile if user is a worker
+      if (user.role === 'worker' && pendingUserData.workerData) {
+        try {
+          const { district, primarySkill, experience } = pendingUserData.workerData;
+          
+          // Parse experience to number (handle "0-1", "1-2", "2-5", "5-10", "10+" format)
+          let experienceYears = 0;
+          if (experience.includes('+')) {
+            experienceYears = parseInt(experience);
+          } else if (experience.includes('-')) {
+            const [min] = experience.split('-');
+            experienceYears = parseInt(min);
+          }
+
+          const workerProfile = new WorkerProfile({
+            userId: user._id,
+            description: `${primarySkill} with ${experience} years of experience`,
+            experience: experienceYears,
+            skills: [{
+              name: primarySkill,
+              category: primarySkill,
+              level: experienceYears >= 5 ? 'expert' : experienceYears >= 2 ? 'intermediate' : 'beginner',
+              yearsOfExperience: experienceYears
+            }],
+            serviceCategories: [primarySkill],
+            verification: {
+              status: 'pending',
+              documents: [],
+              backgroundCheck: {
+                status: 'pending'
+              },
+              skillAssessments: [],
+              referencesChecked: false,
+              manualReviewCompleted: false
+            },
+            availability: {
+              schedule: [],
+              timeZone: 'Asia/Kolkata',
+              isCurrentlyAvailable: true,
+              emergencyAvailable: false
+            },
+            portfolio: [],
+            rating: {
+              average: 0,
+              totalReviews: 0,
+              breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+              categories: {
+                quality: 0,
+                punctuality: 0,
+                communication: 0,
+                pricing: 0,
+                professionalism: 0
+              }
+            },
+            pricing: {
+              hourlyRate: 0,
+              minimumCharge: 0,
+              currency: 'INR',
+              discounts: [],
+              cancellationPolicy: 'Standard cancellation policy applies'
+            },
+            statistics: {
+              totalJobs: 0,
+              completedJobs: 0,
+              cancelledJobs: 0,
+              ongoingJobs: 0,
+              totalEarnings: 0,
+              averageJobValue: 0,
+              completionRate: 0,
+              responseTime: 0,
+              acceptanceRate: 0,
+              repeatCustomerRate: 0
+            },
+            badges: [],
+            preferences: {
+              serviceRadius: 10,
+              preferredLocations: [district],
+              autoAcceptBookings: false,
+              instantBooking: false,
+              minNoticeHours: 2,
+              maxConcurrentJobs: 3,
+              workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+            }
+          });
+
+          await workerProfile.save();
+          console.log('[VERIFY-OTP] Worker profile created successfully for user:', user._id);
+        } catch (profileError: any) {
+          console.error('[VERIFY-OTP] Error creating worker profile:', profileError);
+          // Don't fail registration if profile creation fails - can be created later
+        }
       }
 
       // Clean up pending user data

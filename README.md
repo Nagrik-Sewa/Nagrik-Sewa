@@ -7,8 +7,18 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-%3E%3D5.0-green.svg)](https://mongodb.com)
 [![React](https://img.shields.io/badge/React-18.3.1-blue.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5.3-blue.svg)](https://typescriptlang.org/)
-[![Performance](https://img.shields.io/badge/Performance-Optimized-green.svg)](#-performance-enhancements)
-[![Security](https://img.shields.io/badge/Security-Enhanced-blue.svg)](#-security-features)
+
+## 📋 Table of Contents
+- [Project Status](#-project-status)
+- [Key Features](#-key-features)
+- [Quick Start](#-quick-start)
+- [Environment Variables Setup](#-environment-variables-setup-detailed-guide)
+- [Running the Project](#-running-the-project)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Contributing](#-contributing)
+
+---
 
 ## 🎯 Project Status: ✅ **PRODUCTION READY** - v2.0 Enhanced
 
@@ -19,82 +29,44 @@
 - ✅ **Error Handling**: Comprehensive error boundaries and fallbacks
 - ✅ **Monitoring**: Real-time performance and health monitoring
 
-**Google OAuth Authentication**: ✅ **FULLY IMPLEMENTED**
-- Frontend: Google OAuth components ready
-- Backend: Complete Google OAuth API integration
-- Features: Login, Registration, Profile management
-
----
-
-## ⚡ **Performance Enhancements**
-
-### 🚀 **Frontend Optimizations**
-- **Lazy Loading**: All routes and components dynamically loaded
-- **Code Splitting**: Optimal bundle sizes with React.lazy()
-- **Error Boundaries**: Graceful error handling with recovery options
-- **Performance Monitoring**: Real-time FPS, memory, and vitals tracking
-- **API Optimization**: Advanced caching, retry logic, and batch processing
-
-### 🛡️ **Backend Optimizations**
-- **Connection Pooling**: Optimized MongoDB connections with retry logic
-- **Performance Middleware**: Response time tracking and monitoring
-- **Memory Management**: Automatic memory usage alerts and optimization
-- **Health Checks**: Comprehensive system health monitoring
-- **Security Headers**: Enhanced security with CSP and CORS
-
-### 📊 **Monitoring & Analytics**
-- **System Metrics**: Real-time performance and health data
-- **Error Tracking**: Comprehensive error logging and reporting
-- **Performance Alerts**: Automated alerts for slow responses
-- **Deployment Scripts**: Production-ready deployment automation
-
 ---
 
 ## 🌟 Key Features
 
 ### 🤖 **AI-Powered Intelligence**
-- **Smart Chatbot**: Multi-language support with emergency detection
+- **Smart Chatbot**: Multi-language support with emergency detection (Google Gemini AI)
 - **Resume Enhancement**: AI-powered resume building and optimization
 - **Intelligent Matching**: Auto-match customers with suitable service providers
-- **Predictive Analytics**: Smart recommendations and demand forecasting
 
 ### 🔐 **Authentication & Security**
 - **Google OAuth Integration**: Seamless social login
 - **JWT Authentication**: Secure token-based auth system
 - **Multi-factor Authentication**: SMS & Email verification
 - **Role-based Access Control**: Customer, Worker, Admin roles
-- **Advanced Security**: Rate limiting, input validation, security headers
 
 ### 🌍 **Multi-Language & Location**
 - **13+ Indian Languages**: Real-time translation support
 - **Location Intelligence**: Complete India coverage (states/districts)
 - **Geolocation Services**: Distance-based matching
-- **Regional Customization**: Language and cultural preferences
-
-### 📱 **Modern User Experience**
-- **Responsive Design**: Mobile-first approach with optimized performance
-- **Real-time Communication**: WebSocket integration
-- **Progressive Web App**: Offline functionality
-- **Dark/Light Mode**: User preference theming
-- **Error Recovery**: Graceful error handling with retry mechanisms
 
 ### 💼 **Business Features**
 - **Service Management**: 50+ service categories
 - **Booking System**: Real-time booking and scheduling
 - **Payment Integration**: Razorpay payment gateway
 - **Worker Verification**: DigiLocker integration
-- **Analytics Dashboard**: Comprehensive business metrics
+- **Real-time Chat**: WebSocket-based messaging
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Node.js** (v18+ recommended)
-- **MongoDB** (v5+ recommended)
-- **npm** or **yarn**
+- **Node.js** (v18 or higher) - [Download](https://nodejs.org/)
+- **MongoDB** (v5 or higher) - [Download](https://www.mongodb.com/try/download/community) or use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+- **npm** or **yarn** - Comes with Node.js
+- **Git** - [Download](https://git-scm.com/)
 
-### 1. Clone & Install
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/your-username/nagrik-sewa.git
 cd nagrik-sewa

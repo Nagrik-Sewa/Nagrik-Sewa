@@ -52,6 +52,7 @@ const WorkerSupport = lazy(() => import("./pages/workers/WorkerSupport"));
 const FindCustomers = lazy(() => import("./pages/FindCustomers"));
 const CustomerSupport = lazy(() => import("./pages/CustomerSupport"));
 const JoinAsCustomer = lazy(() => import("./pages/JoinAsCustomer"));
+const SupportFAQs = lazy(() => import("./pages/SupportFAQs"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -141,8 +142,7 @@ const queryClient = new QueryClient({
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      {/* GoogleAuthProvider temporarily disabled to prevent OAuth errors */}
-      {/* <GoogleAuthProvider> */}
+      <GoogleAuthProvider>
         <ThemeProvider>
           <LanguageProvider>
             <FontProvider>
@@ -174,6 +174,7 @@ const App = () => (
                       <Route path="/privacy" element={<Privacy />} />
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/support" element={<Support />} />
+                      <Route path="/support/faqs" element={<SupportFAQs />} />
                       
                       {/* Service Category Routes */}
                       <Route path="/services/home" element={<HomeServices />} />
@@ -279,10 +280,45 @@ const App = () => (
             </FontProvider>
           </LanguageProvider>
         </ThemeProvider>
-      {/* </GoogleAuthProvider> */}
+      </GoogleAuthProvider>
     </QueryClientProvider>
   </ErrorBoundary>
-);const container = document.getElementById("root");
+);// Global error handlers
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('❌ Unhandled Promise Rejection:', event.reason);
+  
+  // Prevent the default error handling
+  event.preventDefault();
+  
+  // Log detailed error information
+  if (event.reason instanceof Error) {
+    console.error('Error name:', event.reason.name);
+    console.error('Error message:', event.reason.message);
+    console.error('Error stack:', event.reason.stack);
+  } else {
+    console.error('Rejection reason:', event.reason);
+  }
+  
+  // You can optionally show a toast notification to the user
+  // toast.error('An unexpected error occurred. Please try again.');
+});
+
+window.addEventListener('error', (event) => {
+  console.error('❌ Global Error:', event.error || event.message);
+  
+  // Log error details
+  if (event.error) {
+    console.error('Error details:', {
+      message: event.error.message,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+      stack: event.error.stack
+    });
+  }
+});
+
+const container = document.getElementById("root");
 if (!container) throw new Error("Failed to find the root element");
 
 // Only create root if it doesn't exist

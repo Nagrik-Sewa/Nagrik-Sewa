@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '../hooks/use-toast';
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
+import { indianStates } from "../data/indianLocations";
+import { CONTACT_INFO, makePhoneCall } from "../constants/contact";
 import { 
   Search, 
   MapPin, 
@@ -24,6 +28,8 @@ const customerRequests = [
     id: 1,
     title: "Need Plumber for Kitchen Repair",
     customer: "Priya Sharma",
+    customerPhone: "+919876543210",
+    customerEmail: "priya.sharma@example.com",
     location: "Connaught Place, New Delhi",
     category: "Plumbing",
     budget: "₹2,000 - ₹3,500",
@@ -38,6 +44,8 @@ const customerRequests = [
     id: 2,
     title: "House Cleaning Service Required",
     customer: "Rajesh Kumar",
+    customerPhone: "+919876543211",
+    customerEmail: "rajesh.kumar@example.com",
     location: "Bandra West, Mumbai",
     category: "Cleaning",
     budget: "₹1,500 - ₹2,000",
@@ -52,6 +60,8 @@ const customerRequests = [
     id: 3,
     title: "Electrical Wiring for New Office",
     customer: "Tech Solutions Pvt Ltd",
+    customerPhone: "+919876543212",
+    customerEmail: "contact@techsolutions.com",
     location: "Electronic City, Bangalore",
     category: "Electrical",
     budget: "₹15,000 - ₹25,000",
@@ -66,6 +76,8 @@ const customerRequests = [
     id: 4,
     title: "AC Installation and Repair",
     customer: "Sunita Patel",
+    customerPhone: "+919876543213",
+    customerEmail: "sunita.patel@example.com",
     location: "Satellite, Ahmedabad",
     category: "AC Repair",
     budget: "₹3,000 - ₹5,000",
@@ -80,6 +92,8 @@ const customerRequests = [
     id: 5,
     title: "Interior Painting Work",
     customer: "Mohammed Ali",
+    customerPhone: "+919876543214",
+    customerEmail: "mohammed.ali@example.com",
     location: "Jubilee Hills, Hyderabad",
     category: "Painting",
     budget: "₹8,000 - ₹12,000",
@@ -94,6 +108,8 @@ const customerRequests = [
     id: 6,
     title: "Furniture Assembly Service",
     customer: "Neha Gupta",
+    customerPhone: "+919876543215",
+    customerEmail: "neha.gupta@example.com",
     location: "Salt Lake, Kolkata",
     category: "Carpentry",
     budget: "₹1,000 - ₹1,500",
@@ -121,29 +137,31 @@ const categories = [
 const urgencyLevels = ["All Urgency", "High", "Medium", "Low"];
 const budgetRanges = ["All Budgets", "Under ₹1,000", "₹1,000 - ₹5,000", "₹5,000 - ₹15,000", "Above ₹15,000"];
 
-// Extract unique cities from customer requests
-const getCitiesFromRequests = () => {
-  const cities = customerRequests.map(request => {
-    // Extract city from location string (assuming format: "Area, City")
-    const locationParts = request.location.split(',');
-    return locationParts.length > 1 ? locationParts[1].trim() : locationParts[0].trim();
+// Get all districts from all states
+const getAllDistricts = () => {
+  const allDistricts: string[] = [];
+  
+  indianStates.forEach(state => {
+    state.districts.forEach(district => {
+      allDistricts.push(district);
+    });
   });
   
-  // Remove duplicates and add "All Cities" option
-  const uniqueCities = [...new Set(cities)];
-  return ["All Cities", ...uniqueCities.sort()];
+  // Sort alphabetically and add "All Districts" option at the beginning
+  return ["All Districts", ...allDistricts.sort()];
 };
 
-const cities = getCitiesFromRequests();
+const districts = getAllDistricts();
 
-export default function FindCustomers() {
-  const [searchTerm, setSearchTerm] = useState("");
+export default function FindCustomers() {  const navigate = useNavigate();  const { toast } = useToast();  const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [selectedUrgency, setSelectedUrgency] = useState("All Urgency");
   const [selectedBudget, setSelectedBudget] = useState("All Budgets");
-  const [selectedCity, setSelectedCity] = useState("All Cities");
+  const [selectedDistrict, setSelectedDistrict] = useState("All Districts");
+  const [sortByPriority, setSortByPriority] = useState(false);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
-  const filteredRequests = customerRequests.filter(request => {
+  let filteredRequests = customerRequests.filter(request => {
     const matchesSearch = request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          request.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          request.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -152,14 +170,31 @@ export default function FindCustomers() {
     const matchesCategory = selectedCategory === "All Categories" || request.category === selectedCategory;
     const matchesUrgency = selectedUrgency === "All Urgency" || request.urgency === selectedUrgency;
     
-    // City filtering - extract city from location string and match with selected city
-    const requestCity = request.location.split(',').length > 1 
-      ? request.location.split(',')[1].trim() 
-      : request.location.split(',')[0].trim();
-    const matchesCity = selectedCity === "All Cities" || requestCity === selectedCity;
+    // District filtering - check if location contains the selected district
+    const matchesDistrict = selectedDistrict === "All Districts" || 
+                           request.location.toLowerCase().includes(selectedDistrict.toLowerCase());
     
-    return matchesSearch && matchesCategory && matchesUrgency && matchesCity;
+    const matchesBudget = selectedBudget === "All Budgets" || (() => {
+      const budgetValue = parseInt(request.budget.replace(/[^0-9]/g, ''));
+      switch(selectedBudget) {
+        case "Under ₹1,000": return budgetValue < 1000;
+        case "₹1,000 - ₹5,000": return budgetValue >= 1000 && budgetValue <= 5000;
+        case "₹5,000 - ₹15,000": return budgetValue >= 5000 && budgetValue <= 15000;
+        case "Above ₹15,000": return budgetValue > 15000;
+        default: return true;
+      }
+    })();
+    
+    return matchesSearch && matchesCategory && matchesUrgency && matchesDistrict && matchesBudget;
   });
+  
+  // Sort by priority if enabled
+  if (sortByPriority) {
+    filteredRequests = [...filteredRequests].sort((a, b) => {
+      const priorityOrder = { High: 3, Medium: 2, Low: 1 };
+      return priorityOrder[b.urgency as keyof typeof priorityOrder] - priorityOrder[a.urgency as keyof typeof priorityOrder];
+    });
+  }
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
@@ -182,6 +217,70 @@ export default function FindCustomers() {
       case "Beauty & Wellness": return "💆";
       default: return "🛠️";
     }
+  };
+
+  const handleSendProposal = async (request: typeof customerRequests[0]) => {
+    try {
+      // Send email notification
+      await fetch('/api/send-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: request.customerEmail,
+          phone: request.customerPhone,
+          type: 'proposal',
+          message: `A service provider has sent you a proposal for: ${request.title}`
+        })
+      });
+      
+      toast({
+        title: "Proposal Sent!",
+        description: `Your proposal has been sent to ${request.customer} via email and SMS.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Success!",
+        description: `Proposal sent to ${request.customer}. They will contact you soon.`,
+        variant: "default"
+      });
+    }
+  };
+
+  const handleCall = (phone: string, customerName: string) => {
+    makePhoneCall(phone);
+    toast({
+      title: "Calling...",
+      description: `Initiating call to ${customerName}`,
+    });
+  };
+
+  const handleMessage = (phone: string, customerName: string) => {
+    window.location.href = `sms:${phone.replace(/\s+/g, '')}`;
+    toast({
+      title: "Opening Messages",
+      description: `Starting message to ${customerName}`,
+    });
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedDistrict("All Districts");
+    setSelectedCategory("All Categories");
+    setSelectedUrgency("All Urgency");
+    setSelectedBudget("All Budgets");
+    setSortByPriority(false);
+    toast({
+      title: "Filters Cleared",
+      description: "All filters have been reset",
+    });
+  };
+
+  const handleSortByPriority = () => {
+    setSortByPriority(!sortByPriority);
+    toast({
+      title: sortByPriority ? "Sort Disabled" : "Sort by Priority",
+      description: sortByPriority ? "Showing default order" : "Showing high priority requests first",
+    });
   };
 
   return (
@@ -232,13 +331,13 @@ export default function FindCustomers() {
               </div>
               
               <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
+                value={selectedDistrict}
+                onChange={(e) => setSelectedDistrict(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
-                {cities.map((city) => (
-                  <option key={city} value={city}>
-                    {city === "All Cities" ? "🌍 All Cities" : `📍 ${city}`}
+                {districts.map((district) => (
+                  <option key={district} value={district}>
+                    {district === "All Districts" ? "🌍 All Districts" : `📍 ${district}`}
                   </option>
                 ))}
               </select>
@@ -263,15 +362,17 @@ export default function FindCustomers() {
                 ))}
               </select>
 
-              <select
-                value={selectedBudget}
-                onChange={(e) => setSelectedBudget(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
-              >
-                {budgetRanges.map((range) => (
-                  <option key={range} value={range}>{range}</option>
-                ))}
-              </select>
+              {showMoreFilters && (
+                <select
+                  value={selectedBudget}
+                  onChange={(e) => setSelectedBudget(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+                >
+                  {budgetRanges.map((range) => (
+                    <option key={range} value={range}>{range}</option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
         </div>
@@ -287,11 +388,11 @@ export default function FindCustomers() {
               </h2>
               {/* Active Filters */}
               <div className="flex flex-wrap gap-2 mt-2">
-                {selectedCity !== "All Cities" && (
+                {selectedDistrict !== "All Districts" && (
                   <Badge variant="secondary" className="bg-brand-100 text-brand-800">
-                    📍 {selectedCity}
+                    📍 {selectedDistrict}
                     <button 
-                      onClick={() => setSelectedCity("All Cities")}
+                      onClick={() => setSelectedDistrict("All Districts")}
                       className="ml-1 hover:text-brand-900"
                     >
                       ×
@@ -337,21 +438,30 @@ export default function FindCustomers() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedCity("All Cities");
-                  setSelectedCategory("All Categories");
-                  setSelectedUrgency("All Urgency");
-                  setSelectedBudget("All Budgets");
-                }}
+                onClick={handleClearFilters}
               >
                 Clear All Filters
               </Button>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setShowMoreFilters(!showMoreFilters);
+                  toast({
+                    title: showMoreFilters ? "Filters Hidden" : "More Filters",
+                    description: showMoreFilters ? "Advanced filters collapsed" : "Budget filter is now visible",
+                  });
+                }}
+              >
                 <Filter className="w-4 h-4 mr-2" />
                 More Filters
               </Button>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleSortByPriority}
+                className={sortByPriority ? "bg-brand-100 border-brand-500" : ""}
+              >
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Sort by Priority
               </Button>
@@ -416,15 +526,28 @@ export default function FindCustomers() {
                       </div>
                       
                       <div className="flex flex-col gap-2 lg:w-48">
-                        <Button className="bg-brand-600 hover:bg-brand-700 w-full">
+                        <Button 
+                          className="bg-brand-600 hover:bg-brand-700 w-full"
+                          onClick={() => handleSendProposal(request)}
+                        >
                           Send Proposal
                         </Button>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => handleCall(request.customerPhone, request.customer)}
+                          >
                             <Phone className="w-4 h-4 mr-1" />
                             Call
                           </Button>
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => handleMessage(request.customerPhone, request.customer)}
+                          >
                             <Mail className="w-4 h-4 mr-1" />
                             Message
                           </Button>
@@ -447,11 +570,20 @@ export default function FindCustomers() {
             Join thousands of service providers earning more by connecting with customers who need their expertise.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-brand-600 hover:bg-gray-100">
+            <Button 
+              size="lg" 
+              className="bg-white text-brand-600 hover:bg-gray-100"
+              onClick={() => navigate('/join-as-worker')}
+            >
               <Users className="w-5 h-5 mr-2" />
               Join as Service Provider
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-brand-600">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-brand-600 opacity-100"
+              onClick={() => makePhoneCall(CONTACT_INFO.MAIN_SUPPORT_PHONE)}
+            >
               <Calendar className="w-5 h-5 mr-2" />
               Schedule Free Consultation
             </Button>

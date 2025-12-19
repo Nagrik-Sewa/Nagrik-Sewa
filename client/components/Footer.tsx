@@ -3,7 +3,6 @@ import { Button } from "./ui/button";
 import { 
   Facebook, 
   Instagram, 
-  Youtube,
   Mail,
   Phone,
   MapPin,
@@ -103,9 +102,6 @@ export function Footer() {
                 </Button>
                 <Button variant="ghost" size="sm" className="text-gray-400 hover:text-pink-500 hover:bg-transparent">
                   <Instagram className="w-5 h-5" />
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-500 hover:bg-transparent">
-                  <Youtube className="w-5 h-5" />
                 </Button>
               </div>
             </div>

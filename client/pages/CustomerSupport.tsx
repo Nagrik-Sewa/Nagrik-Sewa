@@ -14,17 +14,17 @@ import {
   Shield,
   CreditCard,
   Settings,
-  FileText,
-  LogIn,
-  UserPlus
+  FileText
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Card } from "../components/ui/card";
+import { useToast } from '../hooks/use-toast';
 import { CONTACT_INFO, makePhoneCall, sendEmail } from '../constants/contact';
 
 export default function CustomerSupport() {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -195,7 +195,43 @@ export default function CustomerSupport() {
     e.preventDefault();
     // Handle form submission
     console.log("Support form submitted:", formData);
-    alert("Thank you for contacting us! We'll get back to you within 4 hours.");
+    toast({
+      title: "Support Request Submitted!",
+      description: "We'll get back to you within 4 hours.",
+    });
+    // Reset form
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      category: "",
+      subject: "",
+      message: ""
+    });
+  };
+
+  const handleDownloadGuide = () => {
+    window.open('/documents/customer-guide.pdf', '_blank');
+    toast({
+      title: "Downloading Guide",
+      description: "Customer guide will download shortly",
+    });
+  };
+
+  const handleViewAllFAQs = () => {
+    window.open('/support/faqs', '_blank');
+    toast({
+      title: "Opening FAQs",
+      description: "View all frequently asked questions",
+    });
+  };
+
+  const handleJoinForum = () => {
+    window.open('/community/forum', '_blank');
+    toast({
+      title: "Opening Community Forum",
+      description: "Connect with other customers",
+    });
   };
 
   return (
@@ -209,18 +245,7 @@ export default function CustomerSupport() {
             <p className="text-xl text-brand-100 mb-8">
               We're here to help you 24/7. Find answers or get in touch with our support team.
             </p>
-            
-            {/* Search Bar */}
-            <div className="max-w-md mx-auto relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type="text"
-                placeholder="Search for help..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white text-gray-900"
-              />
-            </div>
+
           </div>
         </div>
       </div>
@@ -228,47 +253,91 @@ export default function CustomerSupport() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         
-        {/* Customer Registration Prompt */}
+        {/* Support Categories */}
         <section className="mb-16">
-          <Card className="border-brand-200 bg-gradient-to-r from-brand-50 to-blue-50">
-            <div className="p-12">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Users className="w-8 h-8 text-brand-600" />
-                </div>
-                <h2 className="text-3xl font-bold text-brand-700 mb-4">
-                  Join as a Customer for Enhanced Support
-                </h2>
-                <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-                  Create your customer account to get priority support, personalized assistance, and access to exclusive customer benefits.
-                </p>
-                
-                <div className="grid md:grid-cols-2 gap-6 mb-8">
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-3" />
-                    <h3 className="font-semibold mb-2">Priority Support</h3>
-                    <p className="text-sm text-gray-600">Get faster responses and dedicated assistance</p>
-                  </div>
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <Shield className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-                    <h3 className="font-semibold mb-2">Account Protection</h3>
-                    <p className="text-sm text-gray-600">Secure your bookings and personal information</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button size="lg" className="bg-brand-600 hover:bg-brand-700 shadow-lg">
-                    <Users className="w-5 h-5 mr-2" />
-                    Register as Customer
-                  </Button>
-                  <Button size="lg" variant="outline" className="border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white">
-                    <LogIn className="w-5 h-5 mr-2" />
-                    Customer Login
-                  </Button>
-                </div>
+          <h2 className="text-3xl font-bold text-center mb-8">How Can We Help You?</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="p-6 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <Users className="w-6 h-6 text-white" />
               </div>
-            </div>
-          </Card>
+              <h3 className="font-bold text-center mb-2">Account & Bookings</h3>
+              <p className="text-sm text-gray-600 text-center mb-4">Create account, book services, track orders</p>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => sendEmail(CONTACT_INFO.MAIN_EMAIL, "Account & Bookings Support")}
+              >
+                Get Help
+              </Button>
+            </Card>
+
+            <Card className="p-6 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+              <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <CreditCard className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-bold text-center mb-2">Payments & Refunds</h3>
+              <p className="text-sm text-gray-600 text-center mb-4">Payment methods, refunds, pricing</p>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => sendEmail(CONTACT_INFO.MAIN_EMAIL, "Payment Support")}
+              >
+                Get Help
+              </Button>
+            </Card>
+
+            <Card className="p-6 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+              <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-bold text-center mb-2">Safety & Quality</h3>
+              <p className="text-sm text-gray-600 text-center mb-4">Service quality, safety concerns</p>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => sendEmail(CONTACT_INFO.MAIN_EMAIL, "Safety & Quality Support")}
+              >
+                Get Help
+              </Button>
+            </Card>
+
+            <Card className="p-6 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+              <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <Settings className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-bold text-center mb-2">App & Technical</h3>
+              <p className="text-sm text-gray-600 text-center mb-4">Technical issues, app problems</p>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => sendEmail(CONTACT_INFO.MAIN_EMAIL, "Technical Support")}
+              >
+                Get Help
+              </Button>
+            </Card>
+          </div>
+        </section>
+
+        {/* Quick Stats */}
+        <section className="mb-16">
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="p-6 text-center bg-gradient-to-br from-brand-50 to-brand-100">
+              <Clock className="w-8 h-8 mx-auto mb-2 text-brand-600" />
+              <div className="text-3xl font-bold text-brand-700">24/7</div>
+              <p className="text-gray-600">Support Available</p>
+            </Card>
+            <Card className="p-6 text-center bg-gradient-to-br from-green-50 to-green-100">
+              <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
+              <div className="text-3xl font-bold text-green-700">&lt;2hrs</div>
+              <p className="text-gray-600">Average Response Time</p>
+            </Card>
+            <Card className="p-6 text-center bg-gradient-to-br from-blue-50 to-blue-100">
+              <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+              <div className="text-3xl font-bold text-blue-700">50K+</div>
+              <p className="text-gray-600">Happy Customers</p>
+            </Card>
+          </div>
         </section>
 
         {/* Contact Methods */}
@@ -644,6 +713,45 @@ export default function CustomerSupport() {
                 Send Message
               </Button>
             </form>
+          </div>
+        </section>
+
+        {/* Additional Resources */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8">Additional Resources</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="p-6 text-center hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+              <FileText className="w-12 h-12 mx-auto mb-4 text-brand-600" />
+              <h3 className="font-bold mb-2">Customer Guide</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Complete guide to using Nagrik Sewa services
+              </p>
+              <Button variant="outline" className="w-full" onClick={handleDownloadGuide}>
+                Download Guide
+              </Button>
+            </Card>
+
+            <Card className="p-6 text-center hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+              <HelpCircle className="w-12 h-12 mx-auto mb-4 text-green-600" />
+              <h3 className="font-bold mb-2">View All FAQs</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Browse our comprehensive FAQ database
+              </p>
+              <Button variant="outline" className="w-full" onClick={handleViewAllFAQs}>
+                Browse FAQs
+              </Button>
+            </Card>
+
+            <Card className="p-6 text-center hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+              <MessageCircle className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+              <h3 className="font-bold mb-2">Community Forum</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Connect with other customers and share tips
+              </p>
+              <Button variant="outline" className="w-full" onClick={handleJoinForum}>
+                Join Forum
+              </Button>
+            </Card>
           </div>
         </section>
 

@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,12 +16,18 @@ import {
   ArrowRight,
   CheckCircle,
   Shield,
-  Award
+  Award,
+  RefreshCw
 } from "lucide-react";
 
 export default function Services() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [locationChanged, setLocationChanged] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [minRating, setMinRating] = useState(0);
+  const [maxPrice, setMaxPrice] = useState("All");
+  const [availability, setAvailability] = useState("All");
   const { selectedState, selectedDistrict } = useLocation();
   const navigate = useNavigate();
 
@@ -31,6 +37,13 @@ export default function Services() {
     : "India";
   
   const displayLocation = selectedDistrict ? `${selectedDistrict}, ${currentLocation}` : currentLocation;
+
+  // Show animation when location changes
+  useEffect(() => {
+    setLocationChanged(true);
+    const timer = setTimeout(() => setLocationChanged(false), 1000);
+    return () => clearTimeout(timer);
+  }, [selectedState, selectedDistrict]);
 
   const categories = ["All", "Home Services", "Construction", "Technical", "Personal Care", "Event Services"];
 
@@ -149,7 +162,19 @@ export default function Services() {
     const matchesSearch = service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          service.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "All" || service.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesRating = service.avgRating >= minRating;
+    const matchesPrice = maxPrice === "All" || (() => {
+      const priceNum = parseInt(service.avgPrice.replace(/[^0-9]/g, ''));
+      switch(maxPrice) {
+        case "Under 500": return priceNum <= 500;
+        case "500-1000": return priceNum > 500 && priceNum <= 1000;
+        case "1000-2000": return priceNum > 1000 && priceNum <= 2000;
+        case "Above 2000": return priceNum > 2000;
+        default: return true;
+      }
+    })();
+    const matchesAvailability = availability === "All" || service.availability.toLowerCase().includes(availability.toLowerCase());
+    return matchesSearch && matchesCategory && matchesRating && matchesPrice && matchesAvailability;
   });
 
   return (
@@ -176,10 +201,29 @@ export default function Services() {
                 </div>
               </div>
             )}
+
+            {/* Location Active Notice */}
+            {selectedState && (
+              <div className={`bg-green-100 border border-green-300 rounded-lg p-3 mb-6 max-w-2xl mx-auto transition-all duration-500 ${
+                locationChanged ? 'scale-105 shadow-lg' : 'scale-100'
+              }`}>
+                <div className="flex items-center justify-center text-green-800">
+                  <MapPin className={`w-5 h-5 mr-2 ${locationChanged ? 'animate-pulse' : ''}`} />
+                  <span className="font-medium">
+                    Showing services available in {displayLocation}
+                  </span>
+                  {locationChanged && (
+                    <RefreshCw className="w-4 h-4 ml-2 animate-spin" />
+                  )}
+                </div>
+              </div>
+            )}
             
             {/* Search and Filters */}
             <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-2xl shadow-lg p-6">
+              <div className={`bg-white rounded-2xl shadow-lg p-6 transition-all duration-300 ${
+                locationChanged ? 'ring-2 ring-green-400' : ''
+              }`}>
                 <div className="grid md:grid-cols-4 gap-4">
                   <div className="relative md:col-span-2">
                     <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
@@ -199,10 +243,19 @@ export default function Services() {
                       <option key={category} value={category}>{category}</option>
                     ))}
                   </select>
-                  <div className="h-12 px-4 rounded-md border border-gray-300 text-lg bg-gray-50 flex items-center">
-                    <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                    <span className="text-gray-700">{displayLocation}</span>
-                    <span className="text-xs text-gray-500 ml-2">(from navigation)</span>
+                  <div className={`h-12 px-4 rounded-md border-2 text-lg flex items-center transition-all duration-300 overflow-hidden ${
+                    selectedState 
+                      ? 'bg-green-50 border-green-400' 
+                      : 'bg-gray-50 border-gray-300'
+                  }`}>
+                    <MapPin className={`w-4 h-4 mr-2 flex-shrink-0 ${
+                      selectedState ? 'text-green-600' : 'text-gray-500'
+                    }`} />
+                    <span className={`font-medium truncate ${
+                      selectedState ? 'text-green-700' : 'text-gray-700'
+                    }`} title={displayLocation}>
+                      {displayLocation}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -215,14 +268,148 @@ export default function Services() {
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {filteredServices.length} Services Available in {displayLocation}
-            </h2>
-            <Button variant="outline" className="flex items-center space-x-2">
+            <div className="flex items-center gap-3">
+              <h2 className={`text-2xl font-bold text-gray-900 transition-all duration-300 ${
+                locationChanged ? 'scale-105' : 'scale-100'
+              }`}>
+                {filteredServices.length} Services Available in {displayLocation}
+              </h2>
+              {selectedState && (
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                  <MapPin className="w-3 h-3 mr-1" />
+                  Location Active
+                </Badge>
+              )}
+            </div>
+            <Button 
+              variant="outline" 
+              className="flex items-center space-x-2"
+              onClick={() => setShowFilters(!showFilters)}
+            >
               <Filter className="w-4 h-4" />
-              <span>Filters</span>
+              <span>{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
             </Button>
           </div>
+
+          {/* Advanced Filters Panel */}
+          {showFilters && (
+            <div className="mb-8 bg-white rounded-lg shadow-md p-6 border border-gray-200">
+              <div className="grid md:grid-cols-4 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Minimum Rating
+                  </label>
+                  <select 
+                    className="w-full h-10 px-3 rounded-md border border-gray-300"
+                    value={minRating}
+                    onChange={(e) => setMinRating(Number(e.target.value))}
+                  >
+                    <option value={0}>All Ratings</option>
+                    <option value={4}>4+ Stars</option>
+                    <option value={4.5}>4.5+ Stars</option>
+                    <option value={4.7}>4.7+ Stars</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Price Range
+                  </label>
+                  <select 
+                    className="w-full h-10 px-3 rounded-md border border-gray-300"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                  >
+                    <option value="All">All Prices</option>
+                    <option value="Under 500">Under ₹500</option>
+                    <option value="500-1000">₹500 - ₹1000</option>
+                    <option value="1000-2000">₹1000 - ₹2000</option>
+                    <option value="Above 2000">Above ₹2000</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Availability
+                  </label>
+                  <select 
+                    className="w-full h-10 px-3 rounded-md border border-gray-300"
+                    value={availability}
+                    onChange={(e) => setAvailability(e.target.value)}
+                  >
+                    <option value="All">All</option>
+                    <option value="Same day">Same Day</option>
+                    <option value="24/7">24/7 Emergency</option>
+                    <option value="Next day">Next Day</option>
+                  </select>
+                </div>
+
+                <div className="flex items-end">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      setMinRating(0);
+                      setMaxPrice("All");
+                      setAvailability("All");
+                      setSearchQuery("");
+                      setSelectedCategory("All");
+                    }}
+                  >
+                    Clear All Filters
+                  </Button>
+                </div>
+              </div>
+
+              {/* Active Filters */}
+              <div className="flex flex-wrap gap-2 mt-4">
+                {minRating > 0 && (
+                  <Badge variant="secondary" className="bg-brand-100 text-brand-800">
+                    ⭐ {minRating}+ Rating
+                    <button 
+                      onClick={() => setMinRating(0)}
+                      className="ml-2 hover:text-brand-900"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
+                {maxPrice !== "All" && (
+                  <Badge variant="secondary" className="bg-brand-100 text-brand-800">
+                    💰 {maxPrice}
+                    <button 
+                      onClick={() => setMaxPrice("All")}
+                      className="ml-2 hover:text-brand-900"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
+                {availability !== "All" && (
+                  <Badge variant="secondary" className="bg-brand-100 text-brand-800">
+                    🕐 {availability}
+                    <button 
+                      onClick={() => setAvailability("All")}
+                      className="ml-2 hover:text-brand-900"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
+                {selectedCategory !== "All" && (
+                  <Badge variant="secondary" className="bg-brand-100 text-brand-800">
+                    🏷️ {selectedCategory}
+                    <button 
+                      onClick={() => setSelectedCategory("All")}
+                      className="ml-2 hover:text-brand-900"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredServices.map((service) => (

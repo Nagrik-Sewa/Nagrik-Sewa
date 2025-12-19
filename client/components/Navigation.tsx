@@ -73,9 +73,9 @@ export function Navigation() {
           icon: Users,
           dropdown: [
             { href: "/join-as-customer", label: t("navigation.joinAsCustomer") },
-            { href: "/workers", label: t("navigation.workers") },
+            { href: "/workers", label: "Find Workers" },
             { href: "/get-verified", label: t("navigation.getVerified") },
-            { href: "/customer-support", label: t("navigation.support") },
+            { href: "/customer-support", label: "Customer Support" },
           ],
         },
       ];
@@ -149,7 +149,7 @@ export function Navigation() {
                     <DropdownMenuContent className="w-48">
                       {link.dropdown.map((subLink) => (
                         <DropdownMenuItem key={subLink.href} asChild>
-                          <Link to={subLink.href} className="w-full">
+                          <Link to={subLink.href} className="w-full hover:scale-[1.02] hover:shadow-2xl transition-all duration-300">
                             {subLink.label}
                           </Link>
                         </DropdownMenuItem>

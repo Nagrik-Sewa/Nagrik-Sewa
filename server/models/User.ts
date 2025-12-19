@@ -74,6 +74,9 @@ export interface IUser extends Document {
   blockReason?: string;
   accountStatus: 'pending' | 'active' | 'suspended' | 'inactive';
   
+  // Marketing & Analytics
+  referralSource?: string;
+  
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -258,8 +261,13 @@ const userSchema = new Schema<IUser>({
     type: String,
     enum: ['pending', 'active', 'suspended', 'inactive'],
     default: 'pending'
-  }
-}, {
+  }  
+  // Marketing & Analytics
+  referralSource: {
+    type: String,
+    enum: ['google', 'social', 'friend', 'advertisement', 'other', ''],
+    default: ''
+  },}, {
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }

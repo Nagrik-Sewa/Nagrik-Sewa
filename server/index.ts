@@ -19,6 +19,8 @@ import uploadRoutes from "./routes/upload";
 import digilockerRoutes from "./routes/digilocker";
 import resumeRoutes from "./routes/resume";
 import statsRoutes from "./routes/stats";
+import notificationsRoutes from "./routes/notifications";
+import supportRoutes from "./routes/support";
 import { performanceMonitor, memoryMonitor, requestSizeMonitor, endpointMonitor, getPerformanceStats } from "./middleware/performance";
 
 // Performance monitoring
@@ -173,6 +175,8 @@ export function createServer() {
   app.use("/api/upload", uploadRoutes);
   app.use("/api/resume", resumeRoutes);
   app.use("/api/stats", statsRoutes);
+  app.use("/api", notificationsRoutes);
+  app.use("/api/support", supportRoutes);
 
   // Serve uploaded files
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));

@@ -139,13 +139,55 @@ export default function JoinAsWorker() {
 
 
 
-  const serviceCategories = [
-    { name: "Home Cleaning", demand: "High Demand", icon: "🧹", earning: "₹20,000/mo" },
-    { name: "Plumbing", demand: "Very High", icon: "🔧", earning: "₹35,000/mo" },
-    { name: "Electrical Work", demand: "High Demand", icon: "⚡", earning: "₹40,000/mo" },
-    { name: "Painting", demand: "Moderate", icon: "🎨", earning: "₹25,000/mo" },
-    { name: "AC Repair", demand: "Very High", icon: "❄️", earning: "₹45,000/mo" },
-    { name: "Beauty & Wellness", demand: "Growing", icon: "💄", earning: "₹30,000/mo" }
+  const customerRequests = [
+    { 
+      customerName: "Priya Sharma", 
+      service: "Home Cleaning", 
+      location: "South Delhi", 
+      budget: "₹1,500-2,000",
+      posted: "2 hours ago",
+      priority: "Urgent"
+    },
+    { 
+      customerName: "Amit Patel", 
+      service: "Plumbing Repair", 
+      location: "Andheri, Mumbai", 
+      budget: "₹2,500-3,500",
+      posted: "5 hours ago",
+      priority: "High"
+    },
+    { 
+      customerName: "Kavita Singh", 
+      service: "Electrical Work", 
+      location: "Koramangala, Bangalore", 
+      budget: "₹3,000-4,000",
+      posted: "1 hour ago",
+      priority: "Urgent"
+    },
+    { 
+      customerName: "Rahul Verma", 
+      service: "House Painting", 
+      location: "Sector 62, Noida", 
+      budget: "₹15,000-20,000",
+      posted: "3 hours ago",
+      priority: "Medium"
+    },
+    { 
+      customerName: "Sunita Reddy", 
+      service: "AC Repair", 
+      location: "Banjara Hills, Hyderabad", 
+      budget: "₹2,000-3,000",
+      posted: "30 mins ago",
+      priority: "Urgent"
+    },
+    { 
+      customerName: "Deepak Kumar", 
+      service: "Salon at Home", 
+      location: "Park Street, Kolkata", 
+      budget: "₹1,200-1,800",
+      posted: "4 hours ago",
+      priority: "Medium"
+    }
   ];
 
   const testimonials = [
@@ -427,7 +469,7 @@ export default function JoinAsWorker() {
             {howItWorks.map((step, index) => {
               const IconComponent = step.icon;
               return (
-                <div key={index} className="text-center">
+                <div key={index} className="text-center hover:scale-105 transition-transform duration-300 cursor-pointer">
                   <div className="relative mb-6">
                     <div className="w-16 h-16 bg-brand-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                       {step.step}
@@ -443,18 +485,39 @@ export default function JoinAsWorker() {
         </div>
       </div>
 
-      {/* Service Categories */}
+      {/* Customer Requests */}
       <div className="py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">High-Demand Service Categories</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Recent Customer Requests</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {serviceCategories.map((category, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow cursor-pointer">
+            {customerRequests.map((request, index) => (
+              <Card key={index} className="hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
                 <CardContent className="p-6">
-                  <div className="text-4xl mb-3">{category.icon}</div>
-                  <h3 className="font-semibold mb-2">{category.name}</h3>
-                  <p className="text-sm text-green-600 font-medium mb-1">{category.demand}</p>
-                  <p className="text-sm text-brand-600 font-bold">Avg: {category.earning}</p>
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-bold text-lg">{request.customerName}</h3>
+                      <p className="text-sm text-gray-600 flex items-center mt-1">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        {request.location}
+                      </p>
+                    </div>
+                    <Badge className={request.priority === "Urgent" ? "bg-red-500" : request.priority === "High" ? "bg-orange-500" : "bg-blue-500"}>
+                      {request.priority}
+                    </Badge>
+                  </div>
+                  <div className="border-t pt-3 mt-3">
+                    <p className="text-sm font-semibold text-brand-600 mb-2">{request.service}</p>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">Budget:</span>
+                      <span className="font-bold text-green-600">{request.budget}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm mt-2">
+                      <span className="text-gray-500 flex items-center">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {request.posted}
+                      </span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -463,9 +526,9 @@ export default function JoinAsWorker() {
             <Button 
               size="lg" 
               className="bg-brand-600 hover:bg-brand-700"
-              onClick={() => navigate('/services')}
+              onClick={() => navigate('/find-customers')}
             >
-              View All Categories
+              Find Customers
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
@@ -699,7 +762,7 @@ export default function JoinAsWorker() {
                   ) : (
                     <>
                       <UserPlus className="w-5 h-5 mr-2" />
-                      Submit Application
+                      Create Account
                     </>
                   )}
                 </Button>

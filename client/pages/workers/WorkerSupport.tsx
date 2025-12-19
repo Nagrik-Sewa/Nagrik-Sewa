@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { 
   HeadphonesIcon, 
   MessageCircle, 
@@ -14,6 +15,7 @@ import {
   Shield,
   BookOpen
 } from "lucide-react";
+import { useToast } from '../../hooks/use-toast';
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
@@ -21,6 +23,74 @@ import { Card } from "../../components/ui/card";
 import { CONTACT_INFO, makePhoneCall, sendEmail } from "../../constants/contact";
 
 export default function WorkerSupport() {
+  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+    category: '',
+    priority: 'medium',
+    subject: '',
+    description: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/support/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Support Request Submitted!",
+          description: "We've received your request and will respond within 24 hours.",
+        });
+        // Reset form
+        setFormData({
+          fullName: '',
+          phone: '',
+          email: '',
+          category: '',
+          priority: 'medium',
+          subject: '',
+          description: ''
+        });
+      } else {
+        throw new Error('Failed to submit');
+      }
+    } catch (error) {
+      toast({
+        title: "Submission Failed",
+        description: "Please try again or contact us directly.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleGetHelp = (categoryTitle: string) => {
+    const subject = `Support Request - ${categoryTitle}`;
+    sendEmail(CONTACT_INFO.WORKER_SUPPORT_EMAIL, subject);
+    toast({
+      title: "Opening Email",
+      description: `Creating email for ${categoryTitle} support...`,
+    });
+  };
+
   const supportCategories = [
     {
       id: "technical",
@@ -132,9 +202,9 @@ export default function WorkerSupport() {
 
   const emergencyContacts = [
     {
-      title: "Emergency Helpline",
-      number: CONTACT_INFO.EMERGENCY_HELPLINE,
-      description: "For life-threatening emergencies only",
+      title: "24/7 Support Helpline",
+      number: CONTACT_INFO.MAIN_SUPPORT_PHONE,
+      description: "For urgent work-related issues",
       color: "bg-red-600"
     },
     {
@@ -150,6 +220,42 @@ export default function WorkerSupport() {
       color: "bg-purple-600"
     }
   ];
+
+  const handleViewAllFAQs = () => {
+    // Navigate to dedicated FAQ page or open FAQ modal
+    window.open('/support/faqs', '_blank');
+    toast({
+      title: "Opening FAQs",
+      description: "View all frequently asked questions",
+    });
+  };
+
+  const handleDownloadHandbook = () => {
+    // In production, this would link to actual PDF
+    window.open('/documents/worker-handbook.pdf', '_blank');
+    toast({
+      title: "Downloading Handbook",
+      description: "Worker handbook will download shortly",
+    });
+  };
+
+  const handleWatchVideos = () => {
+    // Open training videos page or YouTube playlist
+    window.open('https://www.youtube.com/playlist?list=YOUR_PLAYLIST_ID', '_blank');
+    toast({
+      title: "Opening Training Videos",
+      description: "Watch tutorials to learn more",
+    });
+  };
+
+  const handleJoinForum = () => {
+    // Open community forum (could be Discord, Forum page, etc.)
+    window.open('/community/forum', '_blank');
+    toast({
+      title: "Opening Community Forum",
+      description: "Connect with other workers",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -211,7 +317,11 @@ export default function WorkerSupport() {
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold mb-2">{category.title}</h3>
                       <p className="text-gray-600 text-sm mb-4">{category.description}</p>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleGetHelp(category.title)}
+                      >
                         Get Help
                       </Button>
                     </div>
@@ -232,26 +342,53 @@ export default function WorkerSupport() {
           </div>
 
           <Card className="p-8">
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                  <Input type="text" placeholder="Your full name" />
+                  <Input 
+                    type="text" 
+                    name="fullName"
+                    placeholder="Your full name" 
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                  <Input type="tel" placeholder="Your phone number" />
+                  <Input 
+                    type="tel" 
+                    name="phone"
+                    placeholder="Your phone number" 
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                <Input type="email" placeholder="your.email@example.com" />
+                <Input 
+                  type="email" 
+                  name="email"
+                  placeholder="your.email@example.com" 
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Issue Category *</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  required
+                >
                   <option value="">Select a category</option>
                   {supportCategories.map((category) => (
                     <option key={category.id} value={category.id}>
@@ -263,7 +400,13 @@ export default function WorkerSupport() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level *</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleInputChange}
+                  required
+                >
                   <option value="low">Low - General inquiry</option>
                   <option value="medium">Medium - Issue affecting work</option>
                   <option value="high">High - Urgent issue</option>
@@ -273,14 +416,25 @@ export default function WorkerSupport() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
-                <Input type="text" placeholder="Brief description of your issue" />
+                <Input 
+                  type="text" 
+                  name="subject"
+                  placeholder="Brief description of your issue" 
+                  value={formData.subject}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Detailed Description *</label>
                 <Textarea 
+                  name="description"
                   placeholder="Please provide as much detail as possible about your issue..."
                   rows={6}
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  required
                 />
               </div>
 
@@ -290,8 +444,8 @@ export default function WorkerSupport() {
                 <p className="text-xs text-gray-500 mt-1">Upload screenshots or documents that might help us understand your issue</p>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
-                Submit Support Request
+              <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting...' : 'Submit Support Request'}
               </Button>
             </form>
           </Card>
@@ -308,7 +462,7 @@ export default function WorkerSupport() {
 
           <div className="grid md:grid-cols-2 gap-6">
             {faqs.map((faq, index) => (
-              <Card key={index} className="p-6">
+              <Card key={index} className="p-6 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
                 <div className="flex items-start mb-3">
                   <span className="bg-brand-100 text-brand-700 text-xs font-medium px-2 py-1 rounded mr-3">
                     {faq.category}
@@ -321,7 +475,11 @@ export default function WorkerSupport() {
           </div>
 
           <div className="text-center mt-12">
-            <Button variant="outline" size="lg">
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={handleViewAllFAQs}
+            >
               <ExternalLink className="w-4 h-4 mr-2" />
               View All FAQs
             </Button>
@@ -375,7 +533,11 @@ export default function WorkerSupport() {
               <FileText className="w-12 h-12 text-brand-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-3">Worker Handbook</h3>
               <p className="text-gray-600 text-sm mb-4">Complete guide to using the platform effectively</p>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleDownloadHandbook}
+              >
                 Download PDF
               </Button>
             </Card>
@@ -384,7 +546,11 @@ export default function WorkerSupport() {
               <BookOpen className="w-12 h-12 text-brand-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-3">Training Videos</h3>
               <p className="text-gray-600 text-sm mb-4">Video tutorials on app usage and best practices</p>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleWatchVideos}
+              >
                 Watch Now
               </Button>
             </Card>
@@ -393,7 +559,11 @@ export default function WorkerSupport() {
               <MessageCircle className="w-12 h-12 text-brand-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-3">Community Forum</h3>
               <p className="text-gray-600 text-sm mb-4">Connect with other workers and share experiences</p>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleJoinForum}
+              >
                 Join Forum
               </Button>
             </Card>

@@ -24,6 +24,10 @@ const Register: React.FC = () => {
     password: '',
     confirmPassword: '',
     role: (roleParam === 'worker' ? 'worker' : 'customer') as 'customer' | 'worker',
+    // Worker-specific fields
+    district: '',
+    primarySkill: '',
+    experience: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -94,15 +98,43 @@ const Register: React.FC = () => {
       return;
     }
 
+    // Validate worker-specific fields
+    if (formData.role === 'worker') {
+      if (!formData.district) {
+        setError('District is required for workers');
+        setIsLoading(false);
+        return;
+      }
+      if (!formData.primarySkill) {
+        setError('Primary skill is required for workers');
+        setIsLoading(false);
+        return;
+      }
+      if (!formData.experience) {
+        setError('Experience is required for workers');
+        setIsLoading(false);
+        return;
+      }
+    }
+
     try {
-      const result = await register({
+      const registrationPayload: any = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
         role: formData.role,
-      });
+      };
+
+      // Add worker-specific fields if role is worker
+      if (formData.role === 'worker') {
+        registrationPayload.district = formData.district;
+        registrationPayload.primarySkill = formData.primarySkill;
+        registrationPayload.experience = formData.experience;
+      }
+
+      const result = await register(registrationPayload);
       
       // Registration successful, show OTP verification
       setRegistrationData(result.data);
@@ -210,6 +242,68 @@ const Register: React.FC = () => {
               label="Phone Number"
               showHint={true}
             />
+
+            {/* Worker-specific fields */}
+            {formData.role === 'worker' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="district">District *</Label>
+                  <Input
+                    id="district"
+                    name="district"
+                    value={formData.district}
+                    onChange={handleChange}
+                    placeholder="e.g., Mumbai, Delhi, Bangalore"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="primarySkill">Primary Skill *</Label>
+                  <select
+                    id="primarySkill"
+                    name="primarySkill"
+                    value={formData.primarySkill}
+                    onChange={handleChange}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    required
+                  >
+                    <option value="">Select your primary skill</option>
+                    <option value="Plumber">Plumber</option>
+                    <option value="Electrician">Electrician</option>
+                    <option value="Carpenter">Carpenter</option>
+                    <option value="House Cleaner">House Cleaner</option>
+                    <option value="Painter">Painter</option>
+                    <option value="AC Technician">AC Technician</option>
+                    <option value="Gardener">Gardener</option>
+                    <option value="Construction Worker">Construction Worker</option>
+                    <option value="Beauty Professional">Beauty Professional</option>
+                    <option value="Cook">Cook</option>
+                    <option value="Driver">Driver</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="experience">Years of Experience *</Label>
+                  <select
+                    id="experience"
+                    name="experience"
+                    value={formData.experience}
+                    onChange={handleChange}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    required
+                  >
+                    <option value="">Select experience</option>
+                    <option value="0-1">Less than 1 year</option>
+                    <option value="1-2">1-2 years</option>
+                    <option value="2-5">2-5 years</option>
+                    <option value="5-10">5-10 years</option>
+                    <option value="10+">10+ years</option>
+                  </select>
+                </div>
+              </>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>

@@ -4,7 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { usePlatformStats } from '@/hooks/use-platform-stats';
+import { CONTACT_INFO, makePhoneCall } from '@/constants/contact';
+import { useAuth } from '@/contexts/AuthContext';
+import { OTPVerification } from '@/components/OTPVerification';
+import { useToast } from '@/hooks/use-toast';
 import { 
   UserPlus, 
   CheckCircle, 
@@ -24,35 +29,125 @@ import {
 } from 'lucide-react';
 
 const JoinAsCustomer = () => {
+  const { stats, loading } = usePlatformStats();
+  const navigate = useNavigate();
+  const { register } = useAuth();
+  const { toast } = useToast();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     location: '',
-    interests: [],
+    password: '',
+    confirmPassword: '',
     referralSource: ''
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [registrationEmail, setRegistrationEmail] = useState('');
+  const [registrationPhone, setRegistrationPhone] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'phone') {
+      // Always maintain +91 prefix
+      let phoneValue = value;
+      if (!phoneValue.startsWith('+91')) {
+        phoneValue = '+91 ' + phoneValue.replace(/^(\+91\s*)/, '');
+      }
+      // Remove non-digit characters except +91 prefix
+      phoneValue = phoneValue.replace(/^(\+91\s*)(.*)$/, (match, prefix, number) => {
+        return prefix + number.replace(/[^\d]/g, '');
+      });
+      setFormData({ ...formData, phone: phoneValue });
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Customer registration:', formData);
-    alert('Welcome to Nagrik Sewa! Your account has been created successfully.');
     
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      location: '',
-      interests: [],
-      referralSource: ''
+    // Validate password match
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validate password strength
+    if (formData.password.length < 8) {
+      toast({
+        title: "Weak Password",
+        description: "Password must be at least 8 characters long.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Split name into first and last name
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      // Parse location for city and state
+      const locationParts = formData.location.split(',').map(p => p.trim());
+      const city = locationParts[0] || formData.location;
+      const state = locationParts[1] || 'Unknown';
+      
+      // Prepare registration data
+      const registrationData = {
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone.replace(/\s+/g, ''),
+        firstName,
+        lastName,
+        role: 'customer' as const,
+        address: {
+          city,
+          state,
+          pincode: '000000',
+          country: 'India'
+        },
+        referralSource: formData.referralSource
+      };
+      
+      await register(registrationData);
+      
+      setRegistrationEmail(formData.email);
+      setRegistrationPhone(formData.phone);
+      setShowOTPVerification(true);
+      
+    } catch (error: any) {
+      console.error('Customer registration failed:', error);
+      toast({
+        title: "Registration Failed",
+        description: error.response?.data?.message || "Unable to create account. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleVerificationComplete = () => {
+    toast({
+      title: "Welcome to Nagrik Sewa!",
+      description: "Your customer account has been created successfully. Redirecting to dashboard...",
     });
+    
+    setTimeout(() => {
+      navigate('/dashboard');
+    }, 2000);
   };
 
   const benefits = [
@@ -88,6 +183,19 @@ const JoinAsCustomer = () => {
     }
   ];
 
+  // Show OTP verification if registration was successful
+  if (showOTPVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <OTPVerification
+          email={registrationEmail}
+          phone={registrationPhone}
+          onVerificationComplete={handleVerificationComplete}
+        />
+      </div>
+    );
+  }
+  
   const serviceCategories = [
     { name: "Home Services", count: "500+ providers", icon: "🏠" },
     { name: "Cleaning", count: "300+ providers", icon: "🧹" },
@@ -159,15 +267,15 @@ const JoinAsCustomer = () => {
                 Connect with trusted service providers in your area. Get quality services at fair prices, delivered right to your doorstep.
               </p>
               <div className="flex flex-wrap gap-4 mb-8">
-                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2">
+                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2 hover:scale-110 transition-transform duration-300 cursor-pointer">
                   <CheckCircle className="w-5 h-5 mr-2" />
                   <span>Verified Professionals</span>
                 </div>
-                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2">
+                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2 hover:scale-110 transition-transform duration-300 cursor-pointer">
                   <Shield className="w-5 h-5 mr-2" />
                   <span>Secure Payments</span>
                 </div>
-                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2">
+                <div className="flex items-center bg-white/10 rounded-lg px-4 py-2 hover:scale-110 transition-transform duration-300 cursor-pointer">
                   <Clock className="w-5 h-5 mr-2" />
                   <span>Quick Booking</span>
                 </div>
@@ -176,38 +284,58 @@ const JoinAsCustomer = () => {
                 <Link to="/register">
                   <Button size="lg" className="bg-white text-brand-600 hover:bg-gray-100 shadow-lg text-lg px-8 py-4">
                     <UserPlus className="w-5 h-5 mr-2" />
-                    Sign Up Now
+                    Apply Now
                   </Button>
                 </Link>
-                <Link to="/services">
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-brand-600 text-lg px-8 py-4">
-                    Browse Services
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="border-white bg-white/20 text-white hover:bg-white hover:text-brand-600 text-lg px-8 py-4"
+                  onClick={() => makePhoneCall(CONTACT_INFO.MAIN_SUPPORT_PHONE)}
+                >
+                  <Phone className="w-5 h-5 mr-2" />
+                  Call: {CONTACT_INFO.MAIN_SUPPORT_PHONE}
+                </Button>
               </div>
             </div>
             <div className="lg:text-right">
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8">
                 <h3 className="text-2xl font-bold mb-6">Quick Stats</h3>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span>Active Customers</span>
-                    <Badge variant="secondary" className="bg-white/20 text-white">50,000+</Badge>
+                {loading ? (
+                  <div className="space-y-4 animate-pulse">
+                    <div className="flex justify-between items-center">
+                      <span>Loading...</span>
+                      <Badge variant="secondary" className="bg-white/20 text-white">...</Badge>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span>Service Providers</span>
-                    <Badge variant="secondary" className="bg-white/20 text-white">2,000+</Badge>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center hover:scale-105 transition-transform duration-300 cursor-pointer">
+                      <span>Active Customers</span>
+                      <Badge variant="secondary" className="bg-white/20 text-white">
+                        {stats?.totalCustomers.toLocaleString()}+
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center hover:scale-105 transition-transform duration-300 cursor-pointer">
+                      <span>Service Providers</span>
+                      <Badge variant="secondary" className="bg-white/20 text-white">
+                        {stats?.totalWorkers.toLocaleString()}+
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center hover:scale-105 transition-transform duration-300 cursor-pointer">
+                      <span>Services Completed</span>
+                      <Badge variant="secondary" className="bg-white/20 text-white">
+                        {stats?.completedBookings.toLocaleString()}+
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center hover:scale-105 transition-transform duration-300 cursor-pointer">
+                      <span>Active Districts</span>
+                      <Badge variant="secondary" className="bg-white/20 text-white">
+                        {stats?.activeDistricts}+
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span>Services Completed</span>
-                    <Badge variant="secondary" className="bg-white/20 text-white">100,000+</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Average Rating</span>
-                    <Badge variant="secondary" className="bg-white/20 text-white">4.8 ⭐</Badge>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -220,7 +348,7 @@ const JoinAsCustomer = () => {
           <h2 className="text-3xl font-bold text-center mb-12">Popular Service Categories</h2>
           <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
             {serviceCategories.map((category, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow cursor-pointer">
+              <Card key={index} className="text-center hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="text-4xl mb-3">{category.icon}</div>
                   <h3 className="font-semibold mb-2">{category.name}</h3>
@@ -248,7 +376,7 @@ const JoinAsCustomer = () => {
             {benefits.map((benefit, index) => {
               const IconComponent = benefit.icon;
               return (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
+                <Card key={index} className="hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
                   <CardHeader>
                     <IconComponent className="w-12 h-12 text-brand-600 mb-4" />
                     <CardTitle className="text-xl">{benefit.title}</CardTitle>
@@ -271,7 +399,7 @@ const JoinAsCustomer = () => {
             {howItWorks.map((step, index) => {
               const IconComponent = step.icon;
               return (
-                <div key={index} className="text-center">
+                <div key={index} className="text-center hover:scale-105 transition-transform duration-300 cursor-pointer">
                   <div className="relative mb-6">
                     <div className="w-16 h-16 bg-brand-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                       {step.step}
@@ -293,7 +421,7 @@ const JoinAsCustomer = () => {
           <h2 className="text-3xl font-bold text-center mb-12">What Our Customers Say</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+              <Card key={index} className="hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
                     <div className="flex text-yellow-400 mr-2">
@@ -373,8 +501,35 @@ const JoinAsCustomer = () => {
                       name="location"
                       value={formData.location}
                       onChange={handleInputChange}
-                      placeholder="Your city/area"
+                      placeholder="City, State"
                       required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Password *</label>
+                    <Input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="Enter password (min 8 characters)"
+                      required
+                      minLength={8}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Confirm Password *</label>
+                    <Input
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      placeholder="Re-enter password"
+                      required
+                      minLength={8}
                     />
                   </div>
                 </div>
@@ -415,9 +570,9 @@ const JoinAsCustomer = () => {
                   </label>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full">
+                <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
                   <UserPlus className="w-5 h-5 mr-2" />
-                  Create Account
+                  {isSubmitting ? 'Creating Account...' : 'Create Account'}
                 </Button>
 
                 <div className="text-center">
@@ -445,15 +600,18 @@ const JoinAsCustomer = () => {
             <Link to="/register">
               <Button size="lg" className="bg-white text-brand-600 hover:bg-gray-100 shadow-lg">
                 <UserPlus className="w-5 h-5 mr-2" />
-                Join Now
+                Apply Now
               </Button>
             </Link>
-            <Link to="/workers">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-brand-600">
-                <Search className="w-5 h-5 mr-2" />
-                Browse Services
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="border-white bg-white/20 text-white hover:bg-white hover:text-brand-600"
+              onClick={() => makePhoneCall(CONTACT_INFO.MAIN_SUPPORT_PHONE)}
+            >
+              <Phone className="w-5 h-5 mr-2" />
+              Call: {CONTACT_INFO.MAIN_SUPPORT_PHONE}
+            </Button>
           </div>
         </div>
       </div>
