@@ -8,6 +8,7 @@ export interface EmailOptions {
   text?: string;
   template?: string;
   data?: any;
+  replyTo?: string;
 }
 
 // Nodemailer transporter for production emails
@@ -478,6 +479,7 @@ export const sendEmail = async (options: EmailOptions): Promise<{ success: boole
         subject: options.subject,
         text: options.text,
         html: htmlContent,
+        replyTo: options.replyTo,
       });
 
       console.log('✅ Email sent via Nodemailer:', info.messageId);
