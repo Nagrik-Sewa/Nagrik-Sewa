@@ -1,6 +1,11 @@
 # 🔧 Environment Variables Setup Guide
 
-This guide provides detailed instructions on setting up all required environment variables for the **Nagrik Sewa** platform - a comprehensive civic services application with authentication, payments, communications, and AI integration.
+> 📖 **This is a companion document to the main [README.md](README.md)**  
+> For quick start and project overview, see the main README.
+
+This guide provides detailed step-by-step instructions for obtaining and setting up all required environment variables for the **Nagrik Sewa** platform - an AI-powered home services application with authentication, payments, communications, and AI integration.
+
+---
 
 ## 📋 Quick Setup Checklist
 

@@ -8,7 +8,10 @@ import {
   MapPin,
   Shield,
   Award,
-  Users
+  Users,
+  CheckCircle,
+  Lock,
+  BadgeCheck
 } from "lucide-react";
 import { CONTACT_INFO, makePhoneCall, sendEmail } from "../constants/contact";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -45,7 +48,7 @@ export function Footer() {
       {/* Trust Indicators */}
       <div className="bg-gray-800 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
+          <div className="grid md:grid-cols-4 gap-8 text-center">
             <div className="flex items-center justify-center space-x-3">
               <Users className="w-8 h-8 text-blue-400" />
               <div>
@@ -56,12 +59,12 @@ export function Footer() {
               </div>
             </div>
             <div className="flex items-center justify-center space-x-3">
-              <Users className="w-8 h-8 text-green-400" />
+              <BadgeCheck className="w-8 h-8 text-green-400" />
               <div>
                 <p className="font-semibold">
                   {loading ? '...' : formatNumber(stats?.totalWorkers || 15000)}
                 </p>
-                <p className="text-sm text-gray-400">{t('footer.skilledWorkers') || 'Skilled Workers'}</p>
+                <p className="text-sm text-gray-400">{t('footer.verifiedProfessionals') || 'Verified Professionals'}</p>
               </div>
             </div>
             <div className="flex items-center justify-center space-x-3">
@@ -69,6 +72,13 @@ export function Footer() {
               <div>
                 <p className="font-semibold">640+</p>
                 <p className="text-sm text-gray-400">{t('footer.districtsCovered') || 'Districts Covered'}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center space-x-3">
+              <Lock className="w-8 h-8 text-purple-400" />
+              <div>
+                <p className="font-semibold">100%</p>
+                <p className="text-sm text-gray-400">{t('footer.securePayments') || 'Secure Payments'}</p>
               </div>
             </div>
           </div>
@@ -106,29 +116,29 @@ export function Footer() {
               </div>
             </div>
 
-            {/* Services */}
+            {/* Platform */}
             <div>
-              <h4 className="font-semibold mb-4">{t("footer.services")}</h4>
+              <h4 className="font-semibold mb-4">{t("footer.platform") || "Platform"}</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/services/home" className="hover:text-white">{t("navigation.homeServices")}</Link></li>
-                <li><Link to="/services/construction" className="hover:text-white">{t("navigation.construction")}</Link></li>
-                <li><Link to="/services/electrical" className="hover:text-white">{t("navigation.electrical")}</Link></li>
-                <li><Link to="/services/plumbing" className="hover:text-white">{t("navigation.plumbing")}</Link></li>
-                <li><Link to="/services/cleaning" className="hover:text-white">{t("navigation.cleaning")}</Link></li>
-                <li><Link to="/services/gardening" className="hover:text-white">{t("navigation.gardening")}</Link></li>
+                <li><Link to="/about" className="hover:text-white">{t("footer.aboutUs") || "About Us"}</Link></li>
+                <li><Link to="/how-it-works" className="hover:text-white">{t("footer.howItWorks") || "How It Works"}</Link></li>
+                <li><Link to="/get-verified" className="hover:text-white">{t("footer.trustSafety") || "Trust & Safety"}</Link></li>
+                <li><Link to="/services" className="hover:text-white">{t("footer.ourServices") || "Our Services"}</Link></li>
+                <li><Link to="/workers" className="hover:text-white">{t("footer.findProfessionals") || "Find Professionals"}</Link></li>
+                <li><Link to="/careers" className="hover:text-white">{t("footer.careers") || "Careers"}</Link></li>
               </ul>
             </div>
 
-            {/* For Workers */}
+            {/* Resources */}
             <div>
-              <h4 className="font-semibold mb-4">{t("navigation.forWorkers")}</h4>
+              <h4 className="font-semibold mb-4">{t("footer.resources") || "Resources"}</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/register" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("navigation.joinAsWorker")}</Link></li>
-                <li><Link to="/skill-training" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("navigation.skillTraining")}</Link></li>
-                <li><Link to="/get-verified" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("navigation.getVerified")}</Link></li>
-                <li><Link to="/resume-builder" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("navigation.resumeBuilder")}</Link></li>
-                <li><Link to="/worker-support" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("navigation.workerSupport")}</Link></li>
-                <li><Link to="/join-as-worker" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("footer.govtSchemes")}</Link></li>
+                <li><Link to="/support" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("footer.helpCenter") || "Help Center"}</Link></li>
+                <li><Link to="/support-faqs" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("footer.faqs") || "FAQs"}</Link></li>
+                <li><Link to="/join-as-worker" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("footer.becomePartner") || "Become a Partner"}</Link></li>
+                <li><Link to="/for-businesses" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("footer.forBusinesses") || "For Businesses"}</Link></li>
+                <li><Link to="/safety-guidelines" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("footer.safetyGuidelines") || "Safety Guidelines"}</Link></li>
+                <li><Link to="/refer-earn" className="hover:text-white" onClick={() => window.scrollTo(0, 0)}>{t("footer.referEarn") || "Refer & Earn"}</Link></li>
               </ul>
             </div>
 
@@ -160,6 +170,30 @@ export function Footer() {
                   {t("footer.emergency")}: {CONTACT_INFO.EMERGENCY_HELPLINE}
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Professional Trust Badges */}
+      <div className="border-t border-gray-800 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap justify-center items-center gap-6 text-gray-500">
+            <div className="flex items-center space-x-2">
+              <Shield className="w-5 h-5 text-green-500" />
+              <span className="text-sm">{t('footer.backgroundVerified') || 'Background Verified'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-5 h-5 text-blue-500" />
+              <span className="text-sm">{t('footer.qualityAssured') || 'Quality Assured'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Lock className="w-5 h-5 text-purple-500" />
+              <span className="text-sm">{t('footer.sslSecured') || 'SSL Secured'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Award className="w-5 h-5 text-yellow-500" />
+              <span className="text-sm">{t('footer.trustedPlatform') || 'Trusted Platform'}</span>
             </div>
           </div>
         </div>

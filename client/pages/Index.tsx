@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useLocation } from "@/contexts/LocationContext";
+import { indianStates } from "@/data/indianLocations";
 import {
   Search,
   MapPin,
@@ -34,11 +36,24 @@ import { useState } from "react";
 
 export default function Index() {
   const { t } = useLanguage();
+  const { selectedState, selectedDistrict, setSelectedState, setSelectedDistrict } = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState("Delhi");
   const navigate = useNavigate();
 
-  const cities = ["Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Ahmedabad"];
+  // Get current location display text
+  const getLocationDisplay = () => {
+    const stateData = indianStates.find(s => s.code === selectedState);
+    if (selectedDistrict && stateData) {
+      return `${selectedDistrict}, ${stateData.name}`;
+    } else if (stateData) {
+      return stateData.name;
+    }
+    return "Select Location";
+  };
+
+  // Get districts for selected state
+  const selectedStateData = indianStates.find(s => s.code === selectedState);
+  const districts = selectedStateData?.districts || [];
 
   const popularServices = [
     { name: t('home.services.houseCleaning'), icon: "🏠", demand: t('home.demands.high') || "High" },
@@ -148,6 +163,15 @@ export default function Index() {
       <section className="pt-20 pb-32 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
+            {/* Current Location Badge */}
+            {(selectedState || selectedDistrict) && (
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <MapPin className="w-4 h-4 text-brand-600" />
+                <span className="text-sm font-medium text-brand-700">
+                  Showing services in: {getLocationDisplay()}
+                </span>
+              </div>
+            )}
             <Badge className="mb-4 bg-brand-100 text-brand-800 border-brand-200">
               {t('home.heroBadge')}
             </Badge>
@@ -167,7 +191,7 @@ export default function Index() {
             {/* Search Bar */}
             <div className="max-w-4xl mx-auto mb-8">
               <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                     <Input
@@ -181,14 +205,33 @@ export default function Index() {
                     <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                     <select
                       className="pl-10 h-12 w-full rounded-md border border-gray-300 text-lg bg-white"
-                      value={selectedCity}
-                      onChange={(e) => setSelectedCity(e.target.value)}
+                      value={selectedState || ''}
+                      onChange={(e) => {
+                        setSelectedState(e.target.value);
+                        setSelectedDistrict('');
+                      }}
                     >
-                      {cities.map(city => (
-                        <option key={city} value={city}>{city}</option>
+                      <option value="">Select State</option>
+                      {indianStates.map(state => (
+                        <option key={state.code} value={state.code}>{state.name}</option>
                       ))}
                     </select>
                   </div>
+                  {selectedState && (
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <select
+                        className="pl-10 h-12 w-full rounded-md border border-gray-300 text-lg bg-white"
+                        value={selectedDistrict || ''}
+                        onChange={(e) => setSelectedDistrict(e.target.value)}
+                      >
+                        <option value="">Select District</option>
+                        {districts.map(district => (
+                          <option key={district} value={district}>{district}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <Button 
                     size="lg" 
                     className="h-12 text-lg bg-brand-600 hover:bg-brand-700 shadow-md"

@@ -261,13 +261,14 @@ const userSchema = new Schema<IUser>({
     type: String,
     enum: ['pending', 'active', 'suspended', 'inactive'],
     default: 'pending'
-  }  
+  },
   // Marketing & Analytics
   referralSource: {
     type: String,
     enum: ['google', 'social', 'friend', 'advertisement', 'other', ''],
     default: ''
-  },}, {
+  }
+}, {
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }

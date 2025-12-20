@@ -54,6 +54,14 @@ const CustomerSupport = lazy(() => import("./pages/CustomerSupport"));
 const JoinAsCustomer = lazy(() => import("./pages/JoinAsCustomer"));
 const SupportFAQs = lazy(() => import("./pages/SupportFAQs"));
 
+// New pages
+const About = lazy(() => import("./pages/About"));
+const HowItWorks = lazy(() => import("./pages/HowItWorks"));
+const Careers = lazy(() => import("./pages/Careers"));
+const ForBusinesses = lazy(() => import("./pages/ForBusinesses"));
+const SafetyGuidelines = lazy(() => import("./pages/SafetyGuidelines"));
+const ReferEarn = lazy(() => import("./pages/ReferEarn"));
+
 // Loading fallback component
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -175,6 +183,15 @@ const App = () => (
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/support" element={<Support />} />
                       <Route path="/support/faqs" element={<SupportFAQs />} />
+                      <Route path="/support-faqs" element={<SupportFAQs />} />
+                      
+                      {/* Platform Pages */}
+                      <Route path="/about" element={<About />} />
+                      <Route path="/how-it-works" element={<HowItWorks />} />
+                      <Route path="/careers" element={<Careers />} />
+                      <Route path="/for-businesses" element={<ForBusinesses />} />
+                      <Route path="/safety-guidelines" element={<SafetyGuidelines />} />
+                      <Route path="/refer-earn" element={<ReferEarn />} />
                       
                       {/* Service Category Routes */}
                       <Route path="/services/home" element={<HomeServices />} />

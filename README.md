@@ -1,6 +1,6 @@
 # 🏠 Nagrik Sewa - AI-Powered Home Services Platform
 
-> **A comprehensive full-stack platform connecting customers with verified local service providers across India**
+> **India's first comprehensive full-stack platform connecting customers with verified local service providers across 640+ districts**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
@@ -11,11 +11,14 @@
 ## 📋 Table of Contents
 - [Project Status](#-project-status)
 - [Key Features](#-key-features)
+- [Pages & Routes](#-pages--routes)
 - [Quick Start](#-quick-start)
-- [Environment Variables Setup](#-environment-variables-setup-detailed-guide)
-- [Running the Project](#-running-the-project)
+- [Environment Variables](#-environment-variables)
+- [Pages & Routes](#-pages--routes)
 - [Tech Stack](#-tech-stack)
+- [Project Architecture](#-project-architecture)
 - [Project Structure](#-project-structure)
+- [API Endpoints](#-api-endpoints)
 - [Contributing](#-contributing)
 
 ---
@@ -26,8 +29,10 @@
 - ✅ **Performance Optimized**: Lazy loading, code splitting, caching
 - ✅ **Security Enhanced**: Advanced middleware, monitoring, error boundaries
 - ✅ **Production Ready**: Deployment scripts, health checks, monitoring
-- ✅ **Error Handling**: Comprehensive error boundaries and fallbacks
-- ✅ **Monitoring**: Real-time performance and health monitoring
+- ✅ **Professional Pages**: About, How It Works, Careers, For Businesses
+- ✅ **User Engagement**: Safety Guidelines, Refer & Earn program
+- ✅ **Multi-Language**: 13+ Indian languages with Hindi translations
+- ✅ **Location Sync**: Global location context across all pages
 
 ---
 
@@ -45,9 +50,9 @@
 - **Role-based Access Control**: Customer, Worker, Admin roles
 
 ### 🌍 **Multi-Language & Location**
-- **13+ Indian Languages**: Real-time translation support
-- **Location Intelligence**: Complete India coverage (states/districts)
-- **Geolocation Services**: Distance-based matching
+- **13+ Indian Languages**: Real-time translation support (English, Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Odia, Punjabi, Assamese, Urdu)
+- **Location Intelligence**: Complete India coverage (640+ districts across all states & UTs)
+- **Geolocation Services**: Distance-based matching with location sync
 
 ### 💼 **Business Features**
 - **Service Management**: 50+ service categories
@@ -55,6 +60,65 @@
 - **Payment Integration**: Razorpay payment gateway
 - **Worker Verification**: DigiLocker integration
 - **Real-time Chat**: WebSocket-based messaging
+- **B2B Solutions**: Enterprise plans for businesses
+
+### 🎯 **User Engagement**
+- **Referral Program**: Refer & Earn rewards system
+- **Safety Guidelines**: Comprehensive safety resources
+- **24/7 Support**: Emergency helpline and support system
+
+---
+
+## 📄 Pages & Routes
+
+### **Public Pages**
+| Route | Page | Description |
+|-------|------|-------------|
+| `/` | Home | Landing page with service search and location selector |
+| `/about` | About Us | Company story, mission, vision, and values |
+| `/how-it-works` | How It Works | Step-by-step guide for customers and workers |
+| `/services` | Services | Browse 50+ service categories |
+| `/workers` | Find Professionals | Search and filter verified workers |
+| `/careers` | Careers | Job openings and company benefits |
+| `/for-businesses` | For Businesses | B2B enterprise solutions |
+| `/safety-guidelines` | Safety Guidelines | Safety tips for customers and workers |
+| `/refer-earn` | Refer & Earn | Referral rewards program |
+
+### **Support & Legal**
+| Route | Page | Description |
+|-------|------|-------------|
+| `/support` | Help Center | Contact support and FAQs |
+| `/support-faqs` | FAQs | Frequently asked questions |
+| `/privacy` | Privacy Policy | Data privacy and protection |
+| `/terms` | Terms of Service | Terms and conditions |
+
+### **Worker Portal**
+| Route | Page | Description |
+|-------|------|-------------|
+| `/join-as-worker` | Join as Worker | Worker registration |
+| `/join-as-customer` | Join as Customer | Customer registration |
+| `/get-verified` | Get Verified | KYC verification (DigiLocker) |
+| `/skill-training` | Skill Training | Training resources |
+| `/resume-builder` | Resume Builder | AI-powered resume creation |
+| `/find-customers` | Find Customers | Job discovery for workers |
+
+### **Service Categories**
+| Route | Page |
+|-------|------|
+| `/services/home` | Home Services |
+| `/services/construction` | Construction Services |
+| `/services/electrical` | Electrical Services |
+| `/services/plumbing` | Plumbing Services |
+| `/services/cleaning` | Cleaning Services |
+| `/services/gardening` | Gardening Services |
+
+### **Protected Routes** (Requires Authentication)
+| Route | Page | Access |
+|-------|------|--------|
+| `/dashboard` | Dashboard | All users |
+| `/profile` | Profile | All users |
+| `/bookings` | My Bookings | All users |
+| `/admin` | Admin Dashboard | Admin only |
 
 ---
 
@@ -96,149 +160,52 @@ Visit: **http://localhost:8080**
 
 ---
 
-## 🔑 Environment Variables Setup Guide
+## 🔑 Environment Variables
 
-### 📋 **REQUIRED Variables** (Application won't work without these)
+> 📖 **For detailed step-by-step instructions on obtaining all API keys and credentials, see [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md)**
 
-#### 1. **Google Gemini AI** (for AI features)
+### Quick Setup
+
+Create a `.env` file in the project root:
+
 ```bash
-VITE_GEMINI_API_KEY=your_gemini_api_key_here
-```
-**How to get:**
-1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Click "Create API Key"
-3. Copy the generated key
-
-#### 2. **JWT Security**
-```bash
+# Required - Core Services
+MONGODB_URI=mongodb://localhost:27017/nagrik-sewa
 JWT_SECRET=your-super-secret-jwt-key-at-least-32-characters-long
-```
-**How to generate:**
-```bash
-# Generate a secure random key
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-#### 3. **MongoDB Database**
-```bash
-DATABASE_URL=mongodb://localhost:27017/nagrik-sewa
-# OR for MongoDB Atlas:
-DATABASE_URL=mongodb+srv://username:password@cluster.mongodb.net/nagrik-sewa
-```
-
-### 🔐 **Google OAuth Setup** (for social login)
-
-#### Step-by-Step Guide:
-
-1. **Go to [Google Cloud Console](https://console.developers.google.com/)**
-
-2. **Create a New Project** (if you don't have one)
-   - Click "Select a project" → "New Project"
-   - Name: "Nagrik Sewa OAuth"
-
-3. **Enable Google+ API**
-   - Go to "APIs & Services" → "Library"
-   - Search "Google+ API" and enable it
-
-4. **Create OAuth Credentials**
-   - Go to "APIs & Services" → "Credentials"
-   - Click "Create Credentials" → "OAuth 2.0 Client IDs"
-   - Application type: "Web application"
-   - Name: "Nagrik Sewa Web Client"
-
-5. **Configure Authorized URLs**
-   - **Authorized JavaScript origins:**
-     ```
-     http://localhost:8080
-     https://your-production-domain.com
-     ```
-   - **Authorized redirect URIs:**
-     ```
-     http://localhost:8080/auth/google/callback
-     https://your-production-domain.com/auth/google/callback
-     ```
-
-6. **Copy Credentials to .env**
-   ```bash
-   VITE_GOOGLE_CLIENT_ID=123456789012-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
-   GOOGLE_CLIENT_ID=123456789012-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
-   GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-   ```
-
-### 📧 **Email Configuration** (for notifications)
-
-#### Gmail Setup:
-1. Enable 2-Factor Authentication on your Gmail account
-2. Generate an App Password:
-   - Go to Google Account settings
-   - Security → App passwords
-   - Select "Mail" and generate password
-
-```bash
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-16-character-app-password
-```
-
-### 📱 **SMS Configuration** (Optional - for OTP)
-
-#### Twilio Setup:
-1. Sign up at [Twilio](https://www.twilio.com/)
-2. Get your Account SID and Auth Token from dashboard
-3. Purchase a phone number
-
-```bash
-TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_AUTH_TOKEN=your_auth_token_here
-TWILIO_PHONE_NUMBER=+1234567890
-```
-
-### 💳 **Payment Integration** (Optional - for payments)
-
-#### Razorpay Setup:
-1. Sign up at [Razorpay](https://dashboard.razorpay.com/)
-2. Go to Settings → API Keys
-3. Generate Key ID and Key Secret
-
-```bash
-RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxxxxx
-RAZORPAY_KEY_SECRET=your_razorpay_secret_here
-```
-
-### 🔗 **Complete .env Template**
-
-```bash
-# ==================================
-# CORE CONFIGURATION (REQUIRED)
-# ==================================
-NODE_ENV=development
-PORT=8080
-DATABASE_URL=mongodb://localhost:27017/nagrik-sewa
-JWT_SECRET=your-32-character-secure-jwt-secret-key
 VITE_GEMINI_API_KEY=your_gemini_api_key_here
 
-# ==================================
-# GOOGLE OAUTH (REQUIRED FOR LOGIN)
-# ==================================
-VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+# Required - Google OAuth
+VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
 
-# ==================================
-# OPTIONAL INTEGRATIONS
-# ==================================
-# Email (for notifications)
+# Optional - Communication Services
+EMAIL_HOST=smtp.gmail.com
 EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
+EMAIL_PASS=your-app-specific-password
+TWILIO_ACCOUNT_SID=your-twilio-sid
+TWILIO_AUTH_TOKEN=your-twilio-token
 
-# SMS (for OTP)
-TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_AUTH_TOKEN=your_auth_token
-TWILIO_PHONE_NUMBER=+1234567890
+# Optional - Payment & Verification
+RAZORPAY_KEY_ID=rzp_test_xxxxx
+RAZORPAY_KEY_SECRET=your-razorpay-secret
+DIGILOCKER_CLIENT_ID=your-digilocker-client-id
 
-# Payments
-RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxxxxx
-RAZORPAY_KEY_SECRET=your_razorpay_secret
+# App Configuration
+NODE_ENV=development
+PORT=5000
+FRONTEND_URL=http://localhost:8080
 ```
+
+### Service Documentation Links
+
+| Service | Purpose | Documentation |
+|---------|---------|---------------|
+| MongoDB Atlas | Database | [Setup Guide](https://www.mongodb.com/docs/atlas/getting-started/) |
+| Google OAuth | Social Login | [OAuth Setup](https://console.cloud.google.com/) |
+| Google Gemini | AI Chatbot | [AI Studio](https://makersuite.google.com/) |
+| Twilio | SMS/OTP | [Twilio Console](https://console.twilio.com/) |
+| Razorpay | Payments | [Dashboard](https://dashboard.razorpay.com/) |
+| DigiLocker | ID Verification | [API Portal](https://api.digitallocker.gov.in/) |
 
 ---
 
@@ -272,17 +239,32 @@ client/
 │   ├── ui/              # shadcn/ui components
 │   ├── chat/            # AI Chatbot components
 │   ├── resume/          # Resume builder components
-│   ├── GoogleAuthProvider.tsx    # ✅ Google OAuth setup
-│   ├── GoogleLoginButton.tsx     # ✅ Google login button
-│   └── Navigation.tsx   # Main navigation
+│   ├── GoogleAuthProvider.tsx    # Google OAuth setup
+│   ├── GoogleLoginButton.tsx     # Google login button
+│   ├── LocationSelector.tsx      # Location picker component
+│   ├── LanguageSelector.tsx      # Language picker component
+│   ├── Navigation.tsx   # Main navigation
+│   └── Footer.tsx       # Professional footer with links
 ├── contexts/            # React Context providers
 │   ├── AuthContext.tsx  # Authentication state
-│   ├── LanguageContext.tsx # Multi-language support
-│   └── LocationContext.tsx # Location management
+│   ├── LanguageContext.tsx # Multi-language support (13+ languages)
+│   └── LocationContext.tsx # Global location management
 ├── pages/               # Page components
-│   ├── auth/           # Authentication pages
+│   ├── auth/           # Authentication pages (Login, Register, etc.)
 │   ├── services/       # Service category pages
-│   └── admin/          # Admin dashboard
+│   ├── workers/        # Worker portal pages
+│   ├── admin/          # Admin dashboard
+│   ├── About.tsx       # Company information
+│   ├── HowItWorks.tsx  # Platform guide
+│   ├── Careers.tsx     # Job openings
+│   ├── ForBusinesses.tsx # B2B solutions
+│   ├── SafetyGuidelines.tsx # Safety resources
+│   ├── ReferEarn.tsx   # Referral program
+│   ├── Privacy.tsx     # Privacy policy
+│   ├── Terms.tsx       # Terms of service
+│   └── Support.tsx     # Help center
+├── data/               # Static data
+│   └── indianLocations.ts # States & districts data
 └── services/           # API integration services
 ```
 
