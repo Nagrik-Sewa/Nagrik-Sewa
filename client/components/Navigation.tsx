@@ -34,6 +34,7 @@ import {
 
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { LocationSelector } from "@/components/LocationSelector";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavLink {
   href: string;
@@ -81,13 +82,10 @@ export function Navigation() {
       ];
     }
 
-    // Admin navigation
+    // Admin navigation - simplified to just Admin Dashboard
     if (user?.role === 'admin') {
       return [
-        { href: "/", label: t("navigation.home"), icon: HomeIcon },
         { href: "/admin", label: "Admin Dashboard", icon: Shield },
-        { href: "/workers", label: "Manage Workers", icon: Users },
-        { href: "/bookings", label: "All Bookings", icon: Calendar },
       ];
     }
 
@@ -114,27 +112,27 @@ export function Navigation() {
   const navLinks = getNavLinks();
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center justify-between gap-2">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3">
-            <img src="/logo-hindi.svg" alt="Nagrik Sewa" className="h-12 w-12" />
+          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
+            <img src="/logo-hindi.svg" alt="Nagrik Sewa" className="h-10 w-10 sm:h-12 sm:w-12" />
             <div className="flex flex-col">
-              <span className="font-bold text-lg text-green-600">Nagrik Sewa</span>
-              <span className="text-xs text-gray-500 -mt-1">AI-Powered Services</span>
+              <span className="font-bold text-sm sm:text-lg text-green-600">Nagrik Sewa</span>
+              <span className="text-[10px] sm:text-xs text-gray-500 -mt-1 hidden sm:block">AI-Powered Services</span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden lg:flex items-center space-x-4 xl:space-x-6 flex-1 justify-center">
             {navLinks.map((link) => (
               <div key={link.href} className="relative group">
                 {link.dropdown ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
-                        className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-primary ${
+                        className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-primary whitespace-nowrap ${
                           isActivePath(link.href) ||
                           link.dropdown.some((subLink) => isActivePath(subLink.href))
                             ? "text-primary"
@@ -159,7 +157,7 @@ export function Navigation() {
                 ) : (
                   <Link
                     to={link.href}
-                    className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-primary ${
+                    className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-primary whitespace-nowrap ${
                       isActivePath(link.href) ? "text-primary" : "text-muted-foreground"
                     }`}
                   >
@@ -169,24 +167,27 @@ export function Navigation() {
                 )}
               </div>
             ))}
+          </div>
 
-            {/* Language & Location Selectors */}
-            <div className="flex items-center space-x-3 border-r pr-4">
-              <LanguageSelector variant="compact" />
-              <LocationSelector variant="compact" showDistrict />
-            </div>
+          {/* Language, Location & Theme Selectors - separate from nav links */}
+          <div className="hidden lg:flex items-center space-x-2 xl:space-x-3 border-l pl-3 xl:pl-4 flex-shrink-0">
+            <ThemeToggle />
+            <LanguageSelector variant="compact" />
+            <LocationSelector variant="compact" showDistrict />
           </div>
 
           {/* Auth Section */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden lg:flex items-center space-x-2 xl:space-x-3 flex-shrink-0">
             {isAuthenticated ? (
               <>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/bookings">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {t("navigation.bookings")}
-                  </Link>
-                </Button>
+                {user?.role !== 'admin' && (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/bookings">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {t("navigation.bookings")}
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm">
                   <Bell className="h-4 w-4" />
                 </Button>
@@ -211,33 +212,59 @@ export function Navigation() {
                         <p className="text-xs leading-none text-muted-foreground">
                           {user?.email}
                         </p>
+                        {user?.role === 'admin' && (
+                          <p className="text-xs font-semibold text-green-600 mt-1">Administrator</p>
+                        )}
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/dashboard">
-                        <User className="mr-2 h-4 w-4" />
-                        {t("navigation.dashboard")}
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile">
-                        <Settings className="mr-2 h-4 w-4" />
-                        {t("navigation.profile")}
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/bookings">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {t("navigation.bookings")}
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/resume-builder">
-                        <FileText className="mr-2 h-4 w-4" />
-                        {t("navigation.resumeBuilder")}
-                      </Link>
-                    </DropdownMenuItem>
+                    {user?.role === 'admin' ? (
+                      // Admin dropdown - simplified
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin">
+                            <Shield className="mr-2 h-4 w-4" />
+                            Admin Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/profile">
+                            <Settings className="mr-2 h-4 w-4" />
+                            {t("navigation.profile")}
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      // Regular user dropdown
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link to="/dashboard">
+                            <User className="mr-2 h-4 w-4" />
+                            {t("navigation.dashboard")}
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/profile">
+                            <Settings className="mr-2 h-4 w-4" />
+                            {t("navigation.profile")}
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/bookings">
+                            <Calendar className="mr-2 h-4 w-4" />
+                            {t("navigation.bookings")}
+                          </Link>
+                        </DropdownMenuItem>
+                        {user?.role === 'worker' && (
+                          <DropdownMenuItem asChild>
+                            <Link to="/resume-builder">
+                              <FileText className="mr-2 h-4 w-4" />
+                              {t("navigation.resumeBuilder")}
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
                       <LogOut className="mr-2 h-4 w-4" />
@@ -262,7 +289,7 @@ export function Navigation() {
           <Button
             variant="ghost"
             size="sm"
-            className="md:hidden"
+            className="lg:hidden flex-shrink-0"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-expanded={isMobileMenuOpen}
             aria-label="Toggle navigation menu"
@@ -273,7 +300,7 @@ export function Navigation() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-2 space-y-2 pb-4">
+          <div className="lg:hidden mt-2 space-y-2 pb-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
             {navLinks.map((link) => (
               <div key={link.href}>
                 {link.dropdown ? (
@@ -322,21 +349,59 @@ export function Navigation() {
               </div>
             ))}
 
+            {/* Theme, Language & Location in mobile */}
+            <div className="mt-2 px-2 py-2 border-t space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Theme</span>
+                <ThemeToggle />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Language</span>
+                <LanguageSelector variant="compact" />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Location</span>
+                <LocationSelector variant="compact" showDistrict />
+              </div>
+            </div>
+
             {/* Auth links in mobile */}
             <div className="mt-2 space-y-2 border-t pt-2">
               {isAuthenticated ? (
                 <>
+                  {user?.role === 'admin' ? (
+                    <Link
+                      to="/admin"
+                      className="block px-2 py-2 text-sm font-medium text-green-600 hover:text-green-700"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Shield className="inline h-4 w-4 mr-2" />
+                      Admin Dashboard
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/bookings"
+                      className="block px-2 py-2 text-sm font-medium text-muted-foreground hover:text-primary"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {t("navigation.bookings")}
+                    </Link>
+                  )}
                   <Link
-                    to="/bookings"
+                    to="/profile"
                     className="block px-2 py-2 text-sm font-medium text-muted-foreground hover:text-primary"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {t("navigation.bookings")}
+                    {t("navigation.profile")}
                   </Link>
                   <button
-                    className="block w-full text-left px-2 py-2 text-sm font-medium text-muted-foreground hover:text-primary"
-                    onClick={logout}
+                    className="block w-full text-left px-2 py-2 text-sm font-medium text-red-500 hover:text-red-600"
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                    }}
                   >
+                    <LogOut className="inline h-4 w-4 mr-2" />
                     {t("navigation.logout")}
                   </button>
                 </>

@@ -59,12 +59,14 @@ async function seedAdmin() {
     if (existingAdmin) {
       console.log('⚠️  Admin user already exists. Updating password...');
       
-      // Update existing admin's password
+      // Update existing admin's password and name
       const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
       await User.updateOne(
         { email: ADMIN_EMAIL },
         { 
           $set: { 
+            firstName: 'Pushkar',
+            lastName: 'Saini',
             password: hashedPassword,
             role: 'admin',
             isEmailVerified: true,
@@ -80,8 +82,8 @@ async function seedAdmin() {
       const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
       
       const admin = new User({
-        firstName: 'Nagrik',
-        lastName: 'Admin',
+        firstName: 'Pushkar',
+        lastName: 'Saini',
         email: ADMIN_EMAIL,
         password: hashedPassword,
         phone: '9999999999',

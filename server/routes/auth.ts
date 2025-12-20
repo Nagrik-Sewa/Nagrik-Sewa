@@ -46,8 +46,8 @@ router.post('/register-admin', async (req, res) => {
 
     // Create admin user
     const admin = new User({
-      firstName: firstName || 'Nagrik',
-      lastName: lastName || 'Admin',
+      firstName: firstName || 'Pushkar',
+      lastName: lastName || 'Saini',
       email: 'admin@nagriksewa.co.in',
       password: hashedPassword,
       phone: normalizedPhone, // 10-digit phone number
