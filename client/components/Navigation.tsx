@@ -34,7 +34,6 @@ import {
 
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { LocationSelector } from "@/components/LocationSelector";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavLink {
   href: string;
@@ -169,9 +168,8 @@ export function Navigation() {
             ))}
           </div>
 
-          {/* Language, Location & Theme Selectors - separate from nav links */}
+          {/* Language & Location Selectors - separate from nav links */}
           <div className="hidden lg:flex items-center space-x-2 xl:space-x-3 border-l pl-3 xl:pl-4 flex-shrink-0">
-            <ThemeToggle />
             <LanguageSelector variant="compact" />
             <LocationSelector variant="compact" showDistrict />
           </div>
@@ -349,12 +347,8 @@ export function Navigation() {
               </div>
             ))}
 
-            {/* Theme, Language & Location in mobile */}
+            {/* Language & Location in mobile */}
             <div className="mt-2 px-2 py-2 border-t space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Theme</span>
-                <ThemeToggle />
-              </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Language</span>
                 <LanguageSelector variant="compact" />

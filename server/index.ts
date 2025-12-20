@@ -21,6 +21,7 @@ import resumeRoutes from "./routes/resume";
 import statsRoutes from "./routes/stats";
 import notificationsRoutes from "./routes/notifications";
 import supportRoutes from "./routes/support";
+import adminRoutes from "./routes/admin";
 import { performanceMonitor, memoryMonitor, requestSizeMonitor, endpointMonitor, getPerformanceStats } from "./middleware/performance";
 
 // Performance monitoring
@@ -166,6 +167,7 @@ export function createServer() {
 
   // Main API routes
   app.use("/api/auth", authRoutes);
+  app.use("/api/admin", adminRoutes);
   app.use("/api/verification", digilockerRoutes);
   app.use("/api/services", servicesRoutes);
   app.use("/api/bookings", bookingsRoutes);
