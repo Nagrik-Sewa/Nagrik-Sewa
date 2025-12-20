@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "@/contexts/LocationContext";
 import { indianStates } from "@/data/indianLocations";
+import { api } from "@/lib/api";
 import { 
   Search,
   Filter,
@@ -20,7 +21,22 @@ import {
   RefreshCw
 } from "lucide-react";
 
+interface Service {
+  _id: string;
+  name: string;
+  category: string;
+  icon: string;
+  description: string;
+  workerCount: number;
+  avgRating: number;
+  basePrice: number;
+  availability: string;
+  features: string[];
+}
+
 export default function Services() {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [locationChanged, setLocationChanged] = useState(false);
@@ -30,6 +46,32 @@ export default function Services() {
   const [availability, setAvailability] = useState("All");
   const { selectedState, selectedDistrict } = useLocation();
   const navigate = useNavigate();
+
+  // Fetch services from API
+  useEffect(() => {
+    fetchServices();
+  }, [selectedState, selectedDistrict]);
+
+  const fetchServices = async () => {
+    setLoading(true);
+    try {
+      const params: any = { limit: 50 };
+      if (selectedState) {
+        const stateData = indianStates.find(s => s.code === selectedState);
+        if (stateData) params.state = stateData.name;
+      }
+      if (selectedDistrict) params.city = selectedDistrict;
+      
+      const response = await api.get('/services', { params });
+      if (response.data.success) {
+        setServices(response.data.data.services || []);
+      }
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Get current location name
   const currentLocation = selectedState 
@@ -47,134 +89,31 @@ export default function Services() {
 
   const categories = ["All", "Home Services", "Construction", "Technical", "Personal Care", "Event Services"];
 
-  const services = [
-    {
-      id: 1,
-      title: "House Cleaning",
-      category: "Home Services",
-      icon: "🏠",
-      description: "Professional home cleaning services with verified cleaners",
-      workers: 1250,
-      avgRating: 4.8,
-      avgPrice: "₹300-500",
-      availability: "Same day",
-      features: ["Deep cleaning", "Regular maintenance", "Eco-friendly products"]
-    },
-    {
-      id: 2,
-      title: "Plumbing Services",
-      category: "Technical",
-      icon: "🔧",
-      description: "Expert plumbers for all your water and drainage needs",
-      workers: 850,
-      avgRating: 4.7,
-      avgPrice: "₹200-800",
-      availability: "24/7 Emergency",
-      features: ["Pipe repair", "Installation", "Emergency fixes"]
-    },
-    {
-      id: 3,
-      title: "Electrical Work",
-      category: "Technical", 
-      icon: "⚡",
-      description: "Licensed electricians for safe electrical solutions",
-      workers: 680,
-      avgRating: 4.9,
-      avgPrice: "₹250-1000",
-      availability: "Same day",
-      features: ["Wiring", "Appliance repair", "Safety checks"]
-    },
-    {
-      id: 4,
-      title: "House Painting",
-      category: "Home Services",
-      icon: "🎨",
-      description: "Professional painters for interior and exterior work",
-      workers: 520,
-      avgRating: 4.6,
-      avgPrice: "₹15-25/sq ft",
-      availability: "2-3 days",
-      features: ["Interior painting", "Exterior painting", "Texture work"]
-    },
-    {
-      id: 5,
-      title: "Carpentry",
-      category: "Construction",
-      icon: "🔨",
-      description: "Skilled carpenters for furniture and woodwork",
-      workers: 420,
-      avgRating: 4.8,
-      avgPrice: "₹400-1200",
-      availability: "1-2 days",
-      features: ["Furniture repair", "Custom work", "Installation"]
-    },
-    {
-      id: 6,
-      title: "Gardening",
-      category: "Home Services",
-      icon: "🌱",
-      description: "Garden maintenance and landscaping experts",
-      workers: 280,
-      avgRating: 4.5,
-      avgPrice: "₹300-600",
-      availability: "Next day",
-      features: ["Plant care", "Landscaping", "Pest control"]
-    },
-    {
-      id: 7,
-      title: "AC Repair",
-      category: "Technical",
-      icon: "❄️",
-      description: "Professional AC installation and repair services",
-      workers: 340,
-      avgRating: 4.7,
-      avgPrice: "₹350-1500",
-      availability: "Same day",
-      features: ["Repair", "Installation", "Maintenance"]
-    },
-    {
-      id: 8,
-      title: "Construction Labor",
-      category: "Construction",
-      icon: "🏗️",
-      description: "Skilled construction workers for all building needs",
-      workers: 920,
-      avgRating: 4.6,
-      avgPrice: "₹500-800/day",
-      availability: "2-3 days",
-      features: ["Skilled labor", "Team available", "Tools included"]
-    },
-    {
-      id: 9,
-      title: "Beauty Services",
-      category: "Personal Care",
-      icon: "💄",
-      description: "Professional beauty and grooming services at home",
-      workers: 180,
-      avgRating: 4.8,
-      avgPrice: "₹500-2000",
-      availability: "Same day",
-      features: ["Hair styling", "Makeup", "Skincare"]
-    }
-  ];
+  const getServiceIcon = (category: string) => {
+    const icons: Record<string, string> = {
+      'Home Services': '🏠',
+      'Construction': '🏗️',
+      'Technical': '⚡',
+      'Personal Care': '💄',
+      'Event Services': '🎉',
+      'Cleaning': '🧹',
+      'Plumbing': '🔧',
+      'Electrical': '⚡',
+      'Painting': '🎨',
+      'Carpentry': '🔨',
+      'Gardening': '🌱',
+      'AC Repair': '❄️',
+      'Beauty': '💄'
+    };
+    return icons[category] || '🔧';
+  };
 
   const filteredServices = services.filter(service => {
-    const matchesSearch = service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         service.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = service.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         service.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "All" || service.category === selectedCategory;
     const matchesRating = service.avgRating >= minRating;
-    const matchesPrice = maxPrice === "All" || (() => {
-      const priceNum = parseInt(service.avgPrice.replace(/[^0-9]/g, ''));
-      switch(maxPrice) {
-        case "Under 500": return priceNum <= 500;
-        case "500-1000": return priceNum > 500 && priceNum <= 1000;
-        case "1000-2000": return priceNum > 1000 && priceNum <= 2000;
-        case "Above 2000": return priceNum > 2000;
-        default: return true;
-      }
-    })();
-    const matchesAvailability = availability === "All" || service.availability.toLowerCase().includes(availability.toLowerCase());
-    return matchesSearch && matchesCategory && matchesRating && matchesPrice && matchesAvailability;
+    return matchesSearch && matchesCategory && matchesRating;
   });
 
   return (

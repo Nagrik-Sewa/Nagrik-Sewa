@@ -22,6 +22,7 @@ import statsRoutes from "./routes/stats";
 import notificationsRoutes from "./routes/notifications";
 import supportRoutes from "./routes/support";
 import adminRoutes from "./routes/admin";
+import coursesRoutes from "./routes/courses";
 import { performanceMonitor, memoryMonitor, requestSizeMonitor, endpointMonitor, getPerformanceStats } from "./middleware/performance";
 
 // Performance monitoring
@@ -179,6 +180,7 @@ export function createServer() {
   app.use("/api/stats", statsRoutes);
   app.use("/api", notificationsRoutes);
   app.use("/api/support", supportRoutes);
+  app.use("/api/courses", coursesRoutes);
 
   // Serve uploaded files
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));

@@ -14,15 +14,17 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePlatformStats } from "@/hooks/use-platform-stats";
 
 export default function About() {
   const { t } = useLanguage();
+  const { platformStats, loading: statsLoading } = usePlatformStats();
 
   const stats = [
-    { number: "50,000+", label: "Active Workers", icon: Users },
-    { number: "1M+", label: "Services Completed", icon: CheckCircle },
-    { number: "640+", label: "Districts Covered", icon: MapPin },
-    { number: "4.8/5", label: "Average Rating", icon: Star },
+    { number: platformStats.totalWorkers.toLocaleString() + "+", label: "Active Workers", icon: Users },
+    { number: platformStats.completedBookings.toLocaleString() + "+", label: "Services Completed", icon: CheckCircle },
+    { number: platformStats.activeDistricts + "+", label: "Districts Covered", icon: MapPin },
+    { number: platformStats.averageRating + "/5", label: "Average Rating", icon: Star },
   ];
 
   const values = [

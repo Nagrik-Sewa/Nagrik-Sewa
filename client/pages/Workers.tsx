@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { indianStates } from '@/data/indianLocations';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
 import { 
   Search, 
   MapPin, 
@@ -21,7 +22,8 @@ import {
   Briefcase,
   TrendingUp,
   Mail,
-  User
+  User,
+  RefreshCw
 } from 'lucide-react';
 import { CONTACT_INFO, makePhoneCall } from '@/constants/contact';
 
@@ -48,80 +50,12 @@ interface Worker {
   joinedDate: string;
 }
 
-// Mock data - in real app, this would come from API
-const mockWorkers: Worker[] = [
-  {
-    _id: '1',
-    firstName: 'Rajesh',
-    lastName: 'Kumar',
-    avatar: '',
-    skills: ['Plumbing', 'Electrical'],
-    rating: 4.8,
-    totalReviews: 127,
-    location: {
-      address: 'Sector 15',
-      city: 'Gurgaon'
-    },
-    pricing: {
-      hourlyRate: 500
-    },
-    availability: {
-      isAvailable: true
-    },
-    isVerified: true,
-    completedJobs: 89,
-    joinedDate: '2023-01-15'
-  },
-  {
-    _id: '2',
-    firstName: 'Priya',
-    lastName: 'Sharma',
-    avatar: '',
-    skills: ['House Cleaning', 'Cooking'],
-    rating: 4.9,
-    totalReviews: 203,
-    location: {
-      address: 'Koramangala',
-      city: 'Bangalore'
-    },
-    pricing: {
-      hourlyRate: 300
-    },
-    availability: {
-      isAvailable: true
-    },
-    isVerified: true,
-    completedJobs: 156,
-    joinedDate: '2022-11-20'
-  },
-  {
-    _id: '3',
-    firstName: 'Mohammed',
-    lastName: 'Ali',
-    avatar: '',
-    skills: ['AC Repair', 'Refrigerator Repair'],
-    rating: 4.7,
-    totalReviews: 89,
-    location: {
-      address: 'Andheri West',
-      city: 'Mumbai'
-    },
-    pricing: {
-      hourlyRate: 600
-    },
-    availability: {
-      isAvailable: false
-    },
-    isVerified: true,
-    completedJobs: 67,
-    joinedDate: '2023-03-10'
-  }
-];
-
 const Workers: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedSkill, setSelectedSkill] = useState('All Skills');
@@ -131,6 +65,35 @@ const Workers: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [minRating, setMinRating] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+
+  // Fetch workers from API
+  useEffect(() => {
+    fetchWorkers();
+  }, [sortBy]);
+
+  const fetchWorkers = async () => {
+    setLoading(true);
+    try {
+      const params: any = { sortBy, limit: 50 };
+      if (selectedCity) params.city = selectedCity;
+      if (selectedSkill !== 'All Skills') params.category = selectedSkill;
+      if (minRating) params.minRating = minRating;
+      
+      const response = await api.get('/workers', { params });
+      if (response.data.success) {
+        setWorkers(response.data.data.workers || []);
+      }
+    } catch (error) {
+      console.error('Error fetching workers:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load workers. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Get all districts from all states
   const allLocations = indianStates.flatMap(state => 
@@ -147,7 +110,7 @@ const Workers: React.FC = () => {
   
   const skills = ['All Skills', 'Plumbing', 'Electrical', 'House Cleaning', 'Cooking', 'AC Repair', 'Refrigerator Repair', 'Painting', 'Carpentry', 'Gardening'];
 
-  const filteredWorkers = mockWorkers.filter(worker => {
+  const filteredWorkers = workers.filter(worker => {
     const matchesSearch = 
       worker.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       worker.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||

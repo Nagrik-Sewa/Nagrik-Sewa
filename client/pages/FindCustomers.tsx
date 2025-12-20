@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../hooks/use-toast';
 import { Button } from "../components/ui/button";
@@ -7,6 +7,7 @@ import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { indianStates } from "../data/indianLocations";
 import { CONTACT_INFO, makePhoneCall } from "../constants/contact";
+import { api } from "../lib/api";
 import { 
   Search, 
   MapPin, 
@@ -20,107 +21,28 @@ import {
   TrendingUp,
   Target,
   Users,
-  Briefcase
+  Briefcase,
+  RefreshCw
 } from "lucide-react";
 
-const customerRequests = [
-  {
-    id: 1,
-    title: "Need Plumber for Kitchen Repair",
-    customer: "Priya Sharma",
-    customerPhone: "+919876543210",
-    customerEmail: "priya.sharma@example.com",
-    location: "Connaught Place, New Delhi",
-    category: "Plumbing",
-    budget: "₹2,000 - ₹3,500",
-    urgency: "High",
-    postedDate: "2 hours ago",
-    description: "Kitchen sink is leaking and faucet needs replacement. Need experienced plumber immediately.",
-    rating: 4.8,
-    completedJobs: 23,
-    verified: true
-  },
-  {
-    id: 2,
-    title: "House Cleaning Service Required",
-    customer: "Rajesh Kumar",
-    customerPhone: "+919876543211",
-    customerEmail: "rajesh.kumar@example.com",
-    location: "Bandra West, Mumbai",
-    category: "Cleaning",
-    budget: "₹1,500 - ₹2,000",
-    urgency: "Medium",
-    postedDate: "4 hours ago",
-    description: "Deep cleaning required for 3BHK apartment. Regular weekly service preferred.",
-    rating: 4.6,
-    completedJobs: 15,
-    verified: true
-  },
-  {
-    id: 3,
-    title: "Electrical Wiring for New Office",
-    customer: "Tech Solutions Pvt Ltd",
-    customerPhone: "+919876543212",
-    customerEmail: "contact@techsolutions.com",
-    location: "Electronic City, Bangalore",
-    category: "Electrical",
-    budget: "₹15,000 - ₹25,000",
-    urgency: "Medium",
-    postedDate: "6 hours ago",
-    description: "Complete electrical wiring for 2000 sq ft office space. Need certified electrician.",
-    rating: 4.9,
-    completedJobs: 45,
-    verified: true
-  },
-  {
-    id: 4,
-    title: "AC Installation and Repair",
-    customer: "Sunita Patel",
-    customerPhone: "+919876543213",
-    customerEmail: "sunita.patel@example.com",
-    location: "Satellite, Ahmedabad",
-    category: "AC Repair",
-    budget: "₹3,000 - ₹5,000",
-    urgency: "High",
-    postedDate: "8 hours ago",
-    description: "Split AC installation in bedroom and servicing of 2 existing units.",
-    rating: 4.7,
-    completedJobs: 31,
-    verified: false
-  },
-  {
-    id: 5,
-    title: "Interior Painting Work",
-    customer: "Mohammed Ali",
-    customerPhone: "+919876543214",
-    customerEmail: "mohammed.ali@example.com",
-    location: "Jubilee Hills, Hyderabad",
-    category: "Painting",
-    budget: "₹8,000 - ₹12,000",
-    urgency: "Low",
-    postedDate: "1 day ago",
-    description: "Interior painting for 2BHK flat. Quality work with good paint required.",
-    rating: 4.5,
-    completedJobs: 19,
-    verified: true
-  },
-  {
-    id: 6,
-    title: "Furniture Assembly Service",
-    customer: "Neha Gupta",
-    customerPhone: "+919876543215",
-    customerEmail: "neha.gupta@example.com",
-    location: "Salt Lake, Kolkata",
-    category: "Carpentry",
-    budget: "₹1,000 - ₹1,500",
-    urgency: "Medium",
-    postedDate: "1 day ago",
-    description: "Assembly of IKEA furniture - wardrobe, bed, and study table.",
-    rating: 4.4,
-    completedJobs: 12,
-    verified: true
-  }
-];
+interface CustomerRequest {
+  _id: string;
+  title: string;
+  customer: {
+    name: string;
+    phone: string;
+    email: string;
+    rating: number;
+    completedJobs: number;
+    verified: boolean;
+  };
+  location: string;
+  category: string;
+  budget: string;
+  urgency: string;
+  postedDate: string;
+  description: string;
+}
 
 const categories = [
   "All Categories",
@@ -153,7 +75,13 @@ const getAllDistricts = () => {
 
 const districts = getAllDistricts();
 
-export default function FindCustomers() {  const navigate = useNavigate();  const { toast } = useToast();  const [searchTerm, setSearchTerm] = useState("");
+export default function FindCustomers() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const [customerRequests, setCustomerRequests] = useState<CustomerRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [selectedUrgency, setSelectedUrgency] = useState("All Urgency");
   const [selectedBudget, setSelectedBudget] = useState("All Budgets");
@@ -161,38 +89,52 @@ export default function FindCustomers() {  const navigate = useNavigate();  cons
   const [sortByPriority, setSortByPriority] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
 
+  useEffect(() => {
+    fetchCustomerRequests();
+  }, []);
+
+  const fetchCustomerRequests = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/bookings/open-requests', {
+        params: { limit: 50, status: 'pending' }
+      });
+      if (response.data.success) {
+        setCustomerRequests(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching customer requests:', error);
+      toast({
+        title: 'Info',
+        description: 'No open job requests found at the moment',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   let filteredRequests = customerRequests.filter(request => {
-    const matchesSearch = request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         request.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         request.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         request.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = request.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         request.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         request.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         request.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCategory = selectedCategory === "All Categories" || request.category === selectedCategory;
     const matchesUrgency = selectedUrgency === "All Urgency" || request.urgency === selectedUrgency;
     
     // District filtering - check if location contains the selected district
     const matchesDistrict = selectedDistrict === "All Districts" || 
-                           request.location.toLowerCase().includes(selectedDistrict.toLowerCase());
+                           request.location?.toLowerCase().includes(selectedDistrict.toLowerCase());
     
-    const matchesBudget = selectedBudget === "All Budgets" || (() => {
-      const budgetValue = parseInt(request.budget.replace(/[^0-9]/g, ''));
-      switch(selectedBudget) {
-        case "Under ₹1,000": return budgetValue < 1000;
-        case "₹1,000 - ₹5,000": return budgetValue >= 1000 && budgetValue <= 5000;
-        case "₹5,000 - ₹15,000": return budgetValue >= 5000 && budgetValue <= 15000;
-        case "Above ₹15,000": return budgetValue > 15000;
-        default: return true;
-      }
-    })();
-    
-    return matchesSearch && matchesCategory && matchesUrgency && matchesDistrict && matchesBudget;
+    return matchesSearch && matchesCategory && matchesUrgency && matchesDistrict;
   });
   
   // Sort by priority if enabled
   if (sortByPriority) {
     filteredRequests = [...filteredRequests].sort((a, b) => {
       const priorityOrder = { High: 3, Medium: 2, Low: 1 };
-      return priorityOrder[b.urgency as keyof typeof priorityOrder] - priorityOrder[a.urgency as keyof typeof priorityOrder];
+      return (priorityOrder[b.urgency as keyof typeof priorityOrder] || 0) - 
+             (priorityOrder[a.urgency as keyof typeof priorityOrder] || 0);
     });
   }
 
@@ -219,15 +161,15 @@ export default function FindCustomers() {  const navigate = useNavigate();  cons
     }
   };
 
-  const handleSendProposal = async (request: typeof customerRequests[0]) => {
+  const handleSendProposal = async (request: CustomerRequest) => {
     try {
       // Send email notification
       await fetch('/api/send-notification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: request.customerEmail,
-          phone: request.customerPhone,
+          email: request.customer?.email,
+          phone: request.customer?.phone,
           type: 'proposal',
           message: `A service provider has sent you a proposal for: ${request.title}`
         })
@@ -235,12 +177,12 @@ export default function FindCustomers() {  const navigate = useNavigate();  cons
       
       toast({
         title: "Proposal Sent!",
-        description: `Your proposal has been sent to ${request.customer} via email and SMS.`,
+        description: `Your proposal has been sent to ${request.customer?.name || 'the customer'} via email and SMS.`,
       });
     } catch (error) {
       toast({
         title: "Success!",
-        description: `Proposal sent to ${request.customer}. They will contact you soon.`,
+        description: `Proposal sent to ${request.customer?.name || 'the customer'}. They will contact you soon.`,
         variant: "default"
       });
     }
@@ -468,7 +410,12 @@ export default function FindCustomers() {  const navigate = useNavigate();  cons
             </div>
           </div>
 
-          {filteredRequests.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <RefreshCw className="w-12 h-12 text-brand-600 mx-auto mb-4 animate-spin" />
+              <p className="text-gray-500">Loading job requests...</p>
+            </div>
+          ) : filteredRequests.length === 0 ? (
             <div className="text-center py-12">
               <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-600 mb-2">No requests found</h3>
@@ -477,7 +424,7 @@ export default function FindCustomers() {  const navigate = useNavigate();  cons
           ) : (
             <div className="grid gap-6">
               {filteredRequests.map((request) => (
-                <Card key={request.id} className="hover:shadow-lg transition-shadow">
+                <Card key={request._id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                       <div className="flex-1">
@@ -489,13 +436,15 @@ export default function FindCustomers() {  const navigate = useNavigate();  cons
                               <div className="flex items-center gap-4 mt-1">
                                 <div className="flex items-center text-sm text-gray-600">
                                   <User className="w-4 h-4 mr-1" />
-                                  {request.customer}
-                                  {request.verified && <Badge className="ml-2 bg-green-100 text-green-800">Verified</Badge>}
+                                  {request.customer?.name || 'Customer'}
+                                  {request.customer?.verified && <Badge className="ml-2 bg-green-100 text-green-800">Verified</Badge>}
                                 </div>
-                                <div className="flex items-center text-sm text-gray-600">
-                                  <Star className="w-4 h-4 mr-1 text-yellow-500" />
-                                  {request.rating} ({request.completedJobs} jobs)
-                                </div>
+                                {request.customer?.rating && (
+                                  <div className="flex items-center text-sm text-gray-600">
+                                    <Star className="w-4 h-4 mr-1 text-yellow-500" />
+                                    {request.customer.rating} ({request.customer.completedJobs || 0} jobs)
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -537,7 +486,7 @@ export default function FindCustomers() {  const navigate = useNavigate();  cons
                             variant="outline" 
                             size="sm" 
                             className="flex-1"
-                            onClick={() => handleCall(request.customerPhone, request.customer)}
+                            onClick={() => handleCall(request.customer?.phone || '', request.customer?.name || 'Customer')}
                           >
                             <Phone className="w-4 h-4 mr-1" />
                             Call
@@ -546,7 +495,7 @@ export default function FindCustomers() {  const navigate = useNavigate();  cons
                             variant="outline" 
                             size="sm" 
                             className="flex-1"
-                            onClick={() => handleMessage(request.customerPhone, request.customer)}
+                            onClick={() => handleMessage(request.customer?.phone || '', request.customer?.name || 'Customer')}
                           >
                             <Mail className="w-4 h-4 mr-1" />
                             Message

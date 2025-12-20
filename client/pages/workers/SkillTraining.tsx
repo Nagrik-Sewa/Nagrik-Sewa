@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   BookOpen, 
   Award, 
@@ -14,262 +14,67 @@ import {
   Target,
   Zap,
   Search,
-  Filter
+  Filter,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
+import { api } from "../../lib/api";
+import { useToast } from "../../hooks/use-toast";
+
+interface SkillCourse {
+  _id?: string;
+  id: number;
+  title: string;
+  category: string;
+  icon: string;
+  description: string;
+  duration: string;
+  level: string;
+  rating: number;
+  students: number;
+  instructor: string;
+  videoUrl: string;
+  thumbnail: string;
+  modules: string[];
+  certificationAvailable: boolean;
+  price: string;
+}
 
 export default function SkillTraining() {
+  const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [skillCourses, setSkillCourses] = useState<SkillCourse[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const skillCourses = [
-    {
-      id: 1,
-      title: "Professional House Cleaning",
-      category: "Home Services",
-      icon: "🏠",
-      description: "Learn professional cleaning techniques, equipment usage, and customer service skills",
-      duration: "2 hours",
-      level: "Beginner",
-      rating: 4.8,
-      students: 1250,
-      instructor: "Sunita Sharma",
-      videoUrl: "", // You will add this
-      thumbnail: "",
-      modules: [
-        "Cleaning Equipment & Supplies",
-        "Room-by-Room Cleaning Techniques",
-        "Time Management & Efficiency",
-        "Customer Communication",
-        "Safety & Hygiene Standards"
-      ],
-      certificationAvailable: true,
-      price: "Free"
-    },
-    {
-      id: 2,
-      title: "Basic Plumbing Skills",
-      category: "Technical",
-      icon: "🔧",
-      description: "Master essential plumbing repairs, pipe fitting, and troubleshooting techniques",
-      duration: "3 hours",
-      level: "Intermediate",
-      rating: 4.7,
-      students: 850,
-      instructor: "Ramesh Kumar",
-      videoUrl: "", // You will add this
-      thumbnail: "",
-      modules: [
-        "Plumbing Tools & Materials",
-        "Pipe Repair & Installation",
-        "Drain Cleaning Techniques",
-        "Water Pressure Solutions",
-        "Emergency Repairs",
-        "Safety Protocols"
-      ],
-      certificationAvailable: true,
-      price: "₹299"
-    },
-    {
-      id: 3,
-      title: "Electrical Work Fundamentals",
-      category: "Technical",
-      icon: "⚡",
-      description: "Learn safe electrical practices, wiring basics, and appliance troubleshooting",
-      duration: "4 hours",
-      level: "Intermediate",
-      rating: 4.9,
-      students: 680,
-      instructor: "Vijay Electrician",
-      videoUrl: "", // You will add this
-      thumbnail: "",
-      modules: [
-        "Electrical Safety First",
-        "Basic Wiring Techniques",
-        "Circuit Testing & Troubleshooting",
-        "Appliance Repair Basics",
-        "Meter Reading & Usage",
-        "Legal & Compliance Requirements"
-      ],
-      certificationAvailable: true,
-      price: "₹499"
-    },
-    {
-      id: 4,
-      title: "House Painting Mastery",
-      category: "Home Services",
-      icon: "🎨",
-      description: "Professional painting techniques for interior and exterior surfaces",
-      duration: "2.5 hours",
-      level: "Beginner",
-      rating: 4.6,
-      students: 520,
-      instructor: "Mahesh Painter",
-      videoUrl: "", // You will add this
-      thumbnail: "",
-      modules: [
-        "Surface Preparation",
-        "Paint Selection & Mixing",
-        "Brush & Roller Techniques",
-        "Texture & Pattern Application",
-        "Clean-up & Finishing",
-        "Cost Estimation"
-      ],
-      certificationAvailable: true,
-      price: "Free"
-    },
-    {
-      id: 5,
-      title: "Carpentry & Woodwork",
-      category: "Construction",
-      icon: "🔨",
-      description: "Essential carpentry skills for furniture making and repair work",
-      duration: "5 hours",
-      level: "Intermediate",
-      rating: 4.8,
-      students: 420,
-      instructor: "Suresh Carpenter",
-      videoUrl: "", // You will add this
-      thumbnail: "",
-      modules: [
-        "Wood Types & Selection",
-        "Tool Usage & Maintenance",
-        "Measuring & Cutting Techniques",
-        "Joinery Methods",
-        "Furniture Assembly",
-        "Finishing & Polishing",
-        "Customer Requirements"
-      ],
-      certificationAvailable: true,
-      price: "₹699"
-    },
-    {
-      id: 6,
-      title: "Garden Maintenance & Landscaping",
-      category: "Home Services",
-      icon: "🌱",
-      description: "Complete guide to plant care, garden design, and maintenance",
-      duration: "3 hours",
-      level: "Beginner",
-      rating: 4.5,
-      students: 280,
-      instructor: "Kamala Gardener",
-      videoUrl: "", // You will add this
-      thumbnail: "",
-      modules: [
-        "Plant Identification & Care",
-        "Soil Testing & Preparation",
-        "Watering & Fertilization",
-        "Pruning & Trimming",
-        "Pest & Disease Control",
-        "Seasonal Maintenance"
-      ],
-      certificationAvailable: true,
-      price: "Free"
-    },
-    {
-      id: 7,
-      title: "AC Installation & Repair",
-      category: "Technical",
-      icon: "❄️",
-      description: "Professional AC servicing, installation, and troubleshooting skills",
-      duration: "4 hours",
-      level: "Advanced",
-      rating: 4.7,
-      students: 340,
-      instructor: "Ravi AC Expert",
-      videoUrl: "", // You will add this
-      thumbnail: "",
-      modules: [
-        "AC Types & Components",
-        "Installation Procedures",
-        "Refrigerant Handling",
-        "Electrical Connections",
-        "Troubleshooting Common Issues",
-        "Preventive Maintenance",
-        "Customer Service"
-      ],
-      certificationAvailable: true,
-      price: "₹999"
-    },
-    {
-      id: 8,
-      title: "Construction & Labor Skills",
-      category: "Construction",
-      icon: "🏗️",
-      description: "Essential construction techniques and safety practices",
-      duration: "6 hours",
-      level: "Intermediate",
-      rating: 4.6,
-      students: 920,
-      instructor: "Prakash Builder",
-      videoUrl: "", // You will add this
-      thumbnail: "",
-      modules: [
-        "Construction Safety",
-        "Material Handling",
-        "Basic Masonry",
-        "Concrete Work",
-        "Tool Usage",
-        "Quality Control",
-        "Team Coordination"
-      ],
-      certificationAvailable: true,
-      price: "₹799"
-    },
-    {
-      id: 9,
-      title: "Beauty & Grooming Services",
-      category: "Personal Care",
-      icon: "💄",
-      description: "Professional beauty techniques and customer service",
-      duration: "4 hours",
-      level: "Intermediate",
-      rating: 4.8,
-      students: 180,
-      instructor: "Priya Beauty Expert",
-      videoUrl: "", // You will add this
-      thumbnail: "",
-      modules: [
-        "Hygiene & Sanitation",
-        "Hair Cutting & Styling",
-        "Makeup Application",
-        "Skin Care Basics",
-        "Equipment & Products",
-        "Customer Consultation",
-        "Business Skills"
-      ],
-      certificationAvailable: true,
-      price: "₹599"
-    },
-    {
-      id: 10,
-      title: "Workplace Safety & First Aid",
-      category: "Safety",
-      icon: "🛡️",
-      description: "Essential safety practices and emergency response for all workers",
-      duration: "2 hours",
-      level: "Beginner",
-      rating: 4.9,
-      students: 2100,
-      instructor: "Dr. Amit Safety Expert",
-      videoUrl: "", // You will add this
-      thumbnail: "",
-      modules: [
-        "Workplace Hazard Identification",
-        "Personal Protective Equipment",
-        "Emergency Procedures",
-        "Basic First Aid",
-        "Fire Safety",
-        "Accident Reporting"
-      ],
-      certificationAvailable: true,
-      price: "Free"
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/courses');
+      if (response.data.success && response.data.data.length > 0) {
+        setSkillCourses(response.data.data);
+      } else {
+        // Set empty array if no courses
+        setSkillCourses([]);
+      }
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      toast({
+        title: 'Info',
+        description: 'No courses available at the moment. Check back soon!',
+      });
+      setSkillCourses([]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const categories = ["All", "Home Services", "Construction", "Technical", "Personal Care", "Safety"];
 

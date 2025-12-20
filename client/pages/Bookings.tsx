@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
+import { api } from '@/lib/api';
+import { toast } from '@/hooks/use-toast';
 import { 
   Calendar, 
   Clock, 
@@ -14,7 +17,8 @@ import {
   MessageCircle,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  RefreshCw
 } from 'lucide-react';
 
 interface Booking {
@@ -38,73 +42,6 @@ interface Booking {
   description: string;
   createdAt: string;
 }
-
-// Mock data
-const mockBookings: Booking[] = [
-  {
-    _id: '1',
-    service: {
-      name: 'Plumbing Repair',
-      category: 'Home Maintenance'
-    },
-    worker: {
-      _id: 'w1',
-      firstName: 'Rajesh',
-      lastName: 'Kumar',
-      avatar: '',
-      rating: 4.8
-    },
-    scheduledDate: '2024-01-15',
-    scheduledTime: '10:00 AM',
-    status: 'confirmed',
-    totalAmount: 1200,
-    address: 'Sector 15, Gurgaon',
-    description: 'Kitchen sink leakage repair',
-    createdAt: '2024-01-12'
-  },
-  {
-    _id: '2',
-    service: {
-      name: 'House Cleaning',
-      category: 'Cleaning'
-    },
-    worker: {
-      _id: 'w2',
-      firstName: 'Priya',
-      lastName: 'Sharma',
-      avatar: '',
-      rating: 4.9
-    },
-    scheduledDate: '2024-01-18',
-    scheduledTime: '2:00 PM',
-    status: 'in-progress',
-    totalAmount: 800,
-    address: 'Koramangala, Bangalore',
-    description: 'Deep cleaning of 2BHK apartment',
-    createdAt: '2024-01-10'
-  },
-  {
-    _id: '3',
-    service: {
-      name: 'AC Repair',
-      category: 'Appliance Repair'
-    },
-    worker: {
-      _id: 'w3',
-      firstName: 'Mohammed',
-      lastName: 'Ali',
-      avatar: '',
-      rating: 4.7
-    },
-    scheduledDate: '2024-01-08',
-    scheduledTime: '11:00 AM',
-    status: 'completed',
-    totalAmount: 1500,
-    address: 'Andheri West, Mumbai',
-    description: 'AC not cooling properly',
-    createdAt: '2024-01-05'
-  }
-];
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -141,12 +78,47 @@ const getStatusIcon = (status: string) => {
 };
 
 const Bookings: React.FC = () => {
+  const { user } = useAuth();
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
 
-  const filterBookings = (status?: string) => {
-    if (!status || status === 'all') return mockBookings;
-    return mockBookings.filter(booking => booking.status === status);
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/bookings/my-bookings');
+      if (response.data.success) {
+        setBookings(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load bookings',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const filterBookings = (status?: string) => {
+    if (!status || status === 'all') return bookings;
+    return bookings.filter(booking => booking.status === status);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading bookings...</span>
+      </div>
+    );
+  }
 
   const getTabCount = (status?: string) => {
     return filterBookings(status).length;

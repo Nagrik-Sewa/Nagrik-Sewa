@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useLocation } from "@/contexts/LocationContext";
 import { indianStates } from "@/data/indianLocations";
+import { usePlatformStats } from "@/hooks/use-platform-stats";
 import {
   Search,
   MapPin,
@@ -32,13 +33,41 @@ import {
   Activity,
   Blocks
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
+
+interface Testimonial {
+  _id: string;
+  name: string;
+  location: string;
+  rating: number;
+  text: string;
+  avatar: string;
+}
 
 export default function Index() {
   const { t } = useLanguage();
   const { selectedState, selectedDistrict, setSelectedState, setSelectedDistrict } = useLocation();
+  const { platformStats, loading: statsLoading } = usePlatformStats();
   const [searchQuery, setSearchQuery] = useState("");
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const navigate = useNavigate();
+
+  // Fetch testimonials
+  useEffect(() => {
+    fetchTestimonials();
+  }, []);
+
+  const fetchTestimonials = async () => {
+    try {
+      const response = await api.get('/stats/reviews/featured', { params: { limit: 3 } });
+      if (response.data.success && response.data.data?.length > 0) {
+        setTestimonials(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching testimonials:', error);
+    }
+  };
 
   // Get current location display text
   const getLocationDisplay = () => {
@@ -126,34 +155,55 @@ export default function Index() {
     }
   ];
 
+  // Dynamic stats from API
   const stats = [
-    { number: "50,000+", label: t("home.stats.activeWorkers"), icon: Users },
-    { number: "1M+", label: t("home.stats.servicesCompleted"), icon: CheckCircle },
-    { number: "25+", label: t("home.stats.citiesCovered"), icon: MapPin },
-    { number: "4.8/5", label: t("home.stats.averageRating"), icon: Star },
+    { 
+      number: platformStats ? `${(platformStats.totalWorkers || 0).toLocaleString()}+` : "Loading...", 
+      label: t("home.stats.activeWorkers"), 
+      icon: Users 
+    },
+    { 
+      number: platformStats ? `${(platformStats.completedBookings || 0).toLocaleString()}+` : "Loading...", 
+      label: t("home.stats.servicesCompleted"), 
+      icon: CheckCircle 
+    },
+    { 
+      number: platformStats ? `${platformStats.activeDistricts || 0}+` : "Loading...", 
+      label: t("home.stats.citiesCovered"), 
+      icon: MapPin 
+    },
+    { 
+      number: "4.8/5", 
+      label: t("home.stats.averageRating"), 
+      icon: Star 
+    },
   ];
 
-  const testimonials = [
+  // Default testimonials if none from API
+  const displayTestimonials = testimonials.length > 0 ? testimonials : [
     {
-      name: "Priya Sharma",
+      _id: '1',
+      name: "Verified Customer",
       location: "Delhi",
       rating: 5,
-      text: "Found a reliable house cleaning service within 30 minutes. The worker was verified and did an excellent job!",
-      avatar: "P"
+      text: "Found a reliable service within 30 minutes. The worker was verified and did an excellent job!",
+      avatar: "V"
     },
     {
-      name: "Rajesh Kumar",
+      _id: '2',
+      name: "Verified Worker",
       location: "Mumbai",
       rating: 5,
-      text: "As a plumber, this platform helped me get regular work and build my reputation. The payment system is transparent.",
-      avatar: "R"
+      text: "This platform helped me get regular work and build my reputation. The payment system is transparent.",
+      avatar: "V"
     },
     {
-      name: "Anita Patel",
+      _id: '3',
+      name: "Verified Customer",
       location: "Bangalore",
       rating: 5,
       text: "The emergency SOS feature saved me when I had a water leak emergency. Got help within 20 minutes!",
-      avatar: "A"
+      avatar: "V"
     }
   ];
 
@@ -460,12 +510,12 @@ export default function Index() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-2 border-gray-100 hover:shadow-lg transition-all duration-300">
+            {displayTestimonials.map((testimonial, index) => (
+              <Card key={testimonial._id || index} className="border-2 border-gray-100 hover:shadow-lg transition-all duration-300">
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mr-4">
-                      <span className="text-white font-bold">{testimonial.avatar}</span>
+                      <span className="text-white font-bold">{testimonial.avatar || testimonial.name?.[0] || 'U'}</span>
                     </div>
                     <div>
                       <h4 className="font-bold text-gray-900">{testimonial.name}</h4>

@@ -22,7 +22,8 @@ import {
   ThumbsUp,
   Target,
   Briefcase,
-  Home
+  Home,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -31,7 +32,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Badge } from "../../components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { CONTACT_INFO, makePhoneCall, sendEmail } from "../../constants/contact";
-import { statsApi } from "../../lib/api";
+import { api, statsApi } from "../../lib/api";
 import { indianStates } from "../../data/indianLocations";
 import { useAuth } from "../../contexts/AuthContext";
 import { OTPVerification } from "../../components/OTPVerification";
@@ -82,6 +83,28 @@ export default function JoinAsWorker() {
     loading: true
   });
 
+  interface CustomerRequest {
+    customerName: string;
+    service: string;
+    location: string;
+    budget: string;
+    posted: string;
+    priority: string;
+  }
+
+  interface WorkerTestimonial {
+    name: string;
+    service: string;
+    location: string;
+    rating: number;
+    earning: string;
+    comment: string;
+  }
+
+  const [customerRequests, setCustomerRequests] = useState<CustomerRequest[]>([]);
+  const [testimonials, setTestimonials] = useState<WorkerTestimonial[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -90,14 +113,75 @@ export default function JoinAsWorker() {
         setPlatformStats({
           totalWorkers: data.totalWorkers || 0,
           totalBookings: data.totalBookings || 0,
-          averageEarning: 25000, // This would need to be calculated separately
-          workerSatisfaction: 4.8, // This would need to be calculated separately
+          averageEarning: data.averageEarning || 25000,
+          workerSatisfaction: data.averageRating || 4.8,
           loading: false
         });
       } catch (error) {
         console.error('Error fetching platform stats:', error);
-        // Keep default values on error
         setPlatformStats(prev => ({ ...prev, loading: false }));
+      }
+    };
+
+    const fetchCustomerRequests = async () => {
+      setLoadingRequests(true);
+      try {
+        const response = await api.get('/bookings/open-requests', { params: { limit: 6 } });
+        if (response.data.success && response.data.data.length > 0) {
+          const requests = response.data.data.map((req: any) => ({
+            customerName: req.customer?.name || 'Customer',
+            service: req.title || 'Service Request',
+            location: req.location || 'Location not specified',
+            budget: req.budget || 'To be discussed',
+            posted: req.postedDate || 'Recently',
+            priority: req.urgency || 'Medium'
+          }));
+          setCustomerRequests(requests);
+        }
+      } catch (error) {
+        console.error('Error fetching customer requests:', error);
+      } finally {
+        setLoadingRequests(false);
+      }
+    };
+
+    const fetchTestimonials = async () => {
+      try {
+        const response = await api.get('/reviews/worker-testimonials');
+        if (response.data.success && response.data.data.length > 0) {
+          setTestimonials(response.data.data);
+        } else {
+          // Fallback testimonials if none from API
+          setTestimonials([
+            {
+              name: "Verified Worker",
+              service: "Professional",
+              location: "India",
+              rating: 5,
+              earning: "₹30,000+/month",
+              comment: "Nagrik Sewa has helped me grow my business and connect with more customers than ever before."
+            }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching testimonials:', error);
+        setTestimonials([
+          {
+            name: "Verified Worker",
+            service: "Professional", 
+            location: "India",
+            rating: 5,
+            earning: "₹30,000+/month",
+            comment: "Nagrik Sewa has helped me grow my business and connect with more customers than ever before."
+          }
+        ]);
+      }
+    };
+    
+    fetchStats();
+    fetchCustomerRequests();
+    fetchTestimonials();
+  }, []);
       }
     };
     
@@ -134,86 +218,6 @@ export default function JoinAsWorker() {
       icon: TrendingUp,
       title: "Massive Market Reach",
       description: "Access to 50,000+ active customers across 500+ cities with guaranteed job opportunities and business growth."
-    }
-  ];
-
-
-
-  const customerRequests = [
-    { 
-      customerName: "Priya Sharma", 
-      service: "Home Cleaning", 
-      location: "South Delhi", 
-      budget: "₹1,500-2,000",
-      posted: "2 hours ago",
-      priority: "Urgent"
-    },
-    { 
-      customerName: "Amit Patel", 
-      service: "Plumbing Repair", 
-      location: "Andheri, Mumbai", 
-      budget: "₹2,500-3,500",
-      posted: "5 hours ago",
-      priority: "High"
-    },
-    { 
-      customerName: "Kavita Singh", 
-      service: "Electrical Work", 
-      location: "Koramangala, Bangalore", 
-      budget: "₹3,000-4,000",
-      posted: "1 hour ago",
-      priority: "Urgent"
-    },
-    { 
-      customerName: "Rahul Verma", 
-      service: "House Painting", 
-      location: "Sector 62, Noida", 
-      budget: "₹15,000-20,000",
-      posted: "3 hours ago",
-      priority: "Medium"
-    },
-    { 
-      customerName: "Sunita Reddy", 
-      service: "AC Repair", 
-      location: "Banjara Hills, Hyderabad", 
-      budget: "₹2,000-3,000",
-      posted: "30 mins ago",
-      priority: "Urgent"
-    },
-    { 
-      customerName: "Deepak Kumar", 
-      service: "Salon at Home", 
-      location: "Park Street, Kolkata", 
-      budget: "₹1,200-1,800",
-      posted: "4 hours ago",
-      priority: "Medium"
-    }
-  ];
-
-  const testimonials = [
-    {
-      name: "Rajesh Kumar",
-      service: "Plumber",
-      location: "Delhi",
-      rating: 5,
-      earning: "₹40,000/month",
-      comment: "Nagrik Sewa changed my life! I now earn double what I used to make and have a steady flow of customers every day."
-    },
-    {
-      name: "Sunita Devi",
-      service: "House Cleaner",
-      location: "Mumbai",
-      rating: 5,
-      earning: "₹25,000/month",
-      comment: "Working with Nagrik Sewa gave me financial independence. The app is easy to use and customers are respectful."
-    },
-    {
-      name: "Mohammed Ali",
-      service: "Electrician",
-      location: "Bangalore",
-      rating: 5,
-      earning: "₹50,000/month",
-      comment: "Best decision I made was joining Nagrik Sewa. Professional platform with great support and consistent work."
     }
   ];
 

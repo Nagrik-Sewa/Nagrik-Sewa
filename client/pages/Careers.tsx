@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { 
   Briefcase, 
   TrendingUp, 
@@ -14,63 +15,52 @@ import {
   Rocket,
   Coffee,
   GraduationCap,
-  Building
+  Building,
+  RefreshCw
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { api } from "@/lib/api";
+import { usePlatformStats } from "@/hooks/use-platform-stats";
+
+interface JobOpening {
+  _id: string;
+  title: string;
+  department: string;
+  location: string;
+  type: string;
+  description: string;
+  skills: string[];
+}
 
 export default function Careers() {
-  const openings = [
-    {
-      title: "Senior Software Engineer",
-      department: "Engineering",
-      location: "Bangalore / Remote",
-      type: "Full-time",
-      description: "Build scalable systems that power India's largest home services platform.",
-      skills: ["React", "Node.js", "TypeScript", "MongoDB"]
-    },
-    {
-      title: "Product Manager",
-      department: "Product",
-      location: "Delhi NCR",
-      type: "Full-time",
-      description: "Drive product strategy and roadmap for customer and worker experiences.",
-      skills: ["Product Strategy", "Analytics", "User Research"]
-    },
-    {
-      title: "UX Designer",
-      department: "Design",
-      location: "Bangalore / Remote",
-      type: "Full-time",
-      description: "Design intuitive experiences for millions of users across India.",
-      skills: ["Figma", "User Research", "Prototyping", "Design Systems"]
-    },
-    {
-      title: "Customer Success Manager",
-      department: "Operations",
-      location: "Multiple Cities",
-      type: "Full-time",
-      description: "Ensure exceptional experiences for our customers and service providers.",
-      skills: ["Customer Service", "Problem Solving", "Communication"]
-    },
-    {
-      title: "Data Analyst",
-      department: "Analytics",
-      location: "Bangalore",
-      type: "Full-time",
-      description: "Turn data into insights that drive business decisions and growth.",
-      skills: ["SQL", "Python", "Tableau", "Statistical Analysis"]
-    },
-    {
-      title: "Marketing Manager",
-      department: "Marketing",
-      location: "Delhi NCR",
-      type: "Full-time",
-      description: "Lead growth initiatives and build our brand across India.",
-      skills: ["Digital Marketing", "Brand Strategy", "Content Marketing"]
-    },
-  ];
+  const { platformStats } = usePlatformStats();
+  const [openings, setOpenings] = useState<JobOpening[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOpenings();
+  }, []);
+
+  const fetchOpenings = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/admin/careers/openings');
+      if (response.data.success && response.data.data?.length > 0) {
+        setOpenings(response.data.data);
+      } else {
+        // Set empty to show "no openings" message
+        setOpenings([]);
+      }
+    } catch (error) {
+      console.error('Error fetching job openings:', error);
+      // Fallback to empty for now
+      setOpenings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const benefits = [
     {
@@ -191,38 +181,54 @@ export default function Careers() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {openings.map((job, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow border-2 hover:border-brand-200">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
-                      <p className="text-brand-600 font-medium">{job.department}</p>
+          {loading ? (
+            <div className="text-center py-12">
+              <RefreshCw className="w-12 h-12 text-brand-600 mx-auto mb-4 animate-spin" />
+              <p className="text-gray-500">Loading job openings...</p>
+            </div>
+          ) : openings.length === 0 ? (
+            <div className="text-center py-12">
+              <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No openings at the moment</h3>
+              <p className="text-gray-500 mb-6">Check back soon for new opportunities!</p>
+              <Button className="bg-brand-600 hover:bg-brand-700">
+                Send Your Resume Anyway
+              </Button>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-6">
+              {openings.map((job, index) => (
+                <Card key={job._id || index} className="hover:shadow-lg transition-shadow border-2 hover:border-brand-200">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
+                        <p className="text-brand-600 font-medium">{job.department}</p>
+                      </div>
+                      <Badge variant="secondary">{job.type}</Badge>
                     </div>
-                    <Badge variant="secondary">{job.type}</Badge>
-                  </div>
-                  <p className="text-gray-600 mb-4">{job.description}</p>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {job.location}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {job.skills.map((skill, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                  <Button className="w-full bg-brand-600 hover:bg-brand-700">
-                    Apply Now
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <p className="text-gray-600 mb-4">{job.description}</p>
+                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {job.location}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {job.skills?.map((skill, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                    <Button className="w-full bg-brand-600 hover:bg-brand-700">
+                      Apply Now
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

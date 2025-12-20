@@ -202,6 +202,85 @@ router.post('/', optionalAuth, validateInput(schemas.createBooking), async (req:
   }
 });
 
+// Get open job requests for workers to browse
+router.get('/open-requests', optionalAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { category, location, urgency, limit = 50 } = req.query;
+    const limitNum = Math.min(parseInt(limit as string) || 50, 100);
+
+    // Build query for open/pending bookings that don't have a worker assigned
+    const query: any = {
+      status: { $in: ['pending', 'open'] },
+      workerId: { $exists: false }
+    };
+
+    if (category) {
+      query['serviceDetails.category'] = category;
+    }
+    if (urgency) {
+      query['serviceDetails.urgencyLevel'] = urgency;
+    }
+    if (location) {
+      query['location.address.city'] = { $regex: location, $options: 'i' };
+    }
+
+    const bookings = await Booking.find(query)
+      .populate('customerId', 'firstName lastName avatar phone email rating')
+      .populate('serviceId', 'name category')
+      .sort({ createdAt: -1 })
+      .limit(limitNum)
+      .lean();
+
+    // Transform bookings to match expected format
+    const openRequests = bookings.map((booking: any) => ({
+      _id: booking._id,
+      title: booking.serviceDetails?.serviceName || booking.serviceId?.name || 'Service Request',
+      customer: {
+        name: booking.customerId 
+          ? `${booking.customerId.firstName} ${booking.customerId.lastName}` 
+          : 'Customer',
+        phone: booking.customerId?.phone || '',
+        email: booking.customerId?.email || '',
+        rating: booking.customerId?.rating || 4.5,
+        completedJobs: 0,
+        verified: true
+      },
+      location: booking.location?.address 
+        ? `${booking.location.address.street}, ${booking.location.address.city}` 
+        : 'Location not specified',
+      category: booking.serviceDetails?.category || booking.serviceId?.category || 'General',
+      budget: booking.pricing?.totalAmount 
+        ? `₹${booking.pricing.totalAmount}` 
+        : 'To be discussed',
+      urgency: booking.serviceDetails?.urgencyLevel || booking.emergency ? 'High' : 'Medium',
+      postedDate: getTimeAgo(booking.createdAt),
+      description: booking.serviceDetails?.description || booking.serviceDetails?.customRequirements || ''
+    }));
+
+    res.json({
+      success: true,
+      data: openRequests
+    });
+  } catch (error) {
+    console.error('Get open requests error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch open requests'
+    });
+  }
+});
+
+// Helper function to format time ago
+function getTimeAgo(date: Date): string {
+  const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+  
+  if (seconds < 60) return 'Just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+  return `${Math.floor(seconds / 604800)} weeks ago`;
+}
+
 // Get user's bookings (authentication optional for testing)
 router.get('/my-bookings', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {

@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { api } from '@/lib/api';
+import { toast } from '@/hooks/use-toast';
 import { 
   Star, 
   MapPin, 
@@ -15,61 +17,104 @@ import {
   MessageCircle,
   Shield,
   Award,
-  Users
+  Users,
+  RefreshCw
 } from 'lucide-react';
+
+interface WorkerData {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  avatar?: string;
+  bio: string;
+  skills: string[];
+  rating: number;
+  totalReviews: number;
+  location: {
+    address: string;
+    city: string;
+    state: string;
+  };
+  pricing: {
+    hourlyRate: number;
+    minimumCharge: number;
+  };
+  availability: {
+    isAvailable: boolean;
+    nextAvailable?: string;
+  };
+  isVerified: boolean;
+  completedJobs: number;
+  joinedDate: string;
+  languages: string[];
+  experience: string;
+  certifications: string[];
+}
+
+interface Review {
+  id: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  date: string;
+  service: string;
+}
 
 const WorkerDetails: React.FC = () => {
   const { id } = useParams();
+  const [worker, setWorker] = useState<WorkerData | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - in real app, this would be fetched based on ID
-  const worker = {
-    _id: id,
-    firstName: 'Rajesh',
-    lastName: 'Kumar',
-    avatar: '',
-    bio: 'Experienced plumber and electrician with over 8 years in the field. Specialized in residential and commercial repairs. Available for emergency services.',
-    skills: ['Plumbing', 'Electrical', 'Pipe Fitting', 'Wiring'],
-    rating: 4.8,
-    totalReviews: 127,
-    location: {
-      address: 'Sector 15, Gurgaon',
-      city: 'Gurgaon',
-      state: 'Haryana'
-    },
-    pricing: {
-      hourlyRate: 500,
-      minimumCharge: 200
-    },
-    availability: {
-      isAvailable: true,
-      nextAvailable: '2024-01-15'
-    },
-    isVerified: true,
-    completedJobs: 89,
-    joinedDate: '2023-01-15',
-    languages: ['Hindi', 'English'],
-    experience: '8+ years',
-    certifications: ['Licensed Plumber', 'Electrical Safety Certificate']
+  useEffect(() => {
+    if (id) {
+      fetchWorkerDetails();
+    }
+  }, [id]);
+
+  const fetchWorkerDetails = async () => {
+    setLoading(true);
+    try {
+      const [workerRes, reviewsRes] = await Promise.all([
+        api.get(`/workers/${id}`),
+        api.get(`/workers/${id}/reviews`)
+      ]);
+      
+      if (workerRes.data.success) {
+        setWorker(workerRes.data.data);
+      }
+      if (reviewsRes.data.success) {
+        setReviews(reviewsRes.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching worker details:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load worker details',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const reviews = [
-    {
-      id: 1,
-      customerName: 'Amit Sharma',
-      rating: 5,
-      comment: 'Excellent work! Fixed my plumbing issue quickly and professionally.',
-      date: '2024-01-10',
-      service: 'Plumbing'
-    },
-    {
-      id: 2,
-      customerName: 'Priya Singh',
-      rating: 4,
-      comment: 'Good service, arrived on time and completed the work efficiently.',
-      date: '2024-01-08',
-      service: 'Electrical'
-    }
-  ];
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading worker details...</span>
+      </div>
+    );
+  }
+
+  if (!worker) {
+    return (
+      <div className="container mx-auto py-8 px-4 text-center">
+        <h1 className="text-2xl font-bold mb-4">Worker Not Found</h1>
+        <p className="text-gray-600">The worker you're looking for doesn't exist or has been removed.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4">
