@@ -59,18 +59,22 @@ const categories = [
 const urgencyLevels = ["All Urgency", "High", "Medium", "Low"];
 const budgetRanges = ["All Budgets", "Under ₹1,000", "₹1,000 - ₹5,000", "₹5,000 - ₹15,000", "Above ₹15,000"];
 
-// Get all districts from all states
+// Get all districts from all states with state info to avoid duplicates
 const getAllDistricts = () => {
-  const allDistricts: string[] = [];
+  const allDistricts: { district: string; state: string; key: string }[] = [];
   
   indianStates.forEach(state => {
     state.districts.forEach(district => {
-      allDistricts.push(district);
+      allDistricts.push({
+        district,
+        state: state.name,
+        key: `${district}-${state.name}` // Unique key combining district and state
+      });
     });
   });
   
-  // Sort alphabetically and add "All Districts" option at the beginning
-  return ["All Districts", ...allDistricts.sort()];
+  // Sort alphabetically by district name
+  return allDistricts.sort((a, b) => a.district.localeCompare(b.district));
 };
 
 const districts = getAllDistricts();
@@ -277,9 +281,10 @@ export default function FindCustomers() {
                 onChange={(e) => setSelectedDistrict(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
-                {districts.map((district) => (
-                  <option key={district} value={district}>
-                    {district === "All Districts" ? "🌍 All Districts" : `📍 ${district}`}
+                <option value="All Districts">🌍 All Districts</option>
+                {districts.map((item) => (
+                  <option key={item.key} value={item.district}>
+                    📍 {item.district}, {item.state}
                   </option>
                 ))}
               </select>

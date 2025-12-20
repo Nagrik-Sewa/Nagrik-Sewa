@@ -147,7 +147,7 @@ export default function JoinAsWorker() {
 
     const fetchTestimonials = async () => {
       try {
-        const response = await api.get('/reviews/worker-testimonials');
+        const response = await api.get('/stats/reviews/worker-testimonials');
         if (response.data.success && response.data.data.length > 0) {
           setTestimonials(response.data.data);
         } else {
@@ -181,11 +181,6 @@ export default function JoinAsWorker() {
     fetchStats();
     fetchCustomerRequests();
     fetchTestimonials();
-  }, []);
-      }
-    };
-    
-    fetchStats();
   }, []);
 
   const benefits = [
