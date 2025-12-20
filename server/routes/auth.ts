@@ -17,7 +17,7 @@ router.post('/register-admin', async (req, res) => {
     const { email, password, firstName, lastName, phone } = req.body;
 
     // Security: Only allow specific admin email
-    if (email !== 'pushkarkumarsaini2006@gmail.com') {
+    if (email !== 'admin@nagriksewa.co.in') {
       return res.status(403).json({
         success: false,
         message: 'Unauthorized admin registration attempt'
@@ -46,9 +46,9 @@ router.post('/register-admin', async (req, res) => {
 
     // Create admin user
     const admin = new User({
-      firstName: firstName || 'Pushkar',
-      lastName: lastName || 'Saini',
-      email: 'pushkarkumarsaini2006@gmail.com',
+      firstName: firstName || 'Nagrik',
+      lastName: lastName || 'Admin',
+      email: 'admin@nagriksewa.co.in',
       password: hashedPassword,
       phone: normalizedPhone, // 10-digit phone number
       role: 'admin',

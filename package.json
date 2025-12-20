@@ -46,7 +46,7 @@
     "health-check": "curl -f http://localhost:8080/health || exit 1",
     "performance:analyze": "npm run build && bundlesize",
     "db:migrate": "node scripts/migrate.js",
-    "db:seed": "node scripts/seed.js",
+    "db:seed": "node scripts/seed.cjs",
     "cleanup": "rimraf dist node_modules/.cache .nyc_output coverage"
   },
   "dependencies": {
