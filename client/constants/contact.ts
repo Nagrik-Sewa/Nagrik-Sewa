@@ -6,22 +6,22 @@ export const CONTACT_INFO = {
   TECHNICAL_EMERGENCY: "+91-11-4567-8922",
   
   // Main support contacts
-  MAIN_SUPPORT_PHONE: "+91 7983454047",
-  CUSTOMER_SUPPORT_PHONE: "+91 7983454047",
-  WORKER_SUPPORT_PHONE: "+91 7983454047",
-  WHATSAPP_NUMBER: "917983454047",
+  MAIN_SUPPORT_PHONE: "+91-11-4567-8900",
+  CUSTOMER_SUPPORT_PHONE: "+91-11-4567-8900",
+  WORKER_SUPPORT_PHONE: "+91-11-4567-8901",
+  WHATSAPP_NUMBER: "919876543210",
   
   // Email addresses
-  MAIN_EMAIL: "nagriksewa.connect@gmail.com",
-  PRIVACY_EMAIL: "nagriksewa.connect@gmail.com",
-  LEGAL_EMAIL: "nagriksewa.connect@gmail.com",
-  DPO_EMAIL: "nagriksewa.connect@gmail.com",
-  WORKER_SUPPORT_EMAIL: "nagriksewa.connect@gmail.com",
+  MAIN_EMAIL: "support@nagriksewa.com",
+  PRIVACY_EMAIL: "privacy@nagriksewa.com",
+  LEGAL_EMAIL: "legal@nagriksewa.com",
+  DPO_EMAIL: "dpo@nagriksewa.com",
+  WORKER_SUPPORT_EMAIL: "workers@nagriksewa.com",
   
   // Business information
   COMPANY_NAME: "Nagrik Sewa Technologies Pvt. Ltd.",
-  ADDRESS: "Moradabad, Uttar Pradesh, India",
-  FULL_ADDRESS: "Nagrik Sewa Technologies Pvt. Ltd., Moradabad, Uttar Pradesh, India",
+  ADDRESS: "New Delhi, India",
+  FULL_ADDRESS: "Nagrik Sewa Technologies Pvt. Ltd., New Delhi, India",
   
   // Social media and other
   WEBSITE: "https://nagriksewa.com",
