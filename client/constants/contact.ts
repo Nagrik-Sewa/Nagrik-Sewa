@@ -2,14 +2,14 @@
 export const CONTACT_INFO = {
   // Emergency contacts
   EMERGENCY_HELPLINE: "112",
-  SAFETY_HELPLINE: "+91-11-4567-8911", 
-  TECHNICAL_EMERGENCY: "+91-11-4567-8922",
+  SAFETY_HELPLINE: "+91 79834 54047", 
+  TECHNICAL_EMERGENCY: "+91 79834 54047",
   
   // Main support contacts
-  MAIN_SUPPORT_PHONE: "+91-11-4567-8900",
-  CUSTOMER_SUPPORT_PHONE: "+91-11-4567-8900",
-  WORKER_SUPPORT_PHONE: "+91-11-4567-8901",
-  WHATSAPP_NUMBER: "919876543210",
+  MAIN_SUPPORT_PHONE: "+91 79834 54047",
+  CUSTOMER_SUPPORT_PHONE: "+91 79834 54047",
+  WORKER_SUPPORT_PHONE: "+91 79834 54047",
+  WHATSAPP_NUMBER: "917983454047",
   
   // Email addresses
   MAIN_EMAIL: "support@nagriksewa.com",
@@ -20,8 +20,8 @@ export const CONTACT_INFO = {
   
   // Business information
   COMPANY_NAME: "Nagrik Sewa Technologies Pvt. Ltd.",
-  ADDRESS: "New Delhi, India",
-  FULL_ADDRESS: "Nagrik Sewa Technologies Pvt. Ltd., New Delhi, India",
+  ADDRESS: "Mohali, Punjab, India",
+  FULL_ADDRESS: "Nagrik Sewa Technologies Pvt. Ltd., Mohali, Punjab, India",
   
   // Social media and other
   WEBSITE: "https://nagriksewa.com",

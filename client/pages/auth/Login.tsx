@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -30,16 +30,18 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const { t } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const from = location.state?.from?.pathname || '/dashboard';
 
-  // Temporarily disable auto-redirect for testing
-  // if (isAuthenticated) {
-  //   return <Navigate to={from} replace />;
-  // }
+  // Auto-redirect if already authenticated
+  if (isAuthenticated && user) {
+    const redirectTo = getDashboardByRole(user.role);
+    return <Navigate to={redirectTo} replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +56,13 @@ const Login: React.FC = () => {
     console.log('[Login] Attempting login for:', email);
 
     try {
-      await login(email, password);
+      const loggedInUser = await login(email, password);
+      console.log('[Login] Login successful, redirecting...', loggedInUser);
+      
+      // Redirect based on user role
+      const redirectTo = getDashboardByRole(loggedInUser.role);
+      console.log('[Login] Redirecting to:', redirectTo);
+      navigate(redirectTo, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
     } finally {
