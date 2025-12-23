@@ -11,16 +11,32 @@ interface OTPData {
 const otpStorage = new Map<string, OTPData>();
 
 // Temporary storage for pending registrations (before OTP verification)
-interface PendingUserData {
+export interface PendingUserData {
   firstName: string;
   lastName?: string;
   email: string;
   password: string;
   phone: string;
   role: string;
-  address?: any;
+  address?: {
+    city: string;
+    state: string;
+    pincode: string;
+    country: string;
+  };
   languagePreference?: string;
-  notificationPreferences?: any;
+  notificationPreferences?: {
+    email: boolean;
+    sms: boolean;
+    push: boolean;
+    whatsapp: boolean;
+  };
+  // Worker-specific data
+  workerData?: {
+    district?: string;
+    primarySkill?: string;
+    experience?: string;
+  };
   expiresAt: Date;
 }
 

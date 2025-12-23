@@ -2,6 +2,15 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { User, IUser } from '../models/User';
 
+// Validate JWT_SECRET on module load
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('❌ FATAL: JWT_SECRET environment variable is not set');
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+}
+
 // Extend Request interface to include user
 declare global {
   namespace Express {
@@ -17,6 +26,15 @@ export interface JWTPayload {
   role: string;
 }
 
+// Get JWT secret with validation
+const getJWTSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+  return secret;
+};
+
 export const generateToken = (user: IUser): string => {
   const payload: JWTPayload = {
     userId: user._id,
@@ -24,8 +42,8 @@ export const generateToken = (user: IUser): string => {
     role: user.role
   };
 
-  return jwt.sign(payload, process.env.JWT_SECRET!, {
-    expiresIn: '7d',
+  return jwt.sign(payload, getJWTSecret(), {
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
     issuer: 'nagrik-sewa',
     audience: 'nagrik-sewa-users'
   });
@@ -38,8 +56,9 @@ export const generateRefreshToken = (user: IUser): string => {
     role: user.role
   };
 
-  return jwt.sign(payload, process.env.JWT_SECRET!, {
-    expiresIn: '30d',
+  const refreshSecret = process.env.REFRESH_TOKEN_SECRET || getJWTSecret();
+  return jwt.sign(payload, refreshSecret, {
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '30d',
     issuer: 'nagrik-sewa',
     audience: 'nagrik-sewa-refresh'
   });
@@ -47,8 +66,17 @@ export const generateRefreshToken = (user: IUser): string => {
 
 export const verifyToken = (token: string): JWTPayload | null => {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload;
+    const decoded = jwt.verify(token, getJWTSecret(), {
+      issuer: 'nagrik-sewa',
+      audience: 'nagrik-sewa-users'
+    }) as JWTPayload;
+    return decoded;
   } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      console.log('[AUTH] Token expired');
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      console.log('[AUTH] Invalid token:', error.message);
+    }
     return null;
   }
 };

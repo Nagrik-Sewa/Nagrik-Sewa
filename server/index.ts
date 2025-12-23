@@ -70,8 +70,12 @@ export function createServer() {
     origin: (origin, callback) => {
       const allowedOrigins = [
         process.env.FRONTEND_URL || "http://localhost:8080",
+        process.env.CLIENT_URL || "http://localhost:8082",
+        "http://localhost:8080",
         "http://localhost:8081",
+        "http://localhost:8082",
         "http://localhost:3000", // For development
+        "http://localhost:5173", // Vite dev server
       ];
       
       // Allow requests with no origin (like mobile apps or curl requests)
@@ -80,6 +84,7 @@ export function createServer() {
       if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
         callback(null, true);
       } else {
+        console.warn('[CORS] Blocked origin:', origin);
         callback(new Error('Not allowed by CORS'));
       }
     },

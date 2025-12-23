@@ -4,20 +4,29 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { User } from '../models/User';
 import { WorkerProfile } from '../models/WorkerProfile';
-import { authenticate as authMiddleware } from '../middleware/auth';
+import { authenticate as authMiddleware, generateToken, generateRefreshToken } from '../middleware/auth';
 import { sendEmail } from '../services/email';
 import { sendSMS } from '../services/sms';
-import { OTPService } from '../services/otp';
+import { OTPService, PendingUserData } from '../services/otp';
 
 const router = express.Router();
+
+// Validate JWT_SECRET at startup
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('❌ WARNING: JWT_SECRET not set in environment variables');
+}
 
 // Admin registration endpoint (one-time setup)
 router.post('/register-admin', async (req, res) => {
   try {
     const { email, password, firstName, lastName, phone } = req.body;
 
+    console.log('[ADMIN-REGISTER] Request received:', { email });
+
     // Security: Only allow specific admin email
-    if (email !== 'admin@nagriksewa.co.in') {
+    if (email !== 'pushkarkumarsaini2006@gmail.com') {
+      console.log('[ADMIN-REGISTER] Unauthorized attempt:', { email });
       return res.status(403).json({
         success: false,
         message: 'Unauthorized admin registration attempt'
@@ -25,16 +34,16 @@ router.post('/register-admin', async (req, res) => {
     }
 
     // Check if admin already exists
-    const existingAdmin = await User.findOne({ email });
+    const existingAdmin = await User.findOne({ email: email.toLowerCase() });
     if (existingAdmin) {
+      console.log('[ADMIN-REGISTER] Admin already exists');
       return res.status(400).json({
         success: false,
         message: 'Admin already exists'
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // NOTE: Do NOT hash password here - the User model pre-save hook handles hashing
 
     // Normalize phone number (remove country code if present)
     let normalizedPhone = phone || '9999999999';
@@ -44,12 +53,12 @@ router.post('/register-admin', async (req, res) => {
       normalizedPhone = normalizedPhone.substring(2);
     }
 
-    // Create admin user
+    // Create admin user - password will be hashed by model's pre-save middleware
     const admin = new User({
       firstName: firstName || 'Pushkar',
       lastName: lastName || 'Saini',
-      email: 'admin@nagriksewa.co.in',
-      password: hashedPassword,
+      email: 'pushkarkumarsaini2006@gmail.com',
+      password, // Plain password - model will hash it
       phone: normalizedPhone, // 10-digit phone number
       role: 'admin',
       address: {
@@ -74,13 +83,10 @@ router.post('/register-admin', async (req, res) => {
     });
 
     await admin.save();
+    console.log('[ADMIN-REGISTER] Admin created successfully:', { userId: admin._id });
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: admin._id, role: admin.role },
-      process.env.JWT_SECRET || 'fallback_secret',
-      { expiresIn: '7d' }
-    );
+    // Generate JWT token using centralized function
+    const token = generateToken(admin);
 
     res.status(201).json({
       success: true,
@@ -114,7 +120,7 @@ router.post('/register', async (req, res) => {
     const { 
       firstName, 
       lastName, 
-      email: rawEmail, 
+      email, 
       password, 
       phone, 
       role = 'customer',
@@ -124,82 +130,102 @@ router.post('/register', async (req, res) => {
       experience
     } = req.body;
 
-    // Debug logging (safe - no passwords)
-    console.log('[REGISTER] Request received:', {
-      firstName,
-      lastName,
-      email: rawEmail,
-      phone,
-      role,
-      hasPassword: !!password,
-      passwordLength: password?.length,
-      district,
-      primarySkill,
-      experience
-    });
+    console.log('[REGISTER] Request received:', { email: email?.toLowerCase(), phone, firstName, role });
 
-    // Validation
-    if (!firstName || !rawEmail || !password || !phone) {
+    // Validation - check all required fields
+    if (!firstName || !email || !password || !phone) {
+      console.log('[REGISTER] Missing required fields:', { 
+        hasFirstName: !!firstName, 
+        hasEmail: !!email, 
+        hasPassword: !!password, 
+        hasPhone: !!phone 
+      });
       return res.status(400).json({
         success: false,
         message: 'First name, email, password, and phone are required'
       });
     }
 
-    // Worker-specific validation
-    if (role === 'worker') {
-      if (!district || !primarySkill || !experience) {
-        return res.status(400).json({
-          success: false,
-          message: 'District, primary skill, and experience are required for workers'
-        });
-      }
-    }
-
-    // Additional password validation
+    // Validate password strength
     if (password.length < 8) {
+      console.log('[REGISTER] Password too short');
       return res.status(400).json({
         success: false,
         message: 'Password must be at least 8 characters long'
       });
     }
 
-    // Normalize email: trim whitespace and convert to lowercase
-    const email = rawEmail.trim().toLowerCase();
+    // Normalize email to lowercase
+    const normalizedEmail = email.toLowerCase().trim();
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ 
-      $or: [{ email }, { phone }] 
-    });
-
-    if (existingUser) {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      console.log('[REGISTER] Invalid email format:', normalizedEmail);
       return res.status(400).json({
         success: false,
-        message: 'User with this email or phone already exists'
+        message: 'Please enter a valid email address'
       });
     }
 
     // Normalize phone number (remove country code and spaces if present)
-    let normalizedPhone = phone;
+    let normalizedPhone = phone.toString().trim();
     if (normalizedPhone.startsWith('+91')) {
       normalizedPhone = normalizedPhone.substring(3).trim();
-    } else if (normalizedPhone.startsWith('91')) {
+    } else if (normalizedPhone.startsWith('91') && normalizedPhone.length > 10) {
       normalizedPhone = normalizedPhone.substring(2).trim();
     }
     // Remove any remaining spaces or special characters
-    normalizedPhone = normalizedPhone.replace(/\s+/g, '');
+    normalizedPhone = normalizedPhone.replace(/[\s\-()]/g, '');
 
-    // Store user data temporarily (don't save to database yet)
-    // Password is stored as plain text here; mongoose pre-save hook will hash it when user.save() is called
-    const pendingUserData: any = {
+    // Validate phone format (10-digit Indian mobile number)
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(normalizedPhone)) {
+      console.log('[REGISTER] Invalid phone format:', normalizedPhone);
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid 10-digit Indian mobile number'
+      });
+    }
+
+    // Check if user already exists in database
+    const existingUser = await User.findOne({ 
+      $or: [{ email: normalizedEmail }, { phone: normalizedPhone }] 
+    });
+
+    if (existingUser) {
+      const isEmailMatch = existingUser.email === normalizedEmail;
+      const isPhoneMatch = existingUser.phone === normalizedPhone;
+      console.log('[REGISTER] User already exists:', { isEmailMatch, isPhoneMatch });
+      return res.status(400).json({
+        success: false,
+        message: isEmailMatch 
+          ? 'An account with this email already exists' 
+          : 'An account with this phone number already exists'
+      });
+    }
+
+    // Check if there's already a pending registration for this email
+    const existingPending = OTPService.getPendingUser(normalizedEmail);
+    if (existingPending) {
+      console.log('[REGISTER] Pending registration exists, updating...');
+      OTPService.removePendingUser(normalizedEmail);
+    }
+
+    // Hash password before storing in pending user data
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Store user data in pending registration (NOT in database yet)
+    // User will be created only after OTP verification
+    const pendingUserData = {
       firstName: firstName.trim(),
-      lastName: (lastName || '').trim(),
-      email, // Already normalized
-      password, // Plain text - will be hashed by mongoose pre-save hook
+      lastName: lastName?.trim() || '',
+      email: normalizedEmail,
+      password: hashedPassword, // Pre-hashed password
       phone: normalizedPhone,
       role,
       address: {
-        city: district || 'Delhi', // Use provided district or default
+        city: district || 'Delhi',
         state: 'Delhi',
         pincode: '110001',
         country: 'India'
@@ -210,32 +236,24 @@ router.post('/register', async (req, res) => {
         sms: true,
         push: true,
         whatsapp: true
-      }
+      },
+      // Worker-specific data
+      workerData: role === 'worker' ? { district, primarySkill, experience } : undefined
     };
 
-    // Store worker-specific fields if role is worker
-    if (role === 'worker') {
-      pendingUserData.workerData = {
-        district,
-        primarySkill,
-        experience
-      };
-    }
-
-    console.log('[REGISTER] Storing pending user data for:', email);
-
-    // Store pending user with email as identifier
-    OTPService.storePendingUser(email, pendingUserData as any);
+    // Store pending user data
+    OTPService.storePendingUser(normalizedEmail, pendingUserData as any);
+    console.log('[REGISTER] Pending user stored for:', normalizedEmail);
 
     // Generate OTP for phone verification
     const phoneOTP = OTPService.generateOTP();
-    // Store OTP with both normalized and original phone format for verification
     OTPService.storeOTP(normalizedPhone, phoneOTP);
-    OTPService.storeOTP(phone, phoneOTP); // Also store with original format
+    console.log('[REGISTER] Phone OTP generated for:', normalizedPhone);
 
     // Generate OTP for email verification
     const emailOTP = OTPService.generateOTP();
-    OTPService.storeOTP(email, emailOTP);
+    OTPService.storeOTP(normalizedEmail, emailOTP);
+    console.log('[REGISTER] Email OTP generated for:', normalizedEmail);
 
     // Send OTP via SMS (if service is configured)
     try {
@@ -519,11 +537,7 @@ router.post('/verify-otp', async (req, res) => {
       }
 
       // Generate JWT token now that user is verified
-      const token = jwt.sign(
-        { userId: user._id, role: user.role },
-        process.env.JWT_SECRET || 'fallback_secret',
-        { expiresIn: '7d' }
-      );
+      const token = generateToken(user);
 
       res.json({
         success: true,
@@ -695,16 +709,13 @@ router.post('/resend-otp', async (req, res) => {
 // Login endpoint
 router.post('/login', async (req, res) => {
   try {
-    const { email: rawEmail, password } = req.body;
+    const { email, password } = req.body;
 
-    console.log('[LOGIN] Attempt received:', {
-      rawEmail,
-      hasPassword: !!password,
-      passwordLength: password?.length
-    });
+    // Debug logging for request
+    console.log('[LOGIN] Request received:', { email: email?.toLowerCase(), hasPassword: !!password });
 
     // Validation
-    if (!rawEmail || !password) {
+    if (!email || !password) {
       console.log('[LOGIN] Missing credentials');
       return res.status(400).json({
         success: false,
@@ -712,47 +723,97 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Normalize email: trim whitespace and convert to lowercase
-    const email = rawEmail.trim().toLowerCase();
-    console.log('[LOGIN] Normalized email:', email);
+    // Normalize email to lowercase for case-insensitive matching
+    const normalizedEmail = email.toLowerCase().trim();
 
     // Find user with password field included
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
+    console.log('[LOGIN] User lookup:', { found: !!user, email: normalizedEmail });
+    
     if (!user) {
-      console.log('[LOGIN] User not found with email:', email);
+      console.log('[LOGIN] User not found for email:', normalizedEmail);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
-    console.log('[LOGIN] User found:', {
-      id: user._id,
-      email: user.email,
-      role: user.role,
-      isEmailVerified: user.isEmailVerified,
-      isPhoneVerified: user.isPhoneVerified,
-      hasPassword: !!user.password,
-      passwordHashLength: user.password?.length,
-      passwordHashPrefix: user.password?.substring(0, 7) // Shows $2a$12$ or similar
-    });
+    // Check if account is blocked
+    if (user.isBlocked) {
+      console.log('[LOGIN] Account blocked:', { userId: user._id, reason: user.blockReason });
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been blocked. Please contact support.'
+      });
+    }
 
-    // Verify password using bcrypt.compare
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    console.log('[LOGIN] Password comparison result:', isPasswordValid);
+    // Check if account is active
+    if (!user.isActive) {
+      console.log('[LOGIN] Account inactive:', { userId: user._id });
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been deactivated. Please contact support.'
+      });
+    }
+
+    // Check account status
+    if (user.accountStatus === 'suspended') {
+      console.log('[LOGIN] Account suspended:', { userId: user._id });
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been suspended. Please contact support.'
+      });
+    }
+
+    // Check if account is locked due to failed attempts
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      const remainingTime = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
+      console.log('[LOGIN] Account locked:', { userId: user._id, remainingMinutes: remainingTime });
+      return res.status(423).json({
+        success: false,
+        message: `Account locked due to too many failed attempts. Try again in ${remainingTime} minutes.`
+      });
+    }
+
+    // Verify password using model method if available, otherwise use bcrypt directly
+    let isPasswordValid = false;
+    if (typeof user.comparePassword === 'function') {
+      isPasswordValid = await user.comparePassword(password);
+    } else {
+      isPasswordValid = await bcrypt.compare(password, user.password);
+    }
+    
+    console.log('[LOGIN] Password verification:', { valid: isPasswordValid, userId: user._id });
     
     if (!isPasswordValid) {
+      // Increment login attempts
+      user.loginAttempts = (user.loginAttempts || 0) + 1;
+      if (user.loginAttempts >= 5) {
+        user.lockUntil = new Date(Date.now() + 2 * 60 * 60 * 1000); // Lock for 2 hours
+        console.log('[LOGIN] Account locked after 5 failed attempts:', { userId: user._id });
+      }
+      await user.save();
+      
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
-    // Check if account is verified (skip for development or admin accounts)
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    const isAdmin = user.role === 'admin';
-    
-    if (!isDevelopment && !isAdmin && (!user.isEmailVerified || !user.isPhoneVerified)) {
+    // Reset login attempts on successful password
+    if (user.loginAttempts > 0 || user.lockUntil) {
+      user.loginAttempts = 0;
+      user.lockUntil = undefined;
+      await user.save();
+    }
+
+    // Check if account is verified (skip for admin users)
+    if (user.role !== 'admin' && (!user.isEmailVerified || !user.isPhoneVerified)) {
+      console.log('[LOGIN] Account not verified:', { 
+        userId: user._id, 
+        isEmailVerified: user.isEmailVerified, 
+        isPhoneVerified: user.isPhoneVerified 
+      });
       return res.status(403).json({
         success: false,
         message: 'Account not verified. Please verify your email and phone number.',
@@ -767,28 +828,49 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Generate JWT token
-    const accessToken = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET || 'fallback_secret',
-      { expiresIn: '7d' }
-    );
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
 
+    // Validate JWT_SECRET before token generation
+    if (!process.env.JWT_SECRET) {
+      console.error('[LOGIN] JWT_SECRET not configured');
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error. Please contact support.'
+      });
+    }
+
+    // Generate access token using centralized function
+    const accessToken = generateToken(user);
+
+    // Generate refresh token using centralized function
+    const refreshToken = generateRefreshToken(user);
+
+    console.log('[LOGIN] Success:', { userId: user._id, role: user.role });
+
+    // Response structure matches what frontend expects: data.user and data.tokens.accessToken
     res.status(200).json({
       success: true,
       message: 'Login successful',
       data: {
         user: {
           id: user._id,
+          _id: user._id,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
           phone: user.phone,
-          role: user.role
+          role: user.role,
+          avatar: user.avatar,
+          isEmailVerified: user.isEmailVerified,
+          isPhoneVerified: user.isPhoneVerified
         },
         tokens: {
-          accessToken: accessToken
-        }
+          accessToken,
+          refreshToken
+        },
+        token: accessToken // Backward compatibility
       }
     });
 
@@ -883,154 +965,6 @@ router.post('/send-otp', authMiddleware, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to send OTP'
-    });
-  }
-});
-
-// Verify OTP
-router.post('/verify-otp', authMiddleware, async (req, res) => {
-  try {
-    const { otp } = req.body;
-    const userId = req.user.id;
-
-    if (!otp) {
-      return res.status(400).json({
-        success: false,
-        message: 'OTP is required'
-      });
-    }
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    // Check if OTP exists and is not expired
-    if (!user.phoneVerificationOTP || !user.otpExpiry) {
-      return res.status(400).json({
-        success: false,
-        message: 'No OTP found. Please request a new OTP.'
-      });
-    }
-
-    if (user.otpExpiry < new Date()) {
-      return res.status(400).json({
-        success: false,
-        message: 'OTP has expired. Please request a new OTP.'
-      });
-    }
-
-    // Verify OTP
-    if (user.phoneVerificationOTP !== otp) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid OTP. Please check and try again.'
-      });
-    }
-
-    // Mark phone as verified and clear OTP
-    await User.findByIdAndUpdate(userId, {
-      isPhoneVerified: true,
-      $unset: {
-        phoneVerificationOTP: 1,
-        otpExpiry: 1
-      }
-    });
-
-    res.json({
-      success: true,
-      message: 'Phone number verified successfully',
-      data: {
-        isPhoneVerified: true
-      }
-    });
-
-  } catch (error) {
-    console.error('Verify OTP error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to verify OTP'
-    });
-  }
-});
-
-// Resend OTP
-router.post('/resend-otp', authMiddleware, async (req, res) => {
-  try {
-    const { type = 'both' } = req.body;
-    const userId = req.user.id;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    // Check if user already verified
-    if (user.isPhoneVerified) {
-      return res.status(400).json({
-        success: false,
-        message: 'Phone number is already verified'
-      });
-    }
-
-    // Generate new OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Update user with new OTP
-    await User.findByIdAndUpdate(userId, {
-      phoneVerificationOTP: otp,
-      otpExpiry: otpExpiry
-    });
-
-    const promises = [];
-
-    // Send SMS OTP if requested
-    if (type === 'phone' || type === 'both') {
-      const smsMessage = `Your Nagrik Sewa verification code is: ${otp}. This code will expire in 10 minutes.`;
-      promises.push(sendSMS({ to: user.phone, message: smsMessage }));
-    }
-
-    // Send Email OTP if requested
-    if (type === 'email' || type === 'both') {
-      promises.push(
-        sendEmail({
-          to: user.email,
-          subject: 'Nagrik Sewa Verification Code (Resent)',
-          template: 'email-otp',
-          data: {
-            name: user.firstName,
-            otp: otp
-          }
-        })
-      );
-    }
-
-    await Promise.all(promises);
-
-    res.json({
-      success: true,
-      message: `New OTP sent successfully to ${type === 'both' ? 'phone and email' : type}`,
-      data: {
-        expiresAt: otpExpiry,
-        sentTo: {
-          phone: type === 'phone' || type === 'both',
-          email: type === 'email' || type === 'both'
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Resend OTP error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to resend OTP'
     });
   }
 });
