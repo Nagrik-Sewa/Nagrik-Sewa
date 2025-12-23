@@ -16,8 +16,15 @@ router.post('/register-admin', async (req, res) => {
   try {
     const { email, password, firstName, lastName, phone } = req.body;
 
+    console.log('[ADMIN-REGISTER] Request received:', { email });
+
     // Security: Only allow specific admin email
+<<<<<<< HEAD
     if (email !== 'admin@nagriksewa.co.in') {
+=======
+    if (email !== 'pushkarkumarsaini2006@gmail.com') {
+      console.log('[ADMIN-REGISTER] Unauthorized attempt:', { email });
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
       return res.status(403).json({
         success: false,
         message: 'Unauthorized admin registration attempt'
@@ -25,16 +32,16 @@ router.post('/register-admin', async (req, res) => {
     }
 
     // Check if admin already exists
-    const existingAdmin = await User.findOne({ email });
+    const existingAdmin = await User.findOne({ email: email.toLowerCase() });
     if (existingAdmin) {
+      console.log('[ADMIN-REGISTER] Admin already exists');
       return res.status(400).json({
         success: false,
         message: 'Admin already exists'
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // NOTE: Do NOT hash password here - the User model pre-save hook handles hashing
 
     // Normalize phone number (remove country code if present)
     let normalizedPhone = phone || '9999999999';
@@ -44,12 +51,17 @@ router.post('/register-admin', async (req, res) => {
       normalizedPhone = normalizedPhone.substring(2);
     }
 
-    // Create admin user
+    // Create admin user - password will be hashed by model's pre-save middleware
     const admin = new User({
       firstName: firstName || 'Pushkar',
       lastName: lastName || 'Saini',
+<<<<<<< HEAD
       email: 'admin@nagriksewa.co.in',
       password: hashedPassword,
+=======
+      email: 'pushkarkumarsaini2006@gmail.com',
+      password, // Plain password - model will hash it
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
       phone: normalizedPhone, // 10-digit phone number
       role: 'admin',
       address: {
@@ -74,12 +86,13 @@ router.post('/register-admin', async (req, res) => {
     });
 
     await admin.save();
+    console.log('[ADMIN-REGISTER] Admin created successfully:', { userId: admin._id });
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: admin._id, role: admin.role },
+      { userId: admin._id, email: admin.email, role: admin.role },
       process.env.JWT_SECRET || 'fallback_secret',
-      { expiresIn: '7d' }
+      { expiresIn: '7d', issuer: 'nagrik-sewa', audience: 'nagrik-sewa-users' }
     );
 
     res.status(201).json({
@@ -138,14 +151,22 @@ router.post('/register', async (req, res) => {
       experience
     });
 
+    console.log('[REGISTER] Request received:', { email: email?.toLowerCase(), phone, firstName, role });
+
     // Validation
+<<<<<<< HEAD
     if (!firstName || !rawEmail || !password || !phone) {
+=======
+    if (!firstName || !email || !password || !phone) {
+      console.log('[REGISTER] Missing required fields');
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
       return res.status(400).json({
         success: false,
         message: 'First name, email, password, and phone are required'
       });
     }
 
+<<<<<<< HEAD
     // Worker-specific validation
     if (role === 'worker') {
       if (!district || !primarySkill || !experience) {
@@ -166,19 +187,33 @@ router.post('/register', async (req, res) => {
 
     // Normalize email: trim whitespace and convert to lowercase
     const email = rawEmail.trim().toLowerCase();
+=======
+    // Normalize email to lowercase
+    const normalizedEmail = email.toLowerCase().trim();
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
 
     // Check if user already exists
     const existingUser = await User.findOne({ 
-      $or: [{ email }, { phone }] 
+      $or: [{ email: normalizedEmail }, { phone }] 
     });
 
     if (existingUser) {
+      console.log('[REGISTER] User already exists:', { 
+        emailMatch: existingUser.email === normalizedEmail, 
+        phoneMatch: existingUser.phone === phone 
+      });
       return res.status(400).json({
         success: false,
         message: 'User with this email or phone already exists'
       });
     }
 
+<<<<<<< HEAD
+=======
+    // NOTE: Do NOT hash password here - the User model pre-save hook handles hashing
+    // Passing plain password and letting the model hash it ensures single hashing
+
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
     // Normalize phone number (remove country code and spaces if present)
     let normalizedPhone = phone;
     if (normalizedPhone.startsWith('+91')) {
@@ -189,6 +224,7 @@ router.post('/register', async (req, res) => {
     // Remove any remaining spaces or special characters
     normalizedPhone = normalizedPhone.replace(/\s+/g, '');
 
+<<<<<<< HEAD
     // Store user data temporarily (don't save to database yet)
     // Password is stored as plain text here; mongoose pre-save hook will hash it when user.save() is called
     const pendingUserData: any = {
@@ -196,6 +232,15 @@ router.post('/register', async (req, res) => {
       lastName: (lastName || '').trim(),
       email, // Already normalized
       password, // Plain text - will be hashed by mongoose pre-save hook
+=======
+    // Create user with required address object but mark as unverified
+    // Password will be hashed by the model's pre-save middleware
+    const user = new User({
+      firstName,
+      lastName: lastName || '',
+      email: normalizedEmail,
+      password, // Plain password - model will hash it
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
       phone: normalizedPhone,
       role,
       address: {
@@ -213,6 +258,7 @@ router.post('/register', async (req, res) => {
       }
     };
 
+<<<<<<< HEAD
     // Store worker-specific fields if role is worker
     if (role === 'worker') {
       pendingUserData.workerData = {
@@ -226,6 +272,10 @@ router.post('/register', async (req, res) => {
 
     // Store pending user with email as identifier
     OTPService.storePendingUser(email, pendingUserData as any);
+=======
+    await user.save();
+    console.log('[REGISTER] User created:', { userId: user._id, email: normalizedEmail });
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
 
     // Generate OTP for phone verification
     const phoneOTP = OTPService.generateOTP();
@@ -235,7 +285,7 @@ router.post('/register', async (req, res) => {
 
     // Generate OTP for email verification
     const emailOTP = OTPService.generateOTP();
-    OTPService.storeOTP(email, emailOTP);
+    OTPService.storeOTP(normalizedEmail, emailOTP);
 
     // Send OTP via SMS (if service is configured)
     try {
@@ -703,8 +753,15 @@ router.post('/login', async (req, res) => {
       passwordLength: password?.length
     });
 
+    // Debug logging for request
+    console.log('[LOGIN] Request received:', { email: email?.toLowerCase(), hasPassword: !!password });
+
     // Validation
+<<<<<<< HEAD
     if (!rawEmail || !password) {
+=======
+    if (!email || !password) {
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
       console.log('[LOGIN] Missing credentials');
       return res.status(400).json({
         success: false,
@@ -712,20 +769,32 @@ router.post('/login', async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
     // Normalize email: trim whitespace and convert to lowercase
     const email = rawEmail.trim().toLowerCase();
     console.log('[LOGIN] Normalized email:', email);
+=======
+    // Normalize email to lowercase for case-insensitive matching
+    const normalizedEmail = email.toLowerCase().trim();
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
 
     // Find user with password field included
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
+    console.log('[LOGIN] User lookup:', { found: !!user, email: normalizedEmail });
+    
     if (!user) {
+<<<<<<< HEAD
       console.log('[LOGIN] User not found with email:', email);
+=======
+      console.log('[LOGIN] User not found for email:', normalizedEmail);
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
+<<<<<<< HEAD
     console.log('[LOGIN] User found:', {
       id: user._id,
       email: user.email,
@@ -740,19 +809,92 @@ router.post('/login', async (req, res) => {
     // Verify password using bcrypt.compare
     const isPasswordValid = await bcrypt.compare(password, user.password);
     console.log('[LOGIN] Password comparison result:', isPasswordValid);
+=======
+    // Check if account is blocked
+    if (user.isBlocked) {
+      console.log('[LOGIN] Account blocked:', { userId: user._id, reason: user.blockReason });
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been blocked. Please contact support.'
+      });
+    }
+
+    // Check if account is active
+    if (!user.isActive) {
+      console.log('[LOGIN] Account inactive:', { userId: user._id });
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been deactivated. Please contact support.'
+      });
+    }
+
+    // Check account status
+    if (user.accountStatus === 'suspended') {
+      console.log('[LOGIN] Account suspended:', { userId: user._id });
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been suspended. Please contact support.'
+      });
+    }
+
+    // Check if account is locked due to failed attempts
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      const remainingTime = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
+      console.log('[LOGIN] Account locked:', { userId: user._id, remainingMinutes: remainingTime });
+      return res.status(423).json({
+        success: false,
+        message: `Account locked due to too many failed attempts. Try again in ${remainingTime} minutes.`
+      });
+    }
+
+    // Verify password using model method if available, otherwise use bcrypt directly
+    let isPasswordValid = false;
+    if (typeof user.comparePassword === 'function') {
+      isPasswordValid = await user.comparePassword(password);
+    } else {
+      isPasswordValid = await bcrypt.compare(password, user.password);
+    }
+    
+    console.log('[LOGIN] Password verification:', { valid: isPasswordValid, userId: user._id });
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
     
     if (!isPasswordValid) {
+      // Increment login attempts
+      user.loginAttempts = (user.loginAttempts || 0) + 1;
+      if (user.loginAttempts >= 5) {
+        user.lockUntil = new Date(Date.now() + 2 * 60 * 60 * 1000); // Lock for 2 hours
+        console.log('[LOGIN] Account locked after 5 failed attempts:', { userId: user._id });
+      }
+      await user.save();
+      
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
+<<<<<<< HEAD
     // Check if account is verified (skip for development or admin accounts)
     const isDevelopment = process.env.NODE_ENV === 'development';
     const isAdmin = user.role === 'admin';
     
     if (!isDevelopment && !isAdmin && (!user.isEmailVerified || !user.isPhoneVerified)) {
+=======
+    // Reset login attempts on successful password
+    if (user.loginAttempts > 0 || user.lockUntil) {
+      user.loginAttempts = 0;
+      user.lockUntil = undefined;
+      await user.save();
+    }
+
+    // Check if account is verified (skip for admin users)
+    if (user.role !== 'admin' && (!user.isEmailVerified || !user.isPhoneVerified)) {
+      console.log('[LOGIN] Account not verified:', { 
+        userId: user._id, 
+        isEmailVerified: user.isEmailVerified, 
+        isPhoneVerified: user.isPhoneVerified 
+      });
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
       return res.status(403).json({
         success: false,
         message: 'Account not verified. Please verify your email and phone number.',
@@ -767,28 +909,59 @@ router.post('/login', async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
     // Generate JWT token
     const accessToken = jwt.sign(
       { userId: user._id, role: user.role },
+=======
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Generate access token
+    const accessToken = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
       process.env.JWT_SECRET || 'fallback_secret',
-      { expiresIn: '7d' }
+      { expiresIn: '7d', issuer: 'nagrik-sewa', audience: 'nagrik-sewa-users' }
     );
 
+    // Generate refresh token
+    const refreshToken = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '30d', issuer: 'nagrik-sewa', audience: 'nagrik-sewa-refresh' }
+    );
+
+    console.log('[LOGIN] Success:', { userId: user._id, role: user.role });
+
+    // Response structure matches what frontend expects: data.user and data.tokens.accessToken
     res.status(200).json({
       success: true,
       message: 'Login successful',
       data: {
         user: {
           id: user._id,
+          _id: user._id,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
           phone: user.phone,
-          role: user.role
+          role: user.role,
+          avatar: user.avatar,
+          isEmailVerified: user.isEmailVerified,
+          isPhoneVerified: user.isPhoneVerified
         },
         tokens: {
+<<<<<<< HEAD
           accessToken: accessToken
         }
+=======
+          accessToken,
+          refreshToken
+        },
+        token: accessToken // Backward compatibility
+>>>>>>> de4f2a1 (added social media links and fixed login functionality)
       }
     });
 

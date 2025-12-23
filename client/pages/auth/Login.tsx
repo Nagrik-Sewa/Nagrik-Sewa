@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,19 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { GoogleLoginButton } from '@/components/GoogleLoginButton';
 
+// Role-based dashboard routes
+const getDashboardByRole = (role: string): string => {
+  switch (role) {
+    case 'admin':
+      return '/admin'; // Admin dashboard route
+    case 'worker':
+      return '/dashboard'; // Workers use same dashboard for now
+    case 'customer':
+    default:
+      return '/dashboard';
+  }
+};
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,35 +30,16 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const location = useLocation();
-  const navigate = useNavigate();
 
-  // Get the intended destination or default to dashboard
   const from = location.state?.from?.pathname || '/dashboard';
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      console.log('[Login] Already authenticated, redirecting to:', from);
-      navigate(from, { replace: true });
-    }
-  }, [isAuthenticated, authLoading, navigate, from]);
-
-  // Show loading while checking auth state
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // If already authenticated, show nothing (will redirect via useEffect)
-  if (isAuthenticated) {
-    return null;
-  }
+  // Temporarily disable auto-redirect for testing
+  // if (isAuthenticated) {
+  //   return <Navigate to={from} replace />;
+  // }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,15 +55,9 @@ const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      console.log('[Login] Login successful, navigating to:', from);
-      // Navigate to dashboard (or the page they were trying to access)
-      navigate(from, { replace: true });
     } catch (err: any) {
-      console.error('[Login] Login failed:', err.response?.data?.message || err.message);
-      
-      // Show user-friendly error message
-      const errorMessage = err.response?.data?.message || 'Invalid email or password';
-      setError(errorMessage);
+      setError(err.response?.data?.message || 'Login failed');
+    } finally {
       setIsLoading(false);
       
       // Auto-clear error after 5 seconds

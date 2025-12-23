@@ -3,6 +3,7 @@ import { api } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
 interface User {
+  id?: string;
   _id: string;
   firstName: string;
   lastName: string;
@@ -27,7 +28,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   register: (data: RegisterData) => Promise<any>;
   verifyOTP: (email: string, phoneOTP?: string, emailOTP?: string) => Promise<any>;
   logout: () => void;
@@ -74,36 +75,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      // Normalize email on frontend as well
-      const normalizedEmail = email.trim().toLowerCase();
-      
-      console.log('=== AUTHCONTEXT: Starting login request ===');
-      console.log('Email (normalized):', normalizedEmail);
-      console.log('API Base URL:', api.defaults.baseURL);
-      const response = await api.post('/auth/login', { email: normalizedEmail, password });
-      console.log('=== AUTHCONTEXT: Login response received ===');
-      console.log('Response status:', response.status);
-      console.log('Response data:', response.data);
+      const response = await api.post('/auth/login', { email, password });
+      console.log('Login response:', response.data);
       
       // Handle the correct response structure from server
-      const { user, tokens } = response.data.data;
-      const token = tokens.accessToken;
+      const { user, tokens, token } = response.data.data;
+      // Use tokens.accessToken if available, fallback to token for backward compatibility
+      const accessToken = tokens?.accessToken || token;
       
-      localStorage.setItem('authToken', token);
+      if (!accessToken) {
+        throw new Error('No access token in response');
+      }
+      
+      localStorage.setItem('authToken', accessToken);
       setUser(user);
+      
+      console.log('[AUTH] Login successful:', { userId: user.id, role: user.role });
       
       toast({
         title: "Welcome back!",
         description: `Logged in successfully as ${user.firstName}`,
       });
-    } catch (error: any) {
-      console.error('=== AUTHCONTEXT: Login error ===');
-      console.error('Error object:', error);
-      console.error('Error response:', error.response);
-      console.error('Response status:', error.response?.status);
-      console.error('Response data:', error.response?.data);
-      console.error('Error message:', error.message);
       
+      // Return user for role-based redirect handling
+      return user;
+    } catch (error: any) {
+      console.error('Login error:', error);
       const message = error.response?.data?.message || 'Login failed';
       toast({
         title: "Login failed",
@@ -242,8 +239,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshUser = async () => {
     try {
       const response = await api.get('/auth/me');
-      setUser(response.data.user);
+      // Handle correct response structure: response.data.data.user
+      const userData = response.data.data?.user || response.data.user;
+      if (userData) {
+        setUser(userData);
+      } else {
+        console.error('[AUTH] Invalid user data in refresh response');
+        logout();
+      }
     } catch (error) {
+      console.error('[AUTH] Failed to refresh user:', error);
       logout();
     }
   };

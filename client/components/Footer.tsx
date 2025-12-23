@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { 
-  Facebook, 
+  Linkedin, 
   Instagram, 
   Mail,
   Phone,
@@ -17,17 +17,12 @@ import { CONTACT_INFO, makePhoneCall, sendEmail } from "../constants/contact";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePlatformStats } from "@/hooks/use-platform-stats";
 
-// Custom X (formerly Twitter) logo component
-const XLogo = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    className={className}
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-  </svg>
-);
+// Social media links
+const SOCIAL_LINKS = {
+  instagram: "https://www.instagram.com/nagriksewa.co.in?igsh=b2o1Y2J6d21sbGtk",
+  linkedin: "https://www.linkedin.com/in/nagrik-sewa-972038395?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
+  youtube: "https://youtube.com/@nagriksewaconnect?si=qekNkPBm9Hyf6H99"
+};
 
 export function Footer() {
   const { t } = useLanguage();
@@ -104,14 +99,26 @@ export function Footer() {
                 {t("footer.companyDescription")}
               </p>
               <div className="flex space-x-3">
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-500 hover:bg-transparent">
-                  <Facebook className="w-5 h-5" />
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-transparent">
-                  <XLogo className="w-5 h-5" />
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-pink-500 hover:bg-transparent">
+                <a 
+                  href={SOCIAL_LINKS.linkedin} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-blue-500 transition-colors p-2"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <a 
+                  href={SOCIAL_LINKS.instagram} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-pink-500 transition-colors p-2"
+                  aria-label="Instagram"
+                >
                   <Instagram className="w-5 h-5" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-500 hover:bg-transparent">
+                  <Youtube className="w-5 h-5" />
                 </Button>
               </div>
             </div>

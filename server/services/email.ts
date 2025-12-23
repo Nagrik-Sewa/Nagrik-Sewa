@@ -84,6 +84,15 @@ const getEmailTemplate = (template: string, data: any) => {
                         ⏱️ <strong>Important:</strong> This verification link will expire in 24 hours.
                       </p>
                     </div>
+                    <!-- Help Getting Started Section -->
+                    <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #138808; border-radius: 8px;">
+                      <p style="margin: 0 0 8px 0; color: #14532d; font-size: 14px; font-weight: 600;">
+                        📞 Need Help Getting Started?
+                      </p>
+                      <p style="margin: 0; color: #14532d; font-size: 13px;">
+                        Call us at <strong>79834 54047</strong> - We're here to help you!
+                      </p>
+                    </div>
                   </td>
                 </tr>
                 <!-- Footer -->
