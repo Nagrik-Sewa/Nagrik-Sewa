@@ -12,15 +12,23 @@ export interface EmailOptions {
 }
 
 // Nodemailer transporter for production emails
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+let transporter: nodemailer.Transporter | null = null;
+
+const createTransporter = () => {
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    return nodemailer.createTransport({
+      service: 'gmail', // Use Gmail service directly
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+  }
+  return null;
+};
+
+// Initialize transporter
+transporter = createTransporter();
 
 // Email templates
 const getEmailTemplate = (template: string, data: any) => {
@@ -481,9 +489,11 @@ export const sendEmail = async (options: EmailOptions): Promise<{ success: boole
     }
 
     // Try Nodemailer first (production)
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    if (transporter && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      console.log('📧 Attempting to send email via Nodemailer to:', options.to);
+      
       const info = await transporter.sendMail({
-        from: process.env.EMAIL_FROM || '"Nagrik Sewa" <noreply@nagriksewa.com>',
+        from: process.env.EMAIL_FROM || `"Nagrik Sewa" <${process.env.EMAIL_USER}>`,
         to: options.to,
         subject: options.subject,
         text: options.text,

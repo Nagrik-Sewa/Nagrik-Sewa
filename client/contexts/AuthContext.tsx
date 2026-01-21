@@ -14,6 +14,7 @@ interface User {
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
   isDigiLockerVerified?: boolean;
+  isSystemAdmin?: boolean; // Flag for hardcoded admin
   preferences?: {
     language: string;
     notifications: {
@@ -28,9 +29,11 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isAdmin: boolean; // Helper to check if user is admin
   login: (email: string, password: string) => Promise<User>;
   register: (data: RegisterData) => Promise<any>;
-  verifyOTP: (email: string, phoneOTP?: string, emailOTP?: string) => Promise<any>;
+  verifyOTP: (phone: string, otp: string) => Promise<any>;
+  sendOTP: (phone: string) => Promise<any>;
   logout: () => void;
   updateUser: (data: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -52,6 +55,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   const isAuthenticated = !!user;
+  
+  // ============================================================================
+  // ADMIN CHECK HELPER
+  // Returns true if user is admin (either hardcoded or database admin)
+  // ============================================================================
+  const isAdmin = user?.role === 'admin' || user?.isSystemAdmin === true;
 
   // Initialize auth state
   useEffect(() => {
@@ -126,16 +135,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await api.post('/auth/register', normalizedData);
       console.log('Registration response:', response.data);
       
-      // Registration returns email and requires OTP verification
-      // Don't set user/token yet - need OTP verification first
-      const { email, requiresVerification } = response.data.data;
+      // ========================================================================
+      // DO NOT AUTO-LOGIN - Wait for OTP verification
+      // The token is NOT stored here. User must verify OTP first.
+      // ========================================================================
       
       toast({
-        title: "Registration Initiated! 🇮🇳",
-        description: "Verification codes sent to your phone and email. Please check and verify to complete registration.",
+        title: "Registration Successful!",
+        description: "Please verify your phone number with the OTP sent to complete registration.",
       });
 
-      // Return the response so the component can handle OTP verification
+      // Return the response for the component to handle OTP verification
       return response.data;
     } catch (error: any) {
       console.error('Registration failed:', error);
@@ -150,58 +160,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const verifyOTP = async (email: string, phoneOTP?: string, emailOTP?: string) => {
+  // ============================================================================
+  // OTP VERIFICATION FUNCTIONS
+  // ============================================================================
+  
+  const sendOTP = async (phone: string) => {
     try {
-      // Normalize email and OTP values
-      const normalizedEmail = email.trim().toLowerCase();
-      const cleanPhoneOTP = phoneOTP?.trim();
-      const cleanEmailOTP = emailOTP?.trim();
-      
-      console.log('Verifying OTP for:', normalizedEmail);
-      const response = await api.post('/auth/verify-otp', { 
-        email: normalizedEmail, 
-        phoneOTP: cleanPhoneOTP, 
-        emailOTP: cleanEmailOTP 
+      const response = await api.post('/auth/send-otp', { phone });
+      toast({
+        title: "OTP Sent",
+        description: "Verification code sent to your phone",
       });
-      console.log('OTP verification response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to send OTP';
+      toast({
+        title: "Failed to send OTP",
+        description: message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const verifyOTP = async (phone: string, otp: string) => {
+    try {
+      const response = await api.post('/auth/verify-otp', { phone, otp });
+      const { user: verifiedUser, tokens } = response.data.data;
       
-      // If verification is complete, user gets token and is logged in
-      if (response.data.data.token) {
-        const { user, token } = response.data.data;
-        localStorage.setItem('authToken', token);
-        setUser(user);
+      if (tokens?.accessToken) {
+        localStorage.setItem('authToken', tokens.accessToken);
+        setUser(verifiedUser);
         
         toast({
-          title: "Welcome to Nagrik Sewa! 🇮🇳",
-          description: `Account verified successfully! Welcome ${user.firstName}. You are now logged in.`,
-        });
-      } else {
-        // Partial verification
-        toast({
-          title: "Partial Verification Complete",
-          description: response.data.message,
+          title: "Verified!",
+          description: "Your phone number has been verified successfully.",
         });
       }
       
       return response.data;
     } catch (error: any) {
-      console.error('OTP verification failed:', error);
       const message = error.response?.data?.message || 'OTP verification failed';
-      const errorCode = error.response?.data?.errorCode;
-      
-      // Provide more specific error messages
-      let description = message;
-      if (errorCode === 'SESSION_EXPIRED') {
-        description = 'Your registration session has expired. Please register again.';
-      } else if (error.response?.status === 500) {
-        description = 'Server error occurred. Please try again or contact support.';
-      }
-      
       toast({
         title: "Verification failed",
-        description: description,
+        description: message,
         variant: "destructive",
-        duration: 5000,
       });
       throw error;
     }
@@ -257,9 +260,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     isLoading,
     isAuthenticated,
+    isAdmin,
     login,
     register,
     verifyOTP,
+    sendOTP,
     logout,
     updateUser,
     refreshUser,

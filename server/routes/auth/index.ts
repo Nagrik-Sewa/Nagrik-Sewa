@@ -42,7 +42,7 @@ router.post('/register', validateInput(schemas.register), async (req: Request, r
       return;
     }
 
-    // Create new user (with email automatically verified for testing)
+    // Create new user - NOT verified yet, requires email OTP verification
     const user = new User({
       email,
       phone,
@@ -51,11 +51,11 @@ router.post('/register', validateInput(schemas.register), async (req: Request, r
       lastName,
       role,
       address,
-      isEmailVerified: true, // Auto-verify for testing
-      emailVerifiedAt: new Date() // Set verification timestamp
+      isEmailVerified: false, // Requires email OTP verification
     });
 
-    // Skip email verification token generation for testing
+    // Generate email OTP
+    const emailOTP = user.generateEmailOTP();
     await user.save();
 
     // If worker role, create worker profile
@@ -67,24 +67,38 @@ router.post('/register', validateInput(schemas.register), async (req: Request, r
         skills: [],
         serviceCategories: [],
         serviceAreas: [{
-          city: address.city,
-          state: address.state,
+          city: address?.city || 'Unknown',
+          state: address?.state || 'Unknown',
           radius: 10
         }]
       });
       await workerProfile.save();
     }
 
-    // Skip verification email for testing - email is auto-verified
-    console.log('📧 Email verification skipped for testing - user auto-verified');
+    // Send verification email with OTP
+    try {
+      const emailResult = await sendEmail({
+        to: email,
+        subject: 'Verify Your Email - Nagrik Sewa',
+        template: 'email-otp',
+        data: {
+          name: firstName,
+          otp: emailOTP,
+          expiresIn: '10 minutes'
+        }
+      });
+      console.log('📧 Email OTP sent to:', email, '| OTP:', emailOTP);
+      console.log('📧 Email result:', emailResult);
+    } catch (emailError) {
+      console.error('❌ Failed to send email OTP:', emailError);
+      console.log('🔑 OTP for manual verification:', emailOTP);
+      // Continue registration even if email fails
+    }
 
-    // Generate tokens
-    const accessToken = generateToken(user);
-    const refreshToken = generateRefreshToken(user);
-
+    // DO NOT generate tokens yet - user must verify email first
     res.status(201).json({
       success: true,
-      message: 'User registered successfully. Email auto-verified for testing.',
+      message: 'Registration successful. Please verify your email with the OTP sent.',
       data: {
         user: {
           id: user._id,
@@ -96,10 +110,7 @@ router.post('/register', validateInput(schemas.register), async (req: Request, r
           isEmailVerified: user.isEmailVerified,
           isPhoneVerified: user.isPhoneVerified
         },
-        tokens: {
-          accessToken,
-          refreshToken
-        }
+        requiresVerification: true
       }
     });
   } catch (error) {
@@ -107,6 +118,170 @@ router.post('/register', validateInput(schemas.register), async (req: Request, r
     res.status(500).json({
       success: false,
       message: 'Registration failed'
+    });
+  }
+});
+
+// Verify Email OTP
+router.post('/verify-email-otp', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email: rawEmail, otp } = req.body;
+    const email = rawEmail?.trim().toLowerCase();
+
+    if (!email || !otp) {
+      res.status(400).json({
+        success: false,
+        message: 'Email and OTP are required'
+      });
+      return;
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+      return;
+    }
+
+    // Check if already verified
+    if (user.isEmailVerified) {
+      res.status(400).json({
+        success: false,
+        message: 'Email is already verified'
+      });
+      return;
+    }
+
+    // Check if OTP matches and is not expired
+    if (!user.emailVerificationOTP || user.emailVerificationOTP !== otp) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid OTP'
+      });
+      return;
+    }
+
+    if (!user.emailOTPExpiry || user.emailOTPExpiry < new Date()) {
+      res.status(400).json({
+        success: false,
+        message: 'OTP has expired. Please request a new one.'
+      });
+      return;
+    }
+
+    // Mark email as verified and clear OTP
+    user.isEmailVerified = true;
+    user.emailVerificationOTP = undefined;
+    user.emailOTPExpiry = undefined;
+    await user.save();
+
+    // Generate tokens after successful verification
+    const accessToken = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully',
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          phone: user.phone,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          isEmailVerified: user.isEmailVerified,
+          isPhoneVerified: user.isPhoneVerified,
+          avatar: user.avatar
+        },
+        token: accessToken,
+        tokens: {
+          accessToken,
+          refreshToken
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Email OTP verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Verification failed'
+    });
+  }
+});
+
+// Resend Email OTP
+router.post('/resend-email-otp', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email: rawEmail } = req.body;
+    const email = rawEmail?.trim().toLowerCase();
+
+    if (!email) {
+      res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+      return;
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+      return;
+    }
+
+    if (user.isEmailVerified) {
+      res.status(400).json({
+        success: false,
+        message: 'Email is already verified'
+      });
+      return;
+    }
+
+    // Generate new OTP
+    const emailOTP = user.generateEmailOTP();
+    await user.save();
+
+    // Send verification email with OTP
+    try {
+      const emailResult = await sendEmail({
+        to: email,
+        subject: 'Your Verification Code - Nagrik Sewa',
+        template: 'email-otp',
+        data: {
+          name: user.firstName,
+          otp: emailOTP,
+          expiresIn: '10 minutes'
+        }
+      });
+      console.log('📧 Email OTP resent to:', email, '| OTP:', emailOTP);
+      console.log('📧 Email result:', emailResult);
+    } catch (emailError) {
+      console.error('❌ Failed to resend email OTP:', emailError);
+      console.log('🔑 OTP for manual verification:', emailOTP);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send OTP. Please try again.'
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      message: 'OTP sent successfully to your email'
+    });
+  } catch (error) {
+    console.error('Resend email OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to resend OTP'
     });
   }
 });

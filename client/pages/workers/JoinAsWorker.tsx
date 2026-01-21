@@ -308,15 +308,18 @@ export default function JoinAsWorker() {
 
       console.log('Submitting worker registration:', registrationData);
       
-      // Register the worker - this will send OTP to email and phone
+      // Register and show OTP verification
       const response = await register(registrationData);
       
-      // Store email and phone for OTP verification
+      // Show OTP verification step
       setRegistrationEmail(formData.email);
       setRegistrationPhone(formData.phone);
-      
-      // Show OTP verification screen
       setShowOTPVerification(true);
+      
+      toast({
+        title: "OTP Sent!",
+        description: "Please verify your phone number to complete registration.",
+      });
       
     } catch (error: any) {
       console.error('Worker registration failed:', error);
@@ -330,22 +333,19 @@ export default function JoinAsWorker() {
     }
   };
 
+  // Handle OTP verification completion
   const handleVerificationComplete = () => {
     toast({
       title: "Welcome to Nagrik Sewa!",
-      description: "Your worker account has been created successfully. Redirecting to dashboard...",
+      description: "Your worker account has been verified successfully.",
     });
-    
-    // Redirect to dashboard after a short delay
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 2000);
+    navigate('/dashboard');
   };
 
-  // Show OTP verification if registration was successful
+  // Show OTP verification step if registration was successful
   if (showOTPVerification) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
         <OTPVerification
           email={registrationEmail}
           phone={registrationPhone}

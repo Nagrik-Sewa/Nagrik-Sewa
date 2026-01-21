@@ -6,13 +6,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: 'customer' | 'worker' | 'admin';
+  adminOnly?: boolean; // New prop for admin-only routes
 }
 
+// ============================================================================
+// PROTECTED ROUTE COMPONENT
+// Updated to support admin role checks and hardcoded admin
+// ============================================================================
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  requiredRole 
+  requiredRole,
+  adminOnly = false
 }) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, isAdmin } = useAuth();
   const location = useLocation();
 
   // Show loading skeleton while checking auth state
@@ -35,8 +41,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // ============================================================================
+  // ADMIN ACCESS CHECK
+  // Ensures normal users cannot access admin portal directly
+  // ============================================================================
+  if (adminOnly && !isAdmin) {
+    console.log('[ProtectedRoute] Admin access required, user is not admin');
+    return <Navigate to="/dashboard" replace />;
+  }
+
   // Check role-based access if required
-  if (requiredRole && user?.role !== requiredRole) {
+  // Admin users can access any role-specific route
+  if (requiredRole && user?.role !== requiredRole && !isAdmin) {
     console.log('[ProtectedRoute] Role mismatch, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }

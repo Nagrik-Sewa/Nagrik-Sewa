@@ -6,16 +6,51 @@ import { User } from '../models/User';
 import { WorkerProfile } from '../models/WorkerProfile';
 import { authenticate as authMiddleware, generateToken, generateRefreshToken } from '../middleware/auth';
 import { sendEmail } from '../services/email';
-import { sendSMS } from '../services/sms';
-import { OTPService, PendingUserData } from '../services/otp';
+// OTP Service removed - OTP verification disabled
+// import { sendSMS } from '../services/sms';
+// import { OTPService, PendingUserData } from '../services/otp';
 
 const router = express.Router();
+
+// ============================================================================
+// HARDCODED ADMIN CREDENTIALS
+// Special admin login - bypasses normal authentication
+// This admin account has direct access to the Admin Portal
+// ============================================================================
+const HARDCODED_ADMIN = {
+  email: 'admin@nagriksewa.co.in',
+  password: 'Developer@NagrikSewa1536',
+  role: 'admin' as const,
+  firstName: 'System',
+  lastName: 'Administrator',
+  isSystemAdmin: true // Flag to identify hardcoded admin
+};
 
 // Validate JWT_SECRET at startup
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   console.error('❌ WARNING: JWT_SECRET not set in environment variables');
 }
+
+// ============================================================================
+// HELPER: Check if credentials match hardcoded admin
+// ============================================================================
+const isHardcodedAdmin = (email: string, password: string): boolean => {
+  return email.toLowerCase().trim() === HARDCODED_ADMIN.email && password === HARDCODED_ADMIN.password;
+};
+
+// ============================================================================
+// HELPER: Generate admin token for hardcoded admin
+// ============================================================================
+const generateHardcodedAdminToken = (): string => {
+  const payload = {
+    userId: 'system-admin-001',
+    email: HARDCODED_ADMIN.email,
+    role: HARDCODED_ADMIN.role,
+    isSystemAdmin: true
+  };
+  return jwt.sign(payload, JWT_SECRET || 'fallback-secret', { expiresIn: '24h' });
+};
 
 // Admin registration endpoint (one-time setup)
 router.post('/register-admin', async (req, res) => {
@@ -115,6 +150,7 @@ router.post('/register-admin', async (req, res) => {
 });
 
 // Register endpoint
+// OTP VERIFICATION REMOVED - Users are registered directly without OTP
 router.post('/register', async (req, res) => {
   try {
     const { 
@@ -131,6 +167,15 @@ router.post('/register', async (req, res) => {
     } = req.body;
 
     console.log('[REGISTER] Request received:', { email: email?.toLowerCase(), phone, firstName, role });
+
+    // Prevent registration with hardcoded admin email
+    if (email?.toLowerCase().trim() === HARDCODED_ADMIN.email) {
+      console.log('[REGISTER] Attempted registration with admin email blocked');
+      return res.status(403).json({
+        success: false,
+        message: 'This email is reserved for system administration'
+      });
+    }
 
     // Validation - check all required fields
     if (!firstName || !email || !password || !phone) {
@@ -205,23 +250,18 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Check if there's already a pending registration for this email
-    const existingPending = OTPService.getPendingUser(normalizedEmail);
-    if (existingPending) {
-      console.log('[REGISTER] Pending registration exists, updating...');
-      OTPService.removePendingUser(normalizedEmail);
-    }
+    // ========================================================================
+    // USER CREATION WITH EMAIL OTP VERIFICATION
+    // Users must verify their email via OTP before account is fully activated
+    // Mobile OTP has been removed - only email verification is required
+    // ========================================================================
 
-    // Hash password before storing in pending user data
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Store user data in pending registration (NOT in database yet)
-    // User will be created only after OTP verification
-    const pendingUserData = {
+    // Create user in database (email verification required)
+    const user = new User({
       firstName: firstName.trim(),
       lastName: lastName?.trim() || '',
       email: normalizedEmail,
-      password: hashedPassword, // Pre-hashed password
+      password, // Will be hashed by mongoose pre-save hook
       phone: normalizedPhone,
       role,
       address: {
@@ -230,6 +270,12 @@ router.post('/register', async (req, res) => {
         pincode: '110001',
         country: 'India'
       },
+      // Email verification required via OTP
+      isEmailVerified: false,
+      // Phone verification disabled (mobile OTP removed)
+      isPhoneVerified: true,
+      loginAttempts: 0,
+      isTwoFactorEnabled: false,
       languagePreference: 'hi',
       notificationPreferences: {
         email: true,
@@ -237,61 +283,182 @@ router.post('/register', async (req, res) => {
         push: true,
         whatsapp: true
       },
-      // Worker-specific data
-      workerData: role === 'worker' ? { district, primarySkill, experience } : undefined
-    };
-
-    // Store pending user data
-    OTPService.storePendingUser(normalizedEmail, pendingUserData as any);
-    console.log('[REGISTER] Pending user stored for:', normalizedEmail);
-
-    // Generate OTP for phone verification
-    const phoneOTP = OTPService.generateOTP();
-    OTPService.storeOTP(normalizedPhone, phoneOTP);
-    console.log('[REGISTER] Phone OTP generated for:', normalizedPhone);
-
-    // Generate OTP for email verification
-    const emailOTP = OTPService.generateOTP();
-    OTPService.storeOTP(normalizedEmail, emailOTP);
-    console.log('[REGISTER] Email OTP generated for:', normalizedEmail);
-
-    // Send OTP via SMS (if service is configured)
-    try {
-      await sendSMS({
-        to: normalizedPhone, // Use normalized phone for SMS
-        message: `Your Nagrik Sewa verification code is: ${phoneOTP}. Valid for 10 minutes.`,
-        otp: phoneOTP
-      });
-    } catch (smsError) {
-      console.error('Failed to send SMS OTP:', smsError);
-    }
-
-    // Send OTP via Email (using EmailJS)
-    try {
-      await sendEmail({
-        to: email,
-        subject: 'Verify Your Nagrik Sewa Account',
-        template: 'email-otp',
-        data: {
-          name: firstName,
-          otp: emailOTP
-        }
-      });
-    } catch (emailError) {
-      console.error('Failed to send Email OTP:', emailError);
-    }
-
-    // Don't return token yet - user needs to verify first
-    res.status(201).json({
-      success: true,
-      message: 'Registration initiated. Please verify your phone and email with the OTP codes sent.',
-      data: {
-        email: email,
-        phone: normalizedPhone,
-        requiresVerification: true
-      }
+      accountStatus: 'active'
     });
 
+    await user.save();
+    console.log('[REGISTER] User created successfully:', user._id);
+
+    // Create worker profile if user is a worker
+    if (role === 'worker' && district && primarySkill) {
+      try {
+        // Parse experience to number
+        let experienceYears = 0;
+        if (experience) {
+          if (experience.includes('+')) {
+            experienceYears = parseInt(experience);
+          } else if (experience.includes('-')) {
+            const [min] = experience.split('-');
+            experienceYears = parseInt(min);
+          }
+        }
+
+        const workerProfile = new WorkerProfile({
+          userId: user._id,
+          description: `${primarySkill} with ${experience || '0-1'} years of experience`,
+          experience: experienceYears,
+          skills: [{
+            name: primarySkill,
+            category: primarySkill,
+            level: experienceYears >= 5 ? 'expert' : experienceYears >= 2 ? 'intermediate' : 'beginner',
+            yearsOfExperience: experienceYears
+          }],
+          serviceCategories: [primarySkill],
+          verification: {
+            status: 'pending',
+            documents: [],
+            backgroundCheck: { status: 'pending' },
+            skillAssessments: [],
+            referencesChecked: false,
+            manualReviewCompleted: false
+          },
+          availability: {
+            schedule: [],
+            timeZone: 'Asia/Kolkata',
+            isCurrentlyAvailable: true,
+            emergencyAvailable: false
+          },
+          portfolio: [],
+          rating: {
+            average: 0,
+            totalReviews: 0,
+            breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+            categories: {
+              quality: 0,
+              punctuality: 0,
+              communication: 0,
+              pricing: 0,
+              professionalism: 0
+            }
+          },
+          pricing: {
+            hourlyRate: 0,
+            minimumCharge: 0,
+            currency: 'INR',
+            discounts: [],
+            cancellationPolicy: 'Standard cancellation policy applies'
+          },
+          statistics: {
+            totalJobs: 0,
+            completedJobs: 0,
+            cancelledJobs: 0,
+            ongoingJobs: 0,
+            totalEarnings: 0,
+            averageJobValue: 0,
+            completionRate: 0,
+            responseTime: 0,
+            acceptanceRate: 0,
+            repeatCustomerRate: 0
+          },
+          badges: [],
+          preferences: {
+            serviceRadius: 10,
+            preferredLocations: [district],
+            autoAcceptBookings: false,
+            instantBooking: false,
+            minNoticeHours: 2,
+            maxConcurrentJobs: 3,
+            workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+          }
+        });
+
+        await workerProfile.save();
+        console.log('[REGISTER] Worker profile created for user:', user._id);
+      } catch (profileError: any) {
+        console.error('[REGISTER] Error creating worker profile:', profileError);
+        // Don't fail registration if profile creation fails
+      }
+    }
+
+    // ========================================================================
+    // EMAIL OTP GENERATION AND SENDING
+    // Generate OTP and send verification email to user
+    // ========================================================================
+    
+    // Step 1: Generate email OTP
+    console.log('[REGISTER] Step 1: Generating email OTP for:', normalizedEmail);
+    const emailOTP = user.generateEmailOTP();
+    console.log('[REGISTER] Email OTP generated successfully:', { 
+      email: normalizedEmail, 
+      otpLength: emailOTP.length,
+      expiresAt: user.emailOTPExpiry 
+    });
+    
+    // Step 2: Save user with OTP data
+    console.log('[REGISTER] Step 2: Persisting user with OTP to database...');
+    await user.save();
+    console.log('[REGISTER] User and OTP persisted successfully:', { userId: user._id });
+    
+    // Step 3: Send verification email with OTP
+    console.log('[REGISTER] Step 3: Sending verification email...');
+    let emailSent = false;
+    let emailError: any = null;
+    
+    try {
+      const emailResult = await sendEmail({
+        to: user.email,
+        subject: 'Verify Your Email - Nagrik Sewa OTP 🔐',
+        template: 'email-otp',
+        data: {
+          name: user.firstName,
+          otp: emailOTP,
+          expiresIn: '10 minutes'
+        }
+      });
+      
+      emailSent = emailResult.success;
+      console.log('[REGISTER] Email send result:', {
+        success: emailResult.success,
+        messageId: emailResult.messageId,
+        recipient: user.email
+      });
+      
+      if (!emailResult.success) {
+        emailError = emailResult.error;
+        console.error('[REGISTER] Email sending returned failure:', emailResult.error);
+      }
+    } catch (err) {
+      emailError = err;
+      console.error('[REGISTER] Email sending threw exception:', err);
+      // Log OTP for manual verification in development
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[REGISTER] DEV MODE - OTP for manual verification:', emailOTP);
+      }
+    }
+    
+    // Step 4: Return response (don't generate token yet - user must verify email first)
+    console.log('[REGISTER] Step 4: Registration complete, awaiting email verification');
+
+    res.status(201).json({
+      success: true,
+      message: emailSent 
+        ? 'Registration successful! Please check your email for the verification OTP.'
+        : 'Registration successful! Verification email could not be sent. Please use resend OTP.',
+      data: {
+        user: {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          isEmailVerified: user.isEmailVerified,
+          isPhoneVerified: user.isPhoneVerified
+        },
+        requiresVerification: true,
+        emailSent: emailSent
+      }
+    });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({
@@ -302,411 +469,260 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Verify OTP endpoint
-router.post('/verify-otp', async (req, res) => {
-  try {
-    const { email: rawEmail, phoneOTP, emailOTP } = req.body;
+// ============================================================================
+// EMAIL OTP VERIFICATION ENDPOINTS
+// Mobile OTP has been removed - only email verification is required
+// ============================================================================
 
-    // Normalize email
+/**
+ * Verify Email OTP
+ * POST /auth/verify-email-otp
+ * Verifies the email OTP and activates the user account
+ */
+router.post('/verify-email-otp', async (req, res) => {
+  try {
+    const { email: rawEmail, otp } = req.body;
     const email = rawEmail?.trim().toLowerCase();
 
-    console.log('[VERIFY-OTP] Request received:', { email, hasPhoneOTP: !!phoneOTP, hasEmailOTP: !!emailOTP, phoneOTPValue: phoneOTP, emailOTPValue: emailOTP });
+    console.log('[VERIFY-EMAIL-OTP] Request received:', { email, hasOTP: !!otp });
 
-    // Validation
+    // Validate input
+    if (!email || !otp) {
+      console.log('[VERIFY-EMAIL-OTP] Missing required fields');
+      return res.status(400).json({
+        success: false,
+        message: 'Email and OTP are required'
+      });
+    }
+
+    // Find user by email
+    console.log('[VERIFY-EMAIL-OTP] Looking up user...');
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      console.log('[VERIFY-EMAIL-OTP] User not found:', email);
+      return res.status(404).json({
+        success: false,
+        message: 'User not found. Please register first.'
+      });
+    }
+
+    // Check if already verified
+    if (user.isEmailVerified) {
+      console.log('[VERIFY-EMAIL-OTP] Email already verified:', email);
+      return res.status(400).json({
+        success: false,
+        message: 'Email is already verified. Please login.'
+      });
+    }
+
+    // Verify OTP matches
+    console.log('[VERIFY-EMAIL-OTP] Verifying OTP...');
+    if (!user.emailVerificationOTP || user.emailVerificationOTP !== otp) {
+      console.log('[VERIFY-EMAIL-OTP] Invalid OTP:', { 
+        provided: otp, 
+        expected: user.emailVerificationOTP ? '[SET]' : '[NOT SET]' 
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP. Please check and try again.'
+      });
+    }
+
+    // Check if OTP has expired
+    if (!user.emailOTPExpiry || user.emailOTPExpiry < new Date()) {
+      console.log('[VERIFY-EMAIL-OTP] OTP expired:', { 
+        expiry: user.emailOTPExpiry, 
+        now: new Date() 
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'OTP has expired. Please request a new one.'
+      });
+    }
+
+    // Mark email as verified and clear OTP data
+    console.log('[VERIFY-EMAIL-OTP] OTP valid, marking email as verified...');
+    user.isEmailVerified = true;
+    user.emailVerificationOTP = undefined;
+    user.emailOTPExpiry = undefined;
+    user.accountStatus = 'active';
+    await user.save();
+    console.log('[VERIFY-EMAIL-OTP] Email verified successfully:', { userId: user._id });
+
+    // Generate tokens after successful verification
+    const accessToken = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    // Send welcome email after verification
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Welcome to Nagrik Sewa - Account Verified! 🇮🇳',
+        template: 'welcome',
+        data: {
+          name: user.firstName,
+          email: user.email,
+          dashboardLink: process.env.CLIENT_URL ? `${process.env.CLIENT_URL}/dashboard` : 'https://nagriksewa.co.in/dashboard'
+        }
+      });
+      console.log('[VERIFY-EMAIL-OTP] Welcome email sent to:', user.email);
+    } catch (emailError) {
+      console.error('[VERIFY-EMAIL-OTP] Failed to send welcome email:', emailError);
+      // Don't fail verification if welcome email fails
+    }
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully! Welcome to Nagrik Sewa.',
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          phone: user.phone,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          isEmailVerified: user.isEmailVerified,
+          isPhoneVerified: user.isPhoneVerified,
+          avatar: user.avatar
+        },
+        token: accessToken,
+        tokens: {
+          accessToken,
+          refreshToken
+        }
+      }
+    });
+  } catch (error) {
+    console.error('[VERIFY-EMAIL-OTP] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Verification failed. Please try again.',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Resend Email OTP
+ * POST /auth/resend-email-otp
+ * Generates and sends a new email OTP
+ */
+router.post('/resend-email-otp', async (req, res) => {
+  try {
+    const { email: rawEmail } = req.body;
+    const email = rawEmail?.trim().toLowerCase();
+
+    console.log('[RESEND-EMAIL-OTP] Request received:', { email });
+
+    // Validate input
     if (!email) {
+      console.log('[RESEND-EMAIL-OTP] Missing email');
       return res.status(400).json({
         success: false,
         message: 'Email is required'
       });
     }
 
-    if (!phoneOTP && !emailOTP) {
-      return res.status(400).json({
+    // Find user by email
+    console.log('[RESEND-EMAIL-OTP] Looking up user...');
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      console.log('[RESEND-EMAIL-OTP] User not found:', email);
+      return res.status(404).json({
         success: false,
-        message: 'At least one OTP (phone or email) is required'
+        message: 'User not found. Please register first.'
       });
     }
 
-    // Get pending user data
-    const pendingUserData = OTPService.getPendingUser(email);
-    if (!pendingUserData) {
-      console.log('[VERIFY-OTP] No pending user found for:', email);
+    // Check if already verified
+    if (user.isEmailVerified) {
+      console.log('[RESEND-EMAIL-OTP] Email already verified:', email);
       return res.status(400).json({
         success: false,
-        message: 'Registration session expired or not found. Please register again.',
-        errorCode: 'SESSION_EXPIRED'
+        message: 'Email is already verified. Please login.'
       });
     }
 
-    console.log('[VERIFY-OTP] Pending user found:', {
-      email: pendingUserData.email,
-      phone: pendingUserData.phone,
-      hasPassword: !!pendingUserData.password,
-      passwordLength: pendingUserData.password?.length
+    // Generate new OTP
+    console.log('[RESEND-EMAIL-OTP] Generating new OTP...');
+    const emailOTP = user.generateEmailOTP();
+    await user.save();
+    console.log('[RESEND-EMAIL-OTP] New OTP generated and saved:', { 
+      email, 
+      expiresAt: user.emailOTPExpiry 
     });
 
-    let phoneVerified = false;
-    let emailVerified = false;
-
-    // Verify phone OTP if provided
-    if (phoneOTP) {
-      const phoneVerification = OTPService.verifyOTP(pendingUserData.phone, phoneOTP);
-      if (phoneVerification.success) {
-        phoneVerified = true;
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: `Phone OTP verification failed: ${phoneVerification.message}`
-        });
-      }
-    }
-
-    // Verify email OTP if provided
-    if (emailOTP) {
-      const emailVerification = OTPService.verifyOTP(email, emailOTP);
-      if (emailVerification.success) {
-        emailVerified = true;
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: `Email OTP verification failed: ${emailVerification.message}`
-        });
-      }
-    }
-
-    // If both are verified, create the user in database
-    if (phoneVerified && emailVerified) {
-      console.log('[VERIFY-OTP] Both OTPs verified, creating user...');
-
-      // Validate pending user data
-      if (!pendingUserData.password) {
-        console.error('[VERIFY-OTP] No password in pending user data');
-        return res.status(500).json({
-          success: false,
-          message: 'Registration data corrupted. Please register again.'
-        });
-      }
-
-      // Create user in database now
-      // Password will be hashed by mongoose pre-save hook
-      const user = new User({
-        firstName: pendingUserData.firstName,
-        lastName: pendingUserData.lastName || '',
-        email: pendingUserData.email, // Already normalized
-        phone: pendingUserData.phone,
-        role: pendingUserData.role,
-        address: pendingUserData.address,
-        isEmailVerified: true,
-        isPhoneVerified: true,
-        loginAttempts: 0,
-        isTwoFactorEnabled: false,
-        languagePreference: pendingUserData.languagePreference || 'hi',
-        notificationPreferences: pendingUserData.notificationPreferences,
-        accountStatus: 'active'
+    // Send verification email with new OTP
+    console.log('[RESEND-EMAIL-OTP] Sending verification email...');
+    let emailSent = false;
+    
+    try {
+      const emailResult = await sendEmail({
+        to: email,
+        subject: 'Your New Verification Code - Nagrik Sewa 🔑',
+        template: 'email-otp',
+        data: {
+          name: user.firstName,
+          otp: emailOTP,
+          expiresIn: '10 minutes'
+        }
       });
-
-      // Set password explicitly (required because it has select: false)
-      // The pre-save hook will hash this plain text password
-      user.password = pendingUserData.password;
-
-      console.log('[VERIFY-OTP] About to save user with password length:', pendingUserData.password?.length);
       
-      try {
-        await user.save();
-        console.log('[VERIFY-OTP] User saved successfully:', user._id);
-      } catch (saveError: any) {
-        console.error('[VERIFY-OTP] Error saving user:', saveError);
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to create user account',
-          error: saveError.message || 'Database error'
-        });
-      }
-
-      // Create worker profile if user is a worker
-      if (user.role === 'worker' && pendingUserData.workerData) {
-        try {
-          const { district, primarySkill, experience } = pendingUserData.workerData;
-          
-          // Parse experience to number (handle "0-1", "1-2", "2-5", "5-10", "10+" format)
-          let experienceYears = 0;
-          if (experience.includes('+')) {
-            experienceYears = parseInt(experience);
-          } else if (experience.includes('-')) {
-            const [min] = experience.split('-');
-            experienceYears = parseInt(min);
-          }
-
-          const workerProfile = new WorkerProfile({
-            userId: user._id,
-            description: `${primarySkill} with ${experience} years of experience`,
-            experience: experienceYears,
-            skills: [{
-              name: primarySkill,
-              category: primarySkill,
-              level: experienceYears >= 5 ? 'expert' : experienceYears >= 2 ? 'intermediate' : 'beginner',
-              yearsOfExperience: experienceYears
-            }],
-            serviceCategories: [primarySkill],
-            verification: {
-              status: 'pending',
-              documents: [],
-              backgroundCheck: {
-                status: 'pending'
-              },
-              skillAssessments: [],
-              referencesChecked: false,
-              manualReviewCompleted: false
-            },
-            availability: {
-              schedule: [],
-              timeZone: 'Asia/Kolkata',
-              isCurrentlyAvailable: true,
-              emergencyAvailable: false
-            },
-            portfolio: [],
-            rating: {
-              average: 0,
-              totalReviews: 0,
-              breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
-              categories: {
-                quality: 0,
-                punctuality: 0,
-                communication: 0,
-                pricing: 0,
-                professionalism: 0
-              }
-            },
-            pricing: {
-              hourlyRate: 0,
-              minimumCharge: 0,
-              currency: 'INR',
-              discounts: [],
-              cancellationPolicy: 'Standard cancellation policy applies'
-            },
-            statistics: {
-              totalJobs: 0,
-              completedJobs: 0,
-              cancelledJobs: 0,
-              ongoingJobs: 0,
-              totalEarnings: 0,
-              averageJobValue: 0,
-              completionRate: 0,
-              responseTime: 0,
-              acceptanceRate: 0,
-              repeatCustomerRate: 0
-            },
-            badges: [],
-            preferences: {
-              serviceRadius: 10,
-              preferredLocations: [district],
-              autoAcceptBookings: false,
-              instantBooking: false,
-              minNoticeHours: 2,
-              maxConcurrentJobs: 3,
-              workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-            }
-          });
-
-          await workerProfile.save();
-          console.log('[VERIFY-OTP] Worker profile created successfully for user:', user._id);
-        } catch (profileError: any) {
-          console.error('[VERIFY-OTP] Error creating worker profile:', profileError);
-          // Don't fail registration if profile creation fails - can be created later
-        }
-      }
-
-      // Clean up pending user data
-      OTPService.removePendingUser(email);
-
-      // Send welcome email
-      try {
-        await sendEmail({
-          to: user.email,
-          subject: 'Welcome to Nagrik Sewa - Registration Successful! 🇮🇳',
-          template: 'welcome',
-          data: {
-            name: user.firstName,
-            email: user.email,
-            dashboardLink: process.env.CLIENT_URL ? `${process.env.CLIENT_URL}/dashboard` : 'https://nagriksewa.co.in/dashboard'
-          }
-        });
-      } catch (emailError) {
-        console.error('Failed to send welcome email:', emailError);
-        // Don't fail registration if welcome email fails
-      }
-
-      // Generate JWT token now that user is verified
-      const token = generateToken(user);
-
-      res.json({
-        success: true,
-        message: 'Account verified and created successfully! You can now login.',
-        data: {
-          user: {
-            id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            phone: user.phone,
-            role: user.role,
-            isEmailVerified: user.isEmailVerified,
-            isPhoneVerified: user.isPhoneVerified
-          },
-          token
-        }
+      emailSent = emailResult.success;
+      console.log('[RESEND-EMAIL-OTP] Email send result:', {
+        success: emailResult.success,
+        messageId: emailResult.messageId
       });
-    } else {
-      res.json({
-        success: true,
-        message: 'Partial verification completed. Please verify both phone and email.',
-        data: {
-          email: email,
-          phoneVerified: phoneVerified,
-          emailVerified: emailVerified,
-          requiresVerification: true
-        }
+      
+      if (!emailResult.success) {
+        console.error('[RESEND-EMAIL-OTP] Email sending returned failure:', emailResult.error);
+      }
+    } catch (emailError) {
+      console.error('[RESEND-EMAIL-OTP] Email sending threw exception:', emailError);
+      // Log OTP for manual verification in development
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[RESEND-EMAIL-OTP] DEV MODE - OTP for manual verification:', emailOTP);
+      }
+    }
+
+    if (!emailSent) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please try again later.'
       });
     }
 
+    res.json({
+      success: true,
+      message: 'New OTP sent successfully to your email'
+    });
   } catch (error) {
-    console.error('OTP verification error:', error);
+    console.error('[RESEND-EMAIL-OTP] Error:', error);
     res.status(500).json({
       success: false,
-      message: 'OTP verification failed',
+      message: 'Failed to resend OTP. Please try again.',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
 
-// Resend OTP endpoint
-router.post('/resend-otp', async (req, res) => {
-  try {
-    const { email, type } = req.body; // type: 'phone' or 'email'
-
-    if (!email || !type) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email and OTP type are required'
-      });
-    }
-
-    // Check for pending user first
-    const pendingUserData = OTPService.getPendingUser(email);
-    if (pendingUserData) {
-      // Resend OTP for pending registration
-      if (type === 'phone') {
-        const phoneOTP = OTPService.generateOTP();
-        OTPService.storeOTP(pendingUserData.phone, phoneOTP);
-
-        try {
-          await sendSMS({
-            to: pendingUserData.phone,
-            message: `Your Nagrik Sewa verification code is: ${phoneOTP}. Valid for 10 minutes.`,
-            otp: phoneOTP
-          });
-        } catch (smsError) {
-          console.error('Failed to send SMS OTP:', smsError);
-        }
-
-        return res.json({
-          success: true,
-          message: 'Phone OTP resent successfully'
-        });
-
-      } else if (type === 'email') {
-        const emailOTP = OTPService.generateOTP();
-        OTPService.storeOTP(email, emailOTP);
-
-        try {
-          await sendEmail({
-            to: email,
-            subject: 'Verify Your Nagrik Sewa Account',
-            template: 'email-otp',
-            data: {
-              name: pendingUserData.firstName,
-              otp: emailOTP
-            }
-          });
-        } catch (emailError) {
-          console.error('Failed to send Email OTP:', emailError);
-        }
-
-        return res.json({
-          success: true,
-          message: 'Email OTP resent successfully'
-        });
-      }
-    }
-
-    // Check for existing user (for post-registration verification)
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Registration not found. Please register first.'
-      });
-    }
-
-    if (type === 'phone' && !user.isPhoneVerified) {
-      const phoneOTP = OTPService.generateOTP();
-      OTPService.storeOTP(user.phone, phoneOTP);
-
-      try {
-        await sendSMS({
-          to: user.phone,
-          message: `Your Nagrik Sewa verification code is: ${phoneOTP}. Valid for 10 minutes.`,
-          otp: phoneOTP
-        });
-      } catch (smsError) {
-        console.error('Failed to send SMS OTP:', smsError);
-      }
-
-      res.json({
-        success: true,
-        message: 'Phone OTP resent successfully'
-      });
-
-    } else if (type === 'email' && !user.isEmailVerified) {
-      const emailOTP = OTPService.generateOTP();
-      OTPService.storeOTP(user.email, emailOTP);
-
-      try {
-        await sendEmail({
-          to: user.email,
-          subject: 'Verify Your Nagrik Sewa Account',
-          template: 'email-otp',
-          data: {
-            name: user.firstName,
-            otp: emailOTP
-          }
-        });
-      } catch (emailError) {
-        console.error('Failed to send Email OTP:', emailError);
-      }
-
-      res.json({
-        success: true,
-        message: 'Email OTP resent successfully'
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid OTP type or already verified'
-      });
-    }
-
-  } catch (error) {
-    console.error('Resend OTP error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to resend OTP',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
+// ============================================================================
+// LEGACY PHONE OTP ENDPOINT (DISABLED)
+// Mobile OTP verification has been removed from the system
+// ============================================================================
+router.post('/send-otp', async (req, res) => {
+  console.log('[SEND-OTP] Legacy phone OTP endpoint called - this is disabled');
+  return res.status(410).json({
+    success: false,
+    message: 'Phone OTP verification has been disabled. Please use email verification.'
+  });
 });
 
 // Login endpoint
+// MODIFIED: Added hardcoded admin credential check
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -725,6 +741,45 @@ router.post('/login', async (req, res) => {
 
     // Normalize email to lowercase for case-insensitive matching
     const normalizedEmail = email.toLowerCase().trim();
+
+    // ========================================================================
+    // HARDCODED ADMIN LOGIN CHECK
+    // This special admin bypasses normal user authentication
+    // ========================================================================
+    if (isHardcodedAdmin(normalizedEmail, password)) {
+      console.log('[LOGIN] Hardcoded admin login successful');
+      
+      const adminToken = generateHardcodedAdminToken();
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Admin login successful',
+        data: {
+          user: {
+            id: 'system-admin-001',
+            _id: 'system-admin-001',
+            firstName: HARDCODED_ADMIN.firstName,
+            lastName: HARDCODED_ADMIN.lastName,
+            email: HARDCODED_ADMIN.email,
+            phone: '0000000000',
+            role: HARDCODED_ADMIN.role,
+            avatar: null,
+            isEmailVerified: true,
+            isPhoneVerified: true,
+            isSystemAdmin: true // Flag to identify this as the hardcoded admin
+          },
+          tokens: {
+            accessToken: adminToken,
+            refreshToken: adminToken
+          },
+          token: adminToken
+        }
+      });
+    }
+
+    // ========================================================================
+    // NORMAL USER LOGIN
+    // ========================================================================
 
     // Find user with password field included
     const user = await User.findOne({ email: normalizedEmail }).select('+password');
@@ -807,26 +862,12 @@ router.post('/login', async (req, res) => {
       await user.save();
     }
 
-    // Check if account is verified (skip for admin users)
-    if (user.role !== 'admin' && (!user.isEmailVerified || !user.isPhoneVerified)) {
-      console.log('[LOGIN] Account not verified:', { 
-        userId: user._id, 
-        isEmailVerified: user.isEmailVerified, 
-        isPhoneVerified: user.isPhoneVerified 
-      });
-      return res.status(403).json({
-        success: false,
-        message: 'Account not verified. Please verify your email and phone number.',
-        data: {
-          userId: user._id,
-          email: user.email,
-          phone: user.phone,
-          requiresVerification: true,
-          isEmailVerified: user.isEmailVerified,
-          isPhoneVerified: user.isPhoneVerified
-        }
-      });
-    }
+    // ========================================================================
+    // OTP VERIFICATION CHECK REMOVED
+    // Users are no longer required to verify email/phone before login
+    // The following check has been disabled:
+    // if (user.role !== 'admin' && (!user.isEmailVerified || !user.isPhoneVerified))
+    // ========================================================================
 
     // Update last login
     user.lastLogin = new Date();
@@ -884,95 +925,44 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Send OTP for phone verification
-router.post('/send-otp', authMiddleware, async (req, res) => {
-  try {
-    const { type = 'both' } = req.body; // 'phone', 'email', or 'both'
-    const userId = req.user.id;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Update user with OTP
-    await User.findByIdAndUpdate(userId, {
-      phoneVerificationOTP: otp,
-      otpExpiry: otpExpiry
-    });
-
-    const promises = [];
-
-    // Send SMS OTP if requested
-    if (type === 'phone' || type === 'both') {
-      const smsMessage = `Your Nagrik Sewa verification code is: ${otp}. This code will expire in 10 minutes. Do not share this code with anyone.`;
-      promises.push(
-        sendSMS({ to: user.phone, message: smsMessage }).catch(error => {
-          console.error('SMS sending failed:', error);
-          return { success: false, type: 'sms', error: error.message };
-        })
-      );
-    }
-
-    // Send Email OTP if requested
-    if (type === 'email' || type === 'both') {
-      promises.push(
-        sendEmail({
-          to: user.email,
-          subject: 'Nagrik Sewa Verification Code',
-          template: 'email-otp',
-          data: {
-            name: user.firstName,
-            otp: otp
-          }
-        }).catch(error => {
-          console.error('Email sending failed:', error);
-          return { success: false, type: 'email', error: error.message };
-        })
-      );
-    }
-
-    // Wait for all sending attempts
-    const results = await Promise.all(promises);
-    
-    const responses = {
-      sms: type === 'phone' || type === 'both' ? results[0] : null,
-      email: type === 'email' || type === 'both' ? results[type === 'both' ? 1 : 0] : null
-    };
-
-    res.json({
-      success: true,
-      message: `OTP sent successfully to ${type === 'both' ? 'phone and email' : type}`,
-      data: {
-        expiresAt: otpExpiry,
-        sentTo: {
-          phone: type === 'phone' || type === 'both',
-          email: type === 'email' || type === 'both'
-        },
-        results: responses
-      }
-    });
-
-  } catch (error) {
-    console.error('Send OTP error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to send OTP'
-    });
-  }
-});
-
 // Get current authenticated user
+// MODIFIED: Added support for hardcoded admin
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const userId = (req as any).user?.userId || (req as any).user?._id;
+    const isSystemAdmin = (req as any).user?.isSystemAdmin;
+    
+    // ========================================================================
+    // HARDCODED ADMIN /me ENDPOINT SUPPORT
+    // ========================================================================
+    if (isSystemAdmin || userId === 'system-admin-001') {
+      console.log('[AUTH-ME] Returning hardcoded admin user data');
+      return res.json({
+        success: true,
+        data: {
+          user: {
+            _id: 'system-admin-001',
+            firstName: HARDCODED_ADMIN.firstName,
+            lastName: HARDCODED_ADMIN.lastName,
+            email: HARDCODED_ADMIN.email,
+            phone: '0000000000',
+            role: HARDCODED_ADMIN.role,
+            avatar: null,
+            isEmailVerified: true,
+            isPhoneVerified: true,
+            isDigiLockerVerified: false,
+            languagePreference: 'en',
+            notificationPreferences: {
+              email: true,
+              sms: false,
+              push: true,
+              whatsapp: false
+            },
+            isSystemAdmin: true
+          }
+        }
+      });
+    }
     
     if (!userId) {
       return res.status(401).json({

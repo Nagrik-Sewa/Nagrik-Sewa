@@ -29,6 +29,8 @@ export interface IUser extends Document {
   isPhoneVerified: boolean;
   isGoogleAuth: boolean;
   emailVerificationToken?: string;
+  emailVerificationOTP?: string;
+  emailOTPExpiry?: Date;
   phoneVerificationOTP?: string;
   otpExpiry?: Date;
   
@@ -84,6 +86,7 @@ export interface IUser extends Document {
   // Methods
   comparePassword(candidatePassword: string): Promise<boolean>;
   generateEmailVerificationToken(): string;
+  generateEmailOTP(): string;
   generatePhoneOTP(): string;
   isAccountLocked(): boolean;
   incLoginAttempts(): Promise<void>;
@@ -180,6 +183,8 @@ const userSchema = new Schema<IUser>({
     default: false
   },
   emailVerificationToken: String,
+  emailVerificationOTP: String,
+  emailOTPExpiry: Date,
   phoneVerificationOTP: String,
   otpExpiry: Date,
   
@@ -320,6 +325,14 @@ userSchema.methods.generateEmailVerificationToken = function(): string {
   const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   this.emailVerificationToken = token;
   return token;
+};
+
+// Generate email OTP (6-digit)
+userSchema.methods.generateEmailOTP = function(): string {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  this.emailVerificationOTP = otp;
+  this.emailOTPExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  return otp;
 };
 
 // Generate phone OTP

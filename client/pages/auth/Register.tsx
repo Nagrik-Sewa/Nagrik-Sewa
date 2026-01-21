@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Navigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import { OTPVerification } from '@/components/OTPVerification';
 const Register: React.FC = () => {
   const [searchParams] = useSearchParams();
   const roleParam = searchParams.get('role');
+  const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -32,7 +33,10 @@ const Register: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [registrationData, setRegistrationData] = useState<any>(null);
+  const [registrationData, setRegistrationData] = useState<{
+    email: string;
+    phone: string;
+  } | null>(null);
 
   const { register, isAuthenticated } = useAuth();
   const { validatePhoneNumber } = usePhoneValidation();
@@ -136,8 +140,14 @@ const Register: React.FC = () => {
 
       const result = await register(registrationPayload);
       
-      // Registration successful, show OTP verification
-      setRegistrationData(result.data);
+      // Show OTP verification step after successful registration
+      if (result.success) {
+        console.log('[Register] Registration successful, showing OTP verification');
+        setRegistrationData({
+          email: formData.email,
+          phone: formData.phone
+        });
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -145,18 +155,19 @@ const Register: React.FC = () => {
     }
   };
 
+  // Handle OTP verification completion
   const handleVerificationComplete = () => {
-    // User is now verified and logged in, redirect to dashboard
-    // The navigation will happen automatically due to isAuthenticated check
+    console.log('[Register] OTP verification complete, redirecting to dashboard');
+    navigate('/dashboard', { replace: true });
   };
 
-  // Show OTP verification if registration was successful
+  // Show OTP verification step if registration was successful
   if (registrationData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <OTPVerification
-          email={formData.email}
-          phone={formData.phone}
+          email={registrationData.email}
+          phone={registrationData.phone}
           onVerificationComplete={handleVerificationComplete}
         />
       </div>
