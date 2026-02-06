@@ -357,6 +357,103 @@ router.get('/my-bookings', optionalAuth, async (req: Request, res: Response): Pr
   }
 });
 
+// Get customer dashboard data
+router.get('/customer/dashboard', optionalAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?._id;
+
+    // If no user, return empty dashboard
+    if (!userId) {
+      res.json({
+        success: true,
+        data: {
+          activeBookings: 0,
+          totalSpent: 0,
+          reviewsGiven: 0,
+          savedServices: 0,
+          recentActivity: [],
+          bookingsByStatus: {
+            pending: 0,
+            confirmed: 0,
+            'in-progress': 0,
+            completed: 0,
+            cancelled: 0
+          }
+        }
+      });
+      return;
+    }
+
+    // Get all bookings for this customer
+    const bookings = await Booking.find({ customerId: userId })
+      .populate('serviceId', 'name category images')
+      .populate('workerId', 'firstName lastName avatar')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Calculate active bookings (pending, confirmed, in-progress)
+    const activeBookings = bookings.filter(b => 
+      ['pending', 'confirmed', 'in-progress'].includes(b.status)
+    ).length;
+
+    // Calculate total spent from completed bookings
+    const totalSpent = bookings
+      .filter(b => b.status === 'completed')
+      .reduce((sum, b) => sum + (b.pricing?.totalAmount || 0), 0);
+
+    // Count reviews given (bookings with customer reviews)
+    const reviewsGiven = bookings.filter(b => 
+      b.reviews?.customer?.rating !== undefined
+    ).length;
+
+    // Count bookings by status
+    const bookingsByStatus = {
+      pending: bookings.filter(b => b.status === 'pending').length,
+      confirmed: bookings.filter(b => b.status === 'confirmed').length,
+      'in-progress': bookings.filter(b => b.status === 'in-progress').length,
+      completed: bookings.filter(b => b.status === 'completed').length,
+      cancelled: bookings.filter(b => b.status === 'cancelled').length
+    };
+
+    // Get saved services count from user document
+    const user = await User.findById(userId).lean();
+    const savedServices = (user as any)?.savedServices?.length || 0;
+
+    // Format recent activity (last 5 bookings)
+    const recentActivity = bookings.slice(0, 5).map(booking => ({
+      _id: booking._id,
+      type: 'booking',
+      title: (booking.serviceId as any)?.name || 'Service Booking',
+      status: booking.status,
+      amount: booking.pricing?.totalAmount || 0,
+      date: booking.createdAt,
+      worker: booking.workerId ? {
+        name: `${(booking.workerId as any).firstName} ${(booking.workerId as any).lastName}`,
+        avatar: (booking.workerId as any).avatar
+      } : null
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        activeBookings,
+        totalSpent,
+        reviewsGiven,
+        savedServices,
+        recentActivity,
+        bookingsByStatus,
+        totalBookings: bookings.length
+      }
+    });
+  } catch (error) {
+    console.error('Get customer dashboard error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch dashboard data'
+    });
+  }
+});
+
 // Get booking by ID (authentication optional for testing)
 router.get('/:id', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {

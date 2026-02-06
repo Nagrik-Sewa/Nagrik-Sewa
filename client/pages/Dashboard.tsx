@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { api } from '@/lib/api';
 import { 
   Calendar, 
@@ -13,45 +14,90 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Star
+  Star,
+  Bookmark
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState({
-    bookings: 0,
+    activeBookings: 0,
     totalSpent: 0,
     reviewsGiven: 0,
     savedServices: 0,
-    recentActivity: []
+    recentActivity: [] as any[],
+    bookingsByStatus: {
+      pending: 0,
+      confirmed: 0,
+      'in-progress': 0,
+      completed: 0,
+      cancelled: 0
+    },
+    totalBookings: 0,
+    // Worker specific
+    earnings: 0,
+    rating: 0,
+    completionRate: 0
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch user's bookings
-        const bookingsResponse = await api.get('/bookings/my-bookings');
-        const bookings = bookingsResponse.data.data?.bookings || [];
-        
-        setDashboardData({
-          bookings: bookings.length,
-          totalSpent: 0, // We'll calculate this from bookings if needed
-          reviewsGiven: 0, // We'll add reviews later
-          savedServices: 0, // We'll add saved services later
-          recentActivity: bookings.slice(0, 3) // Show last 3 bookings
-        });
+        if (user?.role === 'worker') {
+          // Fetch worker dashboard data
+          const response = await api.get('/workers/me/dashboard');
+          if (response.data.success) {
+            const data = response.data.data;
+            setDashboardData({
+              activeBookings: data.stats?.pendingBookings || 0,
+              totalSpent: 0,
+              reviewsGiven: 0,
+              savedServices: 0,
+              recentActivity: data.recentBookings || [],
+              bookingsByStatus: {
+                pending: data.stats?.pendingBookings || 0,
+                confirmed: 0,
+                'in-progress': 0,
+                completed: data.stats?.completedBookings || 0,
+                cancelled: 0
+              },
+              totalBookings: data.stats?.totalBookings || 0,
+              earnings: data.stats?.totalEarnings || 0,
+              rating: data.stats?.averageRating || 0,
+              completionRate: data.stats?.totalBookings > 0 
+                ? Math.round((data.stats?.completedBookings / data.stats?.totalBookings) * 100) 
+                : 0
+            });
+          }
+        } else {
+          // Fetch customer dashboard data
+          const response = await api.get('/bookings/customer/dashboard');
+          if (response.data.success) {
+            const data = response.data.data;
+            setDashboardData({
+              activeBookings: data.activeBookings || 0,
+              totalSpent: data.totalSpent || 0,
+              reviewsGiven: data.reviewsGiven || 0,
+              savedServices: data.savedServices || 0,
+              recentActivity: data.recentActivity || [],
+              bookingsByStatus: data.bookingsByStatus || {
+                pending: 0,
+                confirmed: 0,
+                'in-progress': 0,
+                completed: 0,
+                cancelled: 0
+              },
+              totalBookings: data.totalBookings || 0,
+              earnings: 0,
+              rating: 0,
+              completionRate: 0
+            });
+          }
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        // Set default values for testing
-        setDashboardData({
-          bookings: 0,
-          totalSpent: 0,
-          reviewsGiven: 0,
-          savedServices: 0,
-          recentActivity: []
-        });
       } finally {
         setLoading(false);
       }
@@ -94,75 +140,137 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {isWorker ? 'Total Bookings' : 'Active Bookings'}
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {loading ? '...' : dashboardData.bookings}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {dashboardData.bookings === 0 ? 'No bookings yet' : 'Total bookings'}
-            </p>
-          </CardContent>
-        </Card>
+      <TooltipProvider>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-pointer hover:shadow-blue-500/20 hover:border-blue-500/50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {isWorker ? 'Total Bookings' : 'Active Bookings'}
+                  </CardTitle>
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {loading ? '...' : (isWorker ? dashboardData.totalBookings : dashboardData.activeBookings)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {isWorker 
+                      ? (dashboardData.totalBookings === 0 ? 'No bookings yet' : `${dashboardData.bookingsByStatus.pending} pending`)
+                      : (dashboardData.activeBookings === 0 ? 'No active bookings' : `${dashboardData.totalBookings} total`)
+                    }
+                  </p>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs">
+              <p className="font-medium">{isWorker ? 'Total Bookings' : 'Active Bookings'}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isWorker 
+                  ? 'Total number of service requests you have received'
+                  : 'Your current active service bookings. Click to view details.'}
+              </p>
+            </TooltipContent>
+          </Tooltip>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {isWorker ? 'Earnings' : 'Total Spent'}
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ₹{loading ? '...' : dashboardData.totalSpent.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {dashboardData.totalSpent === 0 ? 'No transactions yet' : 'Total amount'}
-            </p>
-          </CardContent>
-        </Card>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-pointer hover:shadow-green-500/20 hover:border-green-500/50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {isWorker ? 'Earnings' : 'Total Spent'}
+                  </CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    ₹{loading ? '...' : (isWorker ? dashboardData.earnings : dashboardData.totalSpent).toLocaleString()}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {isWorker 
+                      ? (dashboardData.earnings === 0 ? 'No earnings yet' : 'From completed services')
+                      : (dashboardData.totalSpent === 0 ? 'No transactions yet' : 'From completed bookings')
+                    }
+                  </p>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs">
+              <p className="font-medium">{isWorker ? 'Total Earnings' : 'Total Spent'}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isWorker 
+                  ? 'Your total earnings from completed services'
+                  : 'Total amount spent on services. Includes all completed bookings.'}
+              </p>
+            </TooltipContent>
+          </Tooltip>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {isWorker ? 'Rating' : 'Reviews Given'}
-            </CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {loading ? '...' : (isWorker ? '5.0' : dashboardData.reviewsGiven)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {isWorker ? 'No reviews yet' : (dashboardData.reviewsGiven === 0 ? 'No reviews yet' : 'Total reviews')}
-            </p>
-          </CardContent>
-        </Card>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-pointer hover:shadow-yellow-500/20 hover:border-yellow-500/50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {isWorker ? 'Rating' : 'Reviews Given'}
+                  </CardTitle>
+                  <Star className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {loading ? '...' : (isWorker ? (dashboardData.rating || 0).toFixed(1) : dashboardData.reviewsGiven)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {isWorker 
+                      ? (dashboardData.rating === 0 ? 'No reviews yet' : 'Average rating')
+                      : (dashboardData.reviewsGiven === 0 ? 'No reviews given' : 'Services reviewed')
+                    }
+                  </p>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs">
+              <p className="font-medium">{isWorker ? 'Your Rating' : 'Reviews Given'}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isWorker 
+                  ? 'Your average rating from customer reviews'
+                  : 'Number of reviews you have given to service providers.'}
+              </p>
+            </TooltipContent>
+          </Tooltip>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {isWorker ? 'Completion Rate' : 'Saved Services'}
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {loading ? '...' : (isWorker ? '100%' : dashboardData.savedServices)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {isWorker ? 'Perfect record' : (dashboardData.savedServices === 0 ? 'No saved services' : 'Total saved')}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-pointer hover:shadow-purple-500/20 hover:border-purple-500/50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {isWorker ? 'Completion Rate' : 'Saved Services'}
+                  </CardTitle>
+                  {isWorker ? <TrendingUp className="h-4 w-4 text-muted-foreground" /> : <Bookmark className="h-4 w-4 text-muted-foreground" />}
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {loading ? '...' : (isWorker ? `${dashboardData.completionRate}%` : dashboardData.savedServices)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {isWorker 
+                      ? (dashboardData.completionRate === 0 ? 'No completed bookings' : `${dashboardData.bookingsByStatus.completed} completed`)
+                      : (dashboardData.savedServices === 0 ? 'No saved services' : 'Bookmarked services')
+                    }
+                  </p>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs">
+              <p className="font-medium">{isWorker ? 'Completion Rate' : 'Saved Services'}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isWorker 
+                  ? 'Percentage of bookings you have successfully completed'
+                  : 'Services you have bookmarked for quick access later.'}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Activity */}
@@ -178,22 +286,37 @@ const Dashboard: React.FC = () => {
               <div className="text-center text-gray-500">Loading activity...</div>
             ) : dashboardData.recentActivity.length > 0 ? (
               dashboardData.recentActivity.map((activity: any, index: number) => (
-                <div key={index} className="flex items-center space-x-4">
-                  <div className="bg-blue-100 p-2 rounded-full">
-                    <Calendar className="h-4 w-4 text-blue-600" />
+                <div key={activity._id || index} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate(`/bookings/${activity._id}`)}>
+                  <div className={`p-2 rounded-full ${
+                    activity.status === 'completed' ? 'bg-green-100' :
+                    activity.status === 'cancelled' ? 'bg-red-100' :
+                    activity.status === 'in-progress' ? 'bg-purple-100' :
+                    'bg-blue-100'
+                  }`}>
+                    <Calendar className={`h-4 w-4 ${
+                      activity.status === 'completed' ? 'text-green-600' :
+                      activity.status === 'cancelled' ? 'text-red-600' :
+                      activity.status === 'in-progress' ? 'text-purple-600' :
+                      'text-blue-600'
+                    }`} />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">
-                      Booking #{activity._id?.slice(-4) || 'New'} - {activity.status || 'Pending'}
+                      {activity.title || `Booking #${activity._id?.slice(-4) || 'New'}`}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {activity.createdAt ? new Date(activity.createdAt).toLocaleDateString() : 'Recent'}
+                    <p className="text-xs text-muted-foreground capitalize">
+                      {activity.status || 'Pending'} • {activity.date ? new Date(activity.date).toLocaleDateString() : 'Recent'}
                     </p>
                   </div>
+                  {activity.amount > 0 && (
+                    <div className="text-sm font-medium text-primary">
+                      ₹{activity.amount.toLocaleString()}
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
-              <div className="text-center text-gray-500">
+              <div className="text-center text-gray-500 py-4">
                 <Calendar className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                 <p className="text-sm">No recent activity</p>
                 <p className="text-xs text-gray-400">

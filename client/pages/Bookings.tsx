@@ -23,16 +23,34 @@ import {
 
 interface Booking {
   _id: string;
-  service: {
+  service?: {
     name: string;
     category: string;
   };
-  worker: {
+  serviceId?: {
+    name: string;
+    category: string;
+  };
+  worker?: {
     _id: string;
     firstName: string;
     lastName: string;
     avatar?: string;
     rating: number;
+  };
+  workerId?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+    rating?: number;
+  };
+  customerId?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+    phone?: string;
   };
   scheduledDate: string;
   scheduledTime: string;
@@ -92,7 +110,9 @@ const Bookings: React.FC = () => {
     try {
       const response = await api.get('/bookings/my-bookings');
       if (response.data.success) {
-        setBookings(response.data.data || []);
+        // API returns { success, data: { bookings: [], pagination: {} } }
+        const bookingsData = response.data.data?.bookings || response.data.data || [];
+        setBookings(Array.isArray(bookingsData) ? bookingsData : []);
       }
     } catch (error) {
       console.error('Error fetching bookings:', error);
@@ -124,78 +144,86 @@ const Bookings: React.FC = () => {
     return filterBookings(status).length;
   };
 
-  const BookingCard: React.FC<{ booking: Booking }> = ({ booking }) => (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={booking.worker.avatar} />
-              <AvatarFallback>
-                {booking.worker.firstName[0]}{booking.worker.lastName[0]}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-semibold">{booking.service.name}</h3>
-              <p className="text-sm text-gray-600">
-                by {booking.worker.firstName} {booking.worker.lastName}
-              </p>
-              <div className="flex items-center gap-1 mt-1">
-                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs text-gray-500">{booking.worker.rating}</span>
+  const BookingCard: React.FC<{ booking: Booking }> = ({ booking }) => {
+    // Handle both API field names (serviceId/workerId from API, service/worker for compatibility)
+    const service = booking.service || booking.serviceId;
+    const worker = booking.worker || booking.workerId;
+    const workerName = worker ? `${worker.firstName} ${worker.lastName}` : 'Service Provider';
+    const workerInitials = worker ? `${worker.firstName?.[0] || ''}${worker.lastName?.[0] || ''}` : 'SP';
+    const serviceName = service?.name || 'Service';
+    const workerRating = worker?.rating || 0;
+
+    return (
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="pb-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={worker?.avatar} />
+                <AvatarFallback>{workerInitials}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-semibold">{serviceName}</h3>
+                <p className="text-sm text-gray-600">by {workerName}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                  <span className="text-xs text-gray-500">{workerRating}</span>
+                </div>
               </div>
             </div>
+            <Badge className={getStatusColor(booking.status)}>
+              <span className="flex items-center gap-1">
+                {getStatusIcon(booking.status)}
+                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+              </span>
+            </Badge>
           </div>
-          <Badge className={getStatusColor(booking.status)}>
-            <span className="flex items-center gap-1">
-              {getStatusIcon(booking.status)}
-              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-            </span>
-          </Badge>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-400" />
-            <span>{new Date(booking.scheduledDate).toLocaleDateString()}</span>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-400" />
+              <span>{booking.scheduledDate ? new Date(booking.scheduledDate).toLocaleDateString() : 'TBD'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-gray-400" />
+              <span>{booking.scheduledTime || 'TBD'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-gray-400" />
+              <span className="truncate">{booking.address || 'Address not set'}</span>
+            </div>
+            <div className="font-semibold text-primary">
+              ₹{booking.totalAmount || 0}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-gray-400" />
-            <span>{booking.scheduledTime}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-gray-400" />
-            <span className="truncate">{booking.address}</span>
-          </div>
-          <div className="font-semibold text-primary">
-            ₹{booking.totalAmount}
-          </div>
-        </div>
 
-        <p className="text-sm text-gray-600">{booking.description}</p>
-
-        <div className="flex gap-2">
-          <Button asChild size="sm" className="flex-1">
-            <Link to={`/bookings/${booking._id}`}>
-              View Details
-            </Link>
-          </Button>
-          {booking.status === 'confirmed' && (
-            <>
-              <Button variant="outline" size="sm">
-                <MessageCircle className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm">
-                <Phone className="h-4 w-4" />
-              </Button>
-            </>
+          {booking.description && (
+            <p className="text-sm text-gray-600">{booking.description}</p>
           )}
-        </div>
-      </CardContent>
-    </Card>
-  );
+
+          <div className="flex gap-2">
+            <Button asChild size="sm" className="flex-1">
+              <Link to={`/bookings/${booking._id}`}>
+                View Details
+              </Link>
+            </Button>
+            {booking.status === 'confirmed' && (
+              <>
+                <Button variant="outline" size="sm">
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Phone className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">

@@ -1,10 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useLocation } from "@/contexts/LocationContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { indianStates } from "@/data/indianLocations";
 import { usePlatformStats } from "@/hooks/use-platform-stats";
 import {
@@ -48,10 +49,17 @@ interface Testimonial {
 export default function Index() {
   const { t } = useLanguage();
   const { selectedState, selectedDistrict, setSelectedState, setSelectedDistrict } = useLocation();
+  const { isAuthenticated, user } = useAuth();
   const { platformStats, loading: statsLoading } = usePlatformStats();
   const [searchQuery, setSearchQuery] = useState("");
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const navigate = useNavigate();
+
+  // Redirect authenticated users to their dashboard
+  if (isAuthenticated && user) {
+    const redirectTo = user.role === 'admin' ? '/admin' : '/dashboard';
+    return <Navigate to={redirectTo} replace />;
+  }
 
   // Fetch testimonials
   useEffect(() => {

@@ -99,12 +99,11 @@ export function Navigation() {
       ];
     }
 
-    // Customer navigation
+    // Customer navigation (no Home tab - Dashboard is the main page)
     return [
-      { href: "/", label: t("navigation.home"), icon: HomeIcon },
+      { href: "/dashboard", label: "Dashboard", icon: Briefcase },
       { href: "/workers", label: "Find Workers", icon: Users },
       { href: "/services", label: "Services", icon: Briefcase },
-      { href: "/bookings", label: "My Bookings", icon: Calendar },
     ];
   };
 
@@ -233,34 +232,14 @@ export function Navigation() {
                         </DropdownMenuItem>
                       </>
                     ) : (
-                      // Regular user dropdown
+                      // Regular user dropdown - only Settings and Logout
                       <>
-                        <DropdownMenuItem asChild>
-                          <Link to="/dashboard">
-                            <User className="mr-2 h-4 w-4" />
-                            {t("navigation.dashboard")}
-                          </Link>
-                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/profile">
                             <Settings className="mr-2 h-4 w-4" />
                             {t("navigation.profile")}
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/bookings">
-                            <Calendar className="mr-2 h-4 w-4" />
-                            {t("navigation.bookings")}
-                          </Link>
-                        </DropdownMenuItem>
-                        {user?.role === 'worker' && (
-                          <DropdownMenuItem asChild>
-                            <Link to="/resume-builder">
-                              <FileText className="mr-2 h-4 w-4" />
-                              {t("navigation.resumeBuilder")}
-                            </Link>
-                          </DropdownMenuItem>
-                        )}
                       </>
                     )}
                     <DropdownMenuSeparator />
