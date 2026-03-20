@@ -65,29 +65,9 @@ export function createServer() {
   app.use(securityHeaders);
   app.use(compression({ threshold: 1024 })); // Only compress responses > 1KB
   
-  // Enhanced CORS configuration
+  // Deployment-friendly CORS; lock down by env/domain at infrastructure level.
   app.use(cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        process.env.FRONTEND_URL || "http://localhost:8080",
-        process.env.CLIENT_URL || "http://localhost:8082",
-        "http://localhost:8080",
-        "http://localhost:8081",
-        "http://localhost:8082",
-        "http://localhost:3000", // For development
-        "http://localhost:5173", // Vite dev server
-      ];
-      
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
-        callback(null, true);
-      } else {
-        console.warn('[CORS] Blocked origin:', origin);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key'],

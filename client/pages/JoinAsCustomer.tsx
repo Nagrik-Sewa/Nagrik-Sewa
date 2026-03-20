@@ -125,12 +125,12 @@ const JoinAsCustomer = () => {
       
       // Show OTP verification step
       setRegistrationEmail(formData.email);
-      setRegistrationPhone(formData.phone.replace(/\\s+/g, ''));
+      setRegistrationPhone(formData.phone.replace(/\s+/g, ''));
       setShowOTPVerification(true);
       
       toast({
-        title: \"OTP Sent!\",
-        description: \"Please verify your phone number to complete registration.\",
+        title: "OTP Sent!",
+        description: "Please verify your phone number to complete registration.",
       });
       
     } catch (error: any) {
@@ -148,8 +148,8 @@ const JoinAsCustomer = () => {
   // Handle OTP verification completion
   const handleVerificationComplete = () => {
     toast({
-      title: \"Welcome to Nagrik Sewa!\",
-      description: \"Your account has been verified successfully.\",
+      title: "Welcome to Nagrik Sewa!",
+      description: "Your account has been verified successfully.",
     });
     navigate('/dashboard');
   };
@@ -190,7 +190,7 @@ const JoinAsCustomer = () => {
   // Show OTP verification step if registration was successful
   if (showOTPVerification) {
     return (
-      <div className=\"min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4\">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
         <OTPVerification
           email={registrationEmail}
           phone={registrationPhone}

@@ -95,7 +95,7 @@ class SocketService {
   constructor(httpServer: HTTPServer) {
     this.io = new SocketIOServer(httpServer, {
       cors: {
-        origin: process.env.FRONTEND_URL || "http://localhost:8081",
+        origin: true,
         methods: ["GET", "POST"],
         credentials: true
       },
