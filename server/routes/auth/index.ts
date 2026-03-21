@@ -344,6 +344,12 @@ router.post('/login', validateInput(schemas.login), async (req: Request, res: Re
     const accessToken = generateToken(user);
     const refreshToken = generateRefreshToken(user);
 
+    res.cookie("token", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None"
+    });
+
     res.json({
       success: true,
       message: 'Login successful',

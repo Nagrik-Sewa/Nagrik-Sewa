@@ -28,6 +28,25 @@ import { performanceMonitor, memoryMonitor, requestSizeMonitor, endpointMonitor,
 
 dotenv.config();
 
+const allowedOrigins = [
+  "http://localhost:8080",
+  "http://localhost:5173",
+  "https://nagrik-sewa.vercel.app"
+];
+
+const corsMiddleware = cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("CORS blocked: " + origin));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+});
+
 // Performance monitoring
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
@@ -46,7 +65,7 @@ export async function createServer() {
   await database.connect();
 
   // Trust proxy for proper IP detection behind reverse proxies
-  app.set('trust proxy', 1);
+  app.set("trust proxy", 1);
 
   // Request logging middleware
   if (process.env.NODE_ENV === 'development') {
@@ -58,13 +77,9 @@ export async function createServer() {
   // Security middleware
   app.use(securityHeaders);
   app.use(compression({ threshold: 1024 })); // Only compress responses > 1KB
-  
-  app.use(cors({
-    origin: "https://nagrik-sewa.vercel.app",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true
-  }));
-  app.options("*", cors());
+
+  app.use(corsMiddleware);
+  app.options("*", corsMiddleware);
 
   // Apply rate limiting only to API routes, not static assets
   app.use('/api', generalRateLimit);

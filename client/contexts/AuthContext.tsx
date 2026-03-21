@@ -51,6 +51,13 @@ interface RegisterData {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_URL = import.meta.env.VITE_API_URL;
 
+// Debug logging for CORS/cookie verification
+console.log('[AUTH] Environment:', {
+  API_URL,
+  isDevelopment: import.meta.env.DEV,
+  isSameSite: typeof document !== 'undefined' && document.location.protocol === 'https:',
+});
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,22 +93,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       const loginUrl = API_URL ? `${API_URL.replace(/\/$/, '')}/api/login` : '/api/login';
+      
+      console.log('[AUTH] Login attempt:', {
+        url: loginUrl,
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        origin: window.location.origin,
+      });
+      
       const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
-        credentials: 'include',
+        credentials: 'include', // ✓ CRITICAL: Enables cookie persistence
       });
 
       const responseData = await response.json();
 
       if (!response.ok) {
+        console.error('[AUTH] Login failed:', {
+          status: response.status,
+          message: responseData?.message,
+          headers: Object.fromEntries(response.headers.entries()),
+        });
         throw new Error(responseData?.message || 'Login failed');
       }
 
-      console.log('Login response:', responseData);
+      console.log('[AUTH] Login response received:', {
+        hasUser: !!responseData.data?.user,
+        hasToken: !!responseData.data?.tokens?.accessToken,
+        setCookieHeader: response.headers.get('set-cookie') ? 'Yes' : 'No',
+        corsHeaders: {
+          'access-control-allow-credentials': response.headers.get('access-control-allow-credentials'),
+          'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
+        },
+      });
       
       // Handle the correct response structure from server
       const { user, tokens, token } = responseData.data;
@@ -125,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Return user for role-based redirect handling
       return user;
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('[AUTH] Login error:', error);
       const message = error?.response?.data?.message || error?.message || 'Login failed';
       toast({
         title: "Login failed",

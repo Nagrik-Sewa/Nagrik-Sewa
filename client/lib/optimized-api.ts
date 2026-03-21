@@ -15,6 +15,7 @@ const createOptimizedAxios = (): AxiosInstance => {
     headers: {
       'Content-Type': 'application/json',
     },
+    withCredentials: true, // Enable cookies for cross-origin requests
   });
 
   // Request interceptor for performance optimization
