@@ -49,6 +49,7 @@ interface RegisterData {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -84,11 +85,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post('/auth/login', { email, password });
-      console.log('Login response:', response.data);
+      const loginUrl = API_URL ? `${API_URL.replace(/\/$/, '')}/api/login` : '/api/login';
+      const response = await fetch(loginUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData?.message || 'Login failed');
+      }
+
+      console.log('Login response:', responseData);
       
       // Handle the correct response structure from server
-      const { user, tokens, token } = response.data.data;
+      const { user, tokens, token } = responseData.data;
       // Use tokens.accessToken if available, fallback to token for backward compatibility
       const accessToken = tokens?.accessToken || token;
       
@@ -110,7 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return user;
     } catch (error: any) {
       console.error('Login error:', error);
-      const message = error.response?.data?.message || 'Login failed';
+      const message = error?.response?.data?.message || error?.message || 'Login failed';
       toast({
         title: "Login failed",
         description: message,

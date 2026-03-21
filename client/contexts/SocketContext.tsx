@@ -21,7 +21,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      const socketUrl = import.meta.env.VITE_SOCKET_URL || (import.meta.env.DEV ? 'http://localhost:8080' : window.location.origin);
+      const socketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
       const socketInstance = io(socketUrl, {
         auth: {
           token: localStorage.getItem('authToken'),

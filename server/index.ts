@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
-import cors from "cors";
+import cors, { CorsOptions } from "cors";
 import compression from "compression";
 import path from "path";
 import morgan from "morgan";
@@ -41,6 +41,15 @@ process.on('unhandledRejection', (reason, promise) => {
 
 export async function createServer() {
   const app = express();
+  const allowedFrontendOrigin = process.env.FRONTEND_URL || "https://nagrik-sewa.vercel.app";
+  const corsOptions: CorsOptions = {
+    origin: allowedFrontendOrigin,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-API-Key"],
+    exposedHeaders: ["X-Total-Count", "X-Page-Count"],
+    maxAge: 86400,
+  };
 
   // Block server startup until database connection is ready.
   await database.connect();
@@ -59,15 +68,8 @@ export async function createServer() {
   app.use(securityHeaders);
   app.use(compression({ threshold: 1024 })); // Only compress responses > 1KB
   
-  // Deployment-friendly CORS; lock down by env/domain at infrastructure level.
-  app.use(cors({
-    origin: true,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key'],
-    exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
-    maxAge: 86400, // 24 hours
-  }));
+  app.use(cors(corsOptions));
+  app.options("*", cors(corsOptions));
 
   // Apply rate limiting only to API routes, not static assets
   app.use('/api', generalRateLimit);
@@ -147,6 +149,8 @@ export async function createServer() {
   app.get("/api/demo", handleDemo);
 
   // Main API routes
+  // Backward-compatibility alias to support /api/login from deployed frontend.
+  app.use("/api", authRoutes);
   app.use("/api/auth", authRoutes);
   app.use("/api/admin", adminRoutes);
   app.use("/api/verification", digilockerRoutes);
