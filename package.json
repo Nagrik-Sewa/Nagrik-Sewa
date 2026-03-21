@@ -16,6 +16,10 @@
   ],
   "author": "Nagrik Sewa Team",
   "license": "MIT",
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  },
   "pkg": {
     "assets": [
       "dist/spa/*"
@@ -28,8 +32,7 @@
     "dev": "vite",
     "build": "vite build",
     "build:client": "vite build",
-    "build:server": "vite build --config vite.config.server.ts",
-    "start": "node dist/server/node-build.mjs",
+    "start": "npx ts-node node-build.ts",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:coverage": "vitest --coverage",
@@ -96,6 +99,8 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "twilio": "^5.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3",
     "uuid": "^11.1.0",
     "winston": "^3.17.0",
     "zod": "^3.23.8"
@@ -177,7 +182,6 @@
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.176.0",
     "tsx": "^4.7.0",
-    "typescript": "^5.5.3",
     "vaul": "^0.9.3",
     "vite": "^6.4.1",
     "vitest": "^3.1.4"

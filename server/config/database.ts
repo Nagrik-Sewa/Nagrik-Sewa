@@ -20,16 +20,16 @@ class Database {
     try {
       const shouldSkip = process.env.SKIP_DB_CONNECTION === 'true';
       const fallbackDevUri = 'mongodb://127.0.0.1:27017/nagrik-sewa';
-      const mongoUri = process.env.MONGODB_URI || (!shouldSkip && process.env.NODE_ENV === 'development' ? fallbackDevUri : undefined);
+      const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || (!shouldSkip && process.env.NODE_ENV === 'development' ? fallbackDevUri : undefined);
 
-      console.log('MONGO_URI:', process.env.MONGODB_URI);
+      console.log('MONGO_URI:', process.env.MONGO_URI || process.env.MONGODB_URI);
 
-      if (!process.env.MONGODB_URI && mongoUri === fallbackDevUri) {
-        console.warn('MONGODB_URI is not set; falling back to local MongoDB at mongodb://127.0.0.1:27017/nagrik-sewa');
+      if (!process.env.MONGO_URI && !process.env.MONGODB_URI && mongoUri === fallbackDevUri) {
+        console.warn('MONGO_URI/MONGODB_URI is not set; falling back to local MongoDB at mongodb://127.0.0.1:27017/nagrik-sewa');
       }
 
       if (!mongoUri) {
-        const message = 'MONGODB_URI environment variable is not defined';
+        const message = 'MONGO_URI environment variable is not defined';
         if (shouldSkip) {
           console.warn(`${message}; skipping MongoDB connection because SKIP_DB_CONNECTION=true.`);
           return;
