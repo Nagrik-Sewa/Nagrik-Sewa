@@ -142,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast({
         title: "Registration Successful!",
-        description: "Please verify your phone number with the OTP sent to complete registration.",
+        description: "Please verify your email with the OTP sent to complete registration.",
       });
 
       // Return the response for the component to handle OTP verification
@@ -164,12 +164,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // OTP VERIFICATION FUNCTIONS
   // ============================================================================
   
-  const sendOTP = async (phone: string) => {
+  const sendOTP = async (email: string) => {
     try {
-      const response = await api.post('/auth/send-otp', { phone });
+      const response = await api.post('/auth/resend-email-otp', { email });
       toast({
         title: "OTP Sent",
-        description: "Verification code sent to your phone",
+        description: "Verification code sent to your email",
       });
       return response.data;
     } catch (error: any) {
@@ -183,9 +183,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const verifyOTP = async (phone: string, otp: string) => {
+  const verifyOTP = async (email: string, otp: string) => {
     try {
-      const response = await api.post('/auth/verify-otp', { phone, otp });
+      const response = await api.post('/auth/verify-email-otp', { email, otp });
       const { user: verifiedUser, tokens } = response.data.data;
       
       if (tokens?.accessToken) {
@@ -194,7 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         toast({
           title: "Verified!",
-          description: "Your phone number has been verified successfully.",
+          description: "Your email has been verified successfully.",
         });
       }
       

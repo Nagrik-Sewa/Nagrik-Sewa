@@ -32,7 +32,7 @@ function expressPlugin(): Plugin {
       try {
         console.log("Loading Express server...");
         const { createServer } = await import("./server");
-        const app = createServer();
+        const app = await createServer();
         console.log("Express server loaded successfully");
         
         // Add Express app as middleware to Vite dev server

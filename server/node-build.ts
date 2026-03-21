@@ -1,32 +1,42 @@
-import "dotenv/config";
+import dotenv from "dotenv";
 import path from "path";
 import { createServer } from "./index";
 import * as express from "express";
 
-const app = createServer();
+dotenv.config();
+
 const port = process.env.PORT || 5000;
 
 // In production, serve the built SPA files
 const __dirname = import.meta.dirname;
 const distPath = path.join(__dirname, "../spa");
 
-// Serve static files
-app.use(express.static(distPath));
+async function bootstrap() {
+  const app = await createServer();
 
-// Handle React Router - serve index.html for all non-API routes
-app.get("*", (req, res) => {
-  // Don't serve index.html for API routes
-  if (req.path.startsWith("/api/") || req.path.startsWith("/health")) {
-    return res.status(404).json({ error: "API endpoint not found" });
-  }
+  // Serve static files
+  app.use(express.static(distPath));
 
-  res.sendFile(path.join(distPath, "index.html"));
-});
+  // Handle React Router - serve index.html for all non-API routes
+  app.get("*", (req, res) => {
+    // Don't serve index.html for API routes
+    if (req.path.startsWith("/api/") || req.path.startsWith("/health")) {
+      return res.status(404).json({ error: "API endpoint not found" });
+    }
 
-app.listen(port, () => {
-  console.log(`🚀 Fusion Starter server running on port ${port}`);
-  console.log(`📱 Frontend URL: ${process.env.FRONTEND_URL || "not configured"}`);
-  console.log(`🔧 API ready on /api`);
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+
+  app.listen(port, () => {
+    console.log(`🚀 Fusion Starter server running on port ${port}`);
+    console.log(`📱 Frontend URL: ${process.env.FRONTEND_URL || "not configured"}`);
+    console.log(`🔧 API ready on /api`);
+  });
+}
+
+bootstrap().catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
 
 // Graceful shutdown

@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -6,11 +7,26 @@ import { User } from '../models/User';
 import { WorkerProfile } from '../models/WorkerProfile';
 import { authenticate as authMiddleware, generateToken, generateRefreshToken } from '../middleware/auth';
 import { sendEmail } from '../services/email';
+import { database } from '../config/database';
 // OTP Service removed - OTP verification disabled
 // import { sendSMS } from '../services/sms';
 // import { OTPService, PendingUserData } from '../services/otp';
 
 const router = express.Router();
+
+dotenv.config();
+
+const ensureDatabaseAvailable = (res: express.Response): boolean => {
+  if (database.getConnectionStatus()) {
+    return true;
+  }
+
+  res.status(503).json({
+    success: false,
+    message: 'Database is unavailable. Ensure MongoDB is running and MONGODB_URI is configured.'
+  });
+  return false;
+};
 
 // ============================================================================
 // HARDCODED ADMIN CREDENTIALS
@@ -153,6 +169,10 @@ router.post('/register-admin', async (req, res) => {
 // OTP VERIFICATION REMOVED - Users are registered directly without OTP
 router.post('/register', async (req, res) => {
   try {
+    if (!ensureDatabaseAvailable(res)) {
+      return;
+    }
+
     const { 
       firstName, 
       lastName, 
@@ -257,11 +277,13 @@ router.post('/register', async (req, res) => {
     // ========================================================================
 
     // Create user in database (email verification required)
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = new User({
       firstName: firstName.trim(),
       lastName: lastName?.trim() || '',
       email: normalizedEmail,
-      password, // Will be hashed by mongoose pre-save hook
+      password: hashedPassword,
       phone: normalizedPhone,
       role,
       address: {
@@ -481,6 +503,10 @@ router.post('/register', async (req, res) => {
  */
 router.post('/verify-email-otp', async (req, res) => {
   try {
+    if (!ensureDatabaseAvailable(res)) {
+      return;
+    }
+
     const { email: rawEmail, otp } = req.body;
     const email = rawEmail?.trim().toLowerCase();
 
@@ -611,6 +637,10 @@ router.post('/verify-email-otp', async (req, res) => {
  */
 router.post('/resend-email-otp', async (req, res) => {
   try {
+    if (!ensureDatabaseAvailable(res)) {
+      return;
+    }
+
     const { email: rawEmail } = req.body;
     const email = rawEmail?.trim().toLowerCase();
 
@@ -725,6 +755,10 @@ router.post('/send-otp', async (req, res) => {
 // MODIFIED: Added hardcoded admin credential check
 router.post('/login', async (req, res) => {
   try {
+    if (!ensureDatabaseAvailable(res)) {
+      return;
+    }
+
     const { email, password } = req.body;
 
     // Debug logging for request

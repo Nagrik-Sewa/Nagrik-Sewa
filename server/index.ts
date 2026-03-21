@@ -1,4 +1,4 @@
-import "dotenv/config";
+import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import compression from "compression";
@@ -26,6 +26,8 @@ import coursesRoutes from "./routes/courses";
 import workersRoutes from "./routes/workers";
 import { performanceMonitor, memoryMonitor, requestSizeMonitor, endpointMonitor, getPerformanceStats } from "./middleware/performance";
 
+dotenv.config();
+
 // Performance monitoring
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
@@ -37,19 +39,11 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1);
 });
 
-export function createServer() {
+export async function createServer() {
   const app = express();
 
-  // Initialize database connection with retry logic
-  database.connect().catch(error => {
-    if (process.env.SKIP_DB_CONNECTION === 'true' || process.env.NODE_ENV === 'development') {
-      console.warn('Database connection failed or skipped; continuing without DB. Reason:', error instanceof Error ? error.message : error);
-      return;
-    }
-
-    console.error('Failed to connect to database:', error);
-    process.exit(1);
-  });
+  // Block server startup until database connection is ready.
+  await database.connect();
 
   // Trust proxy for proper IP detection behind reverse proxies
   app.set('trust proxy', 1);

@@ -1,6 +1,9 @@
+import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { User, IUser } from '../models/User';
+
+dotenv.config();
 
 // Validate JWT_SECRET on module load
 const JWT_SECRET = process.env.JWT_SECRET;

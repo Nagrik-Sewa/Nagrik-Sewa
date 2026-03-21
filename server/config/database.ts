@@ -19,13 +19,19 @@ class Database {
 
     try {
       const shouldSkip = process.env.SKIP_DB_CONNECTION === 'true';
-      const mongoUri = process.env.MONGODB_URI;
+      const fallbackDevUri = 'mongodb://127.0.0.1:27017/nagrik-sewa';
+      const mongoUri = process.env.MONGODB_URI || (!shouldSkip && process.env.NODE_ENV === 'development' ? fallbackDevUri : undefined);
 
-      // Allow skipping DB locally to unblock front-end dev when Mongo isn't available
+      console.log('MONGO_URI:', process.env.MONGODB_URI);
+
+      if (!process.env.MONGODB_URI && mongoUri === fallbackDevUri) {
+        console.warn('MONGODB_URI is not set; falling back to local MongoDB at mongodb://127.0.0.1:27017/nagrik-sewa');
+      }
+
       if (!mongoUri) {
         const message = 'MONGODB_URI environment variable is not defined';
-        if (shouldSkip || process.env.NODE_ENV === 'development') {
-          console.warn(`${message}; skipping MongoDB connection.`);
+        if (shouldSkip) {
+          console.warn(`${message}; skipping MongoDB connection because SKIP_DB_CONNECTION=true.`);
           return;
         }
         throw new Error(message);
@@ -38,9 +44,9 @@ class Database {
 
       const options: mongoose.ConnectOptions = {
         maxPoolSize: 10, // Maintain up to 10 socket connections
-        serverSelectionTimeoutMS: 30000, // Keep trying to send operations for 30 seconds
+        serverSelectionTimeoutMS: 5000, // Fail fast when DB is unavailable
         socketTimeoutMS: 60000, // Close sockets after 60 seconds of inactivity
-        connectTimeoutMS: 30000, // How long to wait for initial connection
+        connectTimeoutMS: 10000, // How long to wait for initial connection
         heartbeatFrequencyMS: 10000, // Frequency of the heartbeat
         retryWrites: true
       };
