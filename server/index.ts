@@ -74,6 +74,12 @@ export async function createServer() {
     app.use(morgan('combined'));
   }
 
+  // Global request logging for quick routing/debug visibility.
+  app.use((req, _res, next) => {
+    console.log(`[REQ] ${req.method} ${req.originalUrl}`);
+    next();
+  });
+
   // Security middleware
   app.use(securityHeaders);
   app.use(compression({ threshold: 1024 })); // Only compress responses > 1KB

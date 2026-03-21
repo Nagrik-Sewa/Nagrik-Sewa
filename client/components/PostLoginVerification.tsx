@@ -29,6 +29,7 @@ interface VerificationStep {
 }
 
 export const PostLoginVerification: React.FC = () => {
+  const API_BASE_URL = `https://nagrik-sewa-1.onrender.com/api`;
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -95,7 +96,9 @@ export const PostLoginVerification: React.FC = () => {
 
   const handleEmailVerification = async () => {
     try {
-      const response = await fetch('/api/auth/send-verification-email', {
+      const verificationUrl = `${API_BASE_URL}/auth/send-verification-email`;
+      console.log('[PostLoginVerification] Calling URL:', verificationUrl);
+      const response = await fetch(verificationUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -120,7 +123,9 @@ export const PostLoginVerification: React.FC = () => {
 
   const handlePhoneVerification = async () => {
     try {
-      const response = await fetch('/api/auth/send-phone-otp', {
+      const phoneOtpUrl = `${API_BASE_URL}/auth/send-phone-otp`;
+      console.log('[PostLoginVerification] Calling URL:', phoneOtpUrl);
+      const response = await fetch(phoneOtpUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -147,7 +152,9 @@ export const PostLoginVerification: React.FC = () => {
   const handleDigiLockerVerification = async (verificationData: any) => {
     try {
       // Send verification data to backend
-      const response = await fetch('/api/auth/verify-digilocker', {
+      const digilockerUrl = `${API_BASE_URL}/auth/verify-digilocker`;
+      console.log('[PostLoginVerification] Calling URL:', digilockerUrl);
+      const response = await fetch(digilockerUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,

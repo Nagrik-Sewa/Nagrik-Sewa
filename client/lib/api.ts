@@ -1,12 +1,8 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
-const normalizedApiUrl = API_URL?.replace(/\/$/, '');
-const API_BASE_URL = normalizedApiUrl
-  ? (normalizedApiUrl.endsWith('/api') ? normalizedApiUrl : `${normalizedApiUrl}/api`)
-  : '/api';
+const API_BASE_URL = `https://nagrik-sewa-1.onrender.com/api`;
 
-console.log('[API] Base URL:', API_BASE_URL);
+console.log('API URL:', API_BASE_URL);
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -20,11 +16,14 @@ export const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
+    const requestUrl = config.url?.startsWith('http')
+      ? config.url
+      : `${API_BASE_URL}${config.url?.startsWith('/') ? '' : '/'}${config.url || ''}`;
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
+    console.log(`[API] ${config.method?.toUpperCase()} ${requestUrl}`);
     return config;
   },
   (error) => {

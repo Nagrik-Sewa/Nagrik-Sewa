@@ -98,6 +98,7 @@ const ResumeBuilder: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const API_BASE_URL = `https://nagrik-sewa-1.onrender.com/api`;
   
   const [activeTab, setActiveTab] = useState('personal');
   const [resumeData, setResumeData] = useState<ResumeData>({
@@ -133,7 +134,9 @@ const ResumeBuilder: React.FC = () => {
       
       // Also save to backend if user is authenticated
       if (user) {
-        const response = await fetch('/api/resume/save', {
+        const resumeSaveUrl = `${API_BASE_URL}/resume/save`;
+        console.log('[ResumeBuilder] Calling URL:', resumeSaveUrl);
+        const response = await fetch(resumeSaveUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -172,7 +175,10 @@ const ResumeBuilder: React.FC = () => {
       try {
         // Try to load from backend first
         if (user) {
-          const response = await fetch('/api/resume/get', {
+          const resumeGetUrl = `${API_BASE_URL}/resume/get`;
+          console.log('[ResumeBuilder] Calling URL:', resumeGetUrl);
+          const response = await fetch(resumeGetUrl, {
+            method: 'GET',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }

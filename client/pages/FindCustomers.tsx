@@ -168,7 +168,9 @@ export default function FindCustomers() {
   const handleSendProposal = async (request: CustomerRequest) => {
     try {
       // Send email notification
-      await fetch('/api/send-notification', {
+      const sendNotificationUrl = 'https://nagrik-sewa-1.onrender.com/api/send-notification';
+      console.log('[FindCustomers] Calling URL:', sendNotificationUrl);
+      await fetch(sendNotificationUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

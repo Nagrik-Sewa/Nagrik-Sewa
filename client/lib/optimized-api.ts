@@ -7,10 +7,12 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   };
 }
 
+const API_BASE_URL = `https://nagrik-sewa-1.onrender.com/api`;
+
 // Create optimized axios instance with interceptors
 const createOptimizedAxios = (): AxiosInstance => {
   const instance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || '/api',
+    baseURL: API_BASE_URL,
     timeout: 30000, // 30 seconds
     headers: {
       'Content-Type': 'application/json',
@@ -21,6 +23,12 @@ const createOptimizedAxios = (): AxiosInstance => {
   // Request interceptor for performance optimization
   instance.interceptors.request.use(
     (config: ExtendedAxiosRequestConfig) => {
+      const requestUrl = config.url?.startsWith('http')
+        ? config.url
+        : `${API_BASE_URL}${config.url?.startsWith('/') ? '' : '/'}${config.url || ''}`;
+
+      console.log(`[OPT-API] ${config.method?.toUpperCase()} ${requestUrl}`);
+
       // Add request timestamp for performance tracking
       config.metadata = { startTime: Date.now() };
       

@@ -23,6 +23,7 @@ import { Card } from "../../components/ui/card";
 import { CONTACT_INFO, makePhoneCall, sendEmail } from "../../constants/contact";
 
 export default function WorkerSupport() {
+  const API_BASE_URL = `https://nagrik-sewa-1.onrender.com/api`;
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     fullName: '',
@@ -47,7 +48,9 @@ export default function WorkerSupport() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/support/submit', {
+      const supportSubmitUrl = `${API_BASE_URL}/support/submit`;
+      console.log('[WorkerSupport] Calling URL:', supportSubmitUrl);
+      const response = await fetch(supportSubmitUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

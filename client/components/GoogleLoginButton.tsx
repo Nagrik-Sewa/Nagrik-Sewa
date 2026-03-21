@@ -15,6 +15,7 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
   onSuccess,
   onError 
 }) => {
+  const API_BASE_URL = `https://nagrik-sewa-1.onrender.com/api`;
   const { refreshUser } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -30,7 +31,9 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
       }
 
       // Send Google credential to our backend
-      const response = await fetch('/api/auth/google', {
+      const googleAuthUrl = `${API_BASE_URL}/auth/google`;
+      console.log('[GoogleAuth] Calling URL:', googleAuthUrl);
+      const response = await fetch(googleAuthUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

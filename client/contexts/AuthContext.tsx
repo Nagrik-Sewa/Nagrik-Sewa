@@ -49,7 +49,7 @@ interface RegisterData {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = `https://nagrik-sewa-1.onrender.com/api`;
 
 // Debug logging for CORS/cookie verification
 console.log('[AUTH] Environment:', {
@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const loginUrl = API_URL ? `${API_URL.replace(/\/$/, '')}/api/login` : '/api/login';
+      const loginUrl = `${API_URL}/login`;
       
       console.log('[AUTH] Login attempt:', {
         url: loginUrl,
