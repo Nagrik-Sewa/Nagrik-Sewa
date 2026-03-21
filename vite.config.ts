@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    outDir: "dist/spa",
+    outDir: "dist",
   },
   plugins: [react(), mode === 'development' ? expressPlugin() : undefined].filter(Boolean),
   resolve: {
