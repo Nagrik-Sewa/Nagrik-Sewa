@@ -16,10 +16,6 @@
   ],
   "author": "Nagrik Sewa Team",
   "license": "MIT",
-  "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node"
-  },
   "pkg": {
     "assets": [
       "dist/spa/*"
@@ -30,11 +26,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && tsc",
     "build:client": "vite build",
-    "build:backend": "echo Backend service build: no frontend build required",
-    "start:backend": "node --loader ts-node/esm node-build.ts",
-    "start": "npm run start:backend",
+    "build:server": "tsc",
+    "start": "node dist/server/index.js",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:coverage": "vitest --coverage",

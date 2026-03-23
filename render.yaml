@@ -3,8 +3,8 @@ services:
     name: nagrik-sewa-backend
     env: node
     rootDir: .
-    buildCommand: npm run build:backend
-    startCommand: npm run start:backend
+    buildCommand: npm install && npm run build:server
+    startCommand: npm start
     autoDeploy: true
     envVars:
       - key: NODE_ENV
