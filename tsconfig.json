@@ -13,6 +13,7 @@
     "resolveJsonModule": true,
     "declaration": false,
     "sourceMap": true,
+    "noEmitOnError": false,
 
     /* Linting - set to false to allow compilation despite type errors */
     "strict": false,

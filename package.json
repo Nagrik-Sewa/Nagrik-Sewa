@@ -28,7 +28,7 @@
     "dev": "vite",
     "build": "vite build && tsc",
     "build:client": "vite build",
-    "build:server": "tsc",
+    "build:server": "node scripts/build-backend.cjs",
     "start": "node dist/server/index.js",
     "test": "vitest --run",
     "test:watch": "vitest",
