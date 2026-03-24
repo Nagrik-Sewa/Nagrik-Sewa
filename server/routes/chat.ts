@@ -2,9 +2,8 @@ import express from 'express';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const router = express.Router();
-
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || '');
+const getGeminiApiKey = (): string | undefined =>
+  process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 
 // Chat endpoint
 router.post('/chat', async (req, res) => {
@@ -18,14 +17,15 @@ router.post('/chat', async (req, res) => {
       });
     }
 
-    // Check if API key is available
-    if (!process.env.VITE_GEMINI_API_KEY) {
+    const apiKey = getGeminiApiKey();
+    if (!apiKey) {
       return res.status(500).json({
         success: false,
         message: 'AI service is not configured'
       });
     }
 
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     // Create context-aware prompt for Nagrik Sewa

@@ -29,7 +29,7 @@ interface VerificationStep {
 }
 
 export const PostLoginVerification: React.FC = () => {
-  const API_BASE_URL = `https://nagrik-sewa-1.onrender.com/api`;
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || `${window.location.origin}/api`).replace(/\/+$/, '');
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();

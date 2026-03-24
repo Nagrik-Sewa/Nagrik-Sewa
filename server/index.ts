@@ -24,39 +24,53 @@ import supportRoutes from "./routes/support";
 import adminRoutes from "./routes/admin";
 import coursesRoutes from "./routes/courses";
 import workersRoutes from "./routes/workers";
-import { performanceMonitor, memoryMonitor, requestSizeMonitor, endpointMonitor, getPerformanceStats } from "./middleware/performance";
+import {
+  performanceMonitor,
+  memoryMonitor,
+  requestSizeMonitor,
+  endpointMonitor,
+  getPerformanceStats,
+} from "./middleware/performance";
 
 dotenv.config();
 
-const allowedOrigins = [
+const defaultAllowedOrigins = [
   "http://localhost:8080",
   "http://localhost:5173",
-  "https://nagrik-sewa.vercel.app"
+  "https://nagrik-sewa.vercel.app",
 ];
 
+const allowedOrigins = Array.from(
+  new Set(
+    [
+      ...defaultAllowedOrigins,
+      ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+      ...(process.env.CORS_ALLOWED_ORIGINS
+        ? process.env.CORS_ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
+        : []),
+    ].filter(Boolean),
+  ),
+);
+
 const corsMiddleware = cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
+    }
+
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    return callback(new Error("CORS blocked: " + origin));
+
+    return callback(new Error("CORS blocked"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
 });
 
-// Performance monitoring
-process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
-});
+const requestBodyLimit = process.env.REQUEST_BODY_LIMIT || "10mb";
+const shouldLogRequests = process.env.NODE_ENV !== "production" || process.env.LOG_REQUESTS === "true";
 
 export async function createServer() {
   const app = express();
@@ -67,38 +81,38 @@ export async function createServer() {
   // Trust proxy for proper IP detection behind reverse proxies
   app.set("trust proxy", 1);
 
-  // Request logging middleware
-  if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
+  if (process.env.NODE_ENV === "development") {
+    app.use(morgan("dev"));
   } else {
-    app.use(morgan('combined'));
+    app.use(morgan(process.env.HTTP_LOG_FORMAT || "combined"));
   }
 
-  // Global request logging for quick routing/debug visibility.
-  app.use((req, _res, next) => {
-    console.log(`[REQ] ${req.method} ${req.originalUrl}`);
-    next();
-  });
+  if (shouldLogRequests) {
+    app.use((req, _res, next) => {
+      console.log(`[REQ] ${req.method} ${req.originalUrl}`);
+      next();
+    });
+  }
 
   // Security middleware
   app.use(securityHeaders);
-  app.use(compression({ threshold: 1024 })); // Only compress responses > 1KB
+  app.use(compression({ threshold: 1024 }));
 
   app.use(corsMiddleware);
   app.options("*", corsMiddleware);
 
   // Apply rate limiting only to API routes, not static assets
-  app.use('/api', generalRateLimit);
+  app.use("/api", generalRateLimit);
 
   // Performance monitoring middleware
   app.use(performanceMonitor);
   app.use(memoryMonitor);
   app.use(requestSizeMonitor);
-  app.use('/api', endpointMonitor);
+  app.use("/api", endpointMonitor);
 
   // Body parsing middleware
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  app.use(express.json({ limit: requestBodyLimit }));
+  app.use(express.urlencoded({ extended: true, limit: requestBodyLimit }));
 
   // Health check endpoints
   app.get("/health", async (_req, res) => {
@@ -108,13 +122,13 @@ export async function createServer() {
         status: "ok",
         timestamp: new Date().toISOString(),
         database: dbHealth ? "connected" : "disconnected",
-        environment: process.env.NODE_ENV || "development"
+        environment: process.env.NODE_ENV || "development",
       });
-    } catch (error) {
+    } catch (_error) {
       res.status(503).json({
         status: "error",
         message: "Health check failed",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
   });
@@ -122,19 +136,18 @@ export async function createServer() {
   // System metrics endpoint (protected)
   app.get("/metrics", async (req, res) => {
     try {
-      // Basic auth for metrics endpoint in production
-      if (process.env.NODE_ENV === 'production') {
+      if (process.env.NODE_ENV === "production") {
         const auth = req.headers.authorization;
         const expectedAuth = process.env.METRICS_AUTH_TOKEN;
-        
+
         if (!auth || !expectedAuth || auth !== `Bearer ${expectedAuth}`) {
-          return res.status(401).json({ error: 'Unauthorized' });
+          return res.status(401).json({ error: "Unauthorized" });
         }
       }
-      
+
       const stats = getPerformanceStats();
       const dbHealth = await database.ping();
-      
+
       res.status(200).json({
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
@@ -146,12 +159,12 @@ export async function createServer() {
           arch: process.arch,
           cpuUsage: process.cpuUsage(),
           memoryUsage: process.memoryUsage(),
-        }
+        },
       });
     } catch (error) {
       res.status(500).json({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        error: error instanceof Error ? error.message : "Unknown error",
+        timestamp: new Date().toISOString(),
       });
     }
   });
@@ -194,7 +207,7 @@ export async function createServer() {
   // In production, serve the built React app
   if (process.env.NODE_ENV === "production") {
     app.use(express.static("dist/spa"));
-    
+
     // Handle client-side routing - serve index.html for all non-API routes
     app.get("*", (req, res) => {
       if (!req.path.startsWith("/api")) {

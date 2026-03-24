@@ -82,6 +82,7 @@ const districts = getAllDistricts();
 export default function FindCustomers() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || `${window.location.origin}/api`).replace(/\/+$/, '');
   
   const [customerRequests, setCustomerRequests] = useState<CustomerRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -168,7 +169,7 @@ export default function FindCustomers() {
   const handleSendProposal = async (request: CustomerRequest) => {
     try {
       // Send email notification
-      const sendNotificationUrl = 'https://nagrik-sewa-1.onrender.com/api/send-notification';
+      const sendNotificationUrl = `${API_BASE_URL}/send-notification`;
       console.log('[FindCustomers] Calling URL:', sendNotificationUrl);
       await fetch(sendNotificationUrl, {
         method: 'POST',

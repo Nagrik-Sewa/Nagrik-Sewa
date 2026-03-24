@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = `https://nagrik-sewa-1.onrender.com/api`;
-
-console.log('API URL:', API_BASE_URL);
+const resolvedApiBaseUrl = import.meta.env.VITE_API_URL?.trim();
+const API_BASE_URL = (resolvedApiBaseUrl && resolvedApiBaseUrl.length > 0
+  ? resolvedApiBaseUrl
+  : `${window.location.origin}/api`).replace(/\/+$/, '');
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -23,11 +24,15 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log(`[API] ${config.method?.toUpperCase()} ${requestUrl}`);
+    if (import.meta.env.DEV) {
+      console.log(`[API] ${config.method?.toUpperCase()} ${requestUrl}`);
+    }
     return config;
   },
   (error) => {
-    console.error('[API] Request error:', error);
+    if (import.meta.env.DEV) {
+      console.error('[API] Request error:', error);
+    }
     return Promise.reject(error);
   }
 );
@@ -35,14 +40,18 @@ api.interceptors.request.use(
 // Response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => {
-    console.log(`[API] Response ${response.status} for ${response.config.url}`);
+    if (import.meta.env.DEV) {
+      console.log(`[API] Response ${response.status} for ${response.config.url}`);
+    }
     return response;
   },
   (error) => {
     const status = error.response?.status;
     const url = error.config?.url || '';
     
-    console.error(`[API] Error ${status} for ${url}:`, error.response?.data?.message || error.message);
+    if (import.meta.env.DEV) {
+      console.error(`[API] Error ${status} for ${url}:`, error.response?.data?.message || error.message);
+    }
     
     // Don't redirect on 401 for auth endpoints (login/register/verify)
     const isAuthEndpoint = url.includes('/auth/login') || 
@@ -50,7 +59,9 @@ api.interceptors.response.use(
                           url.includes('/auth/verify');
     
     if (status === 401 && !isAuthEndpoint) {
-      console.log('[API] Unauthorized, clearing auth state');
+      if (import.meta.env.DEV) {
+        console.log('[API] Unauthorized, clearing auth state');
+      }
       localStorage.removeItem('authToken');
       // Only redirect if not already on auth pages
       if (!window.location.pathname.includes('/login') && 

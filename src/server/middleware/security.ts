@@ -3,6 +3,24 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import Joi from 'joi';
 
+const parsePositiveInt = (value: string | undefined, fallback: number): number => {
+  const parsed = Number.parseInt(value ?? '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const generalRateWindowMs = parsePositiveInt(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000);
+const generalRateMax = parsePositiveInt(
+  process.env.RATE_LIMIT_MAX,
+  process.env.NODE_ENV === 'development' ? 1000 : 100,
+);
+const authRateWindowMs = parsePositiveInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000);
+const authRateMax = parsePositiveInt(
+  process.env.AUTH_RATE_LIMIT_MAX,
+  process.env.NODE_ENV === 'development' ? 50 : 5,
+);
+const otpRateWindowMs = parsePositiveInt(process.env.OTP_RATE_LIMIT_WINDOW_MS, 60 * 1000);
+const otpRateMax = parsePositiveInt(process.env.OTP_RATE_LIMIT_MAX, 1);
+
 // Security headers middleware
 export const securityHeaders = helmet({
   contentSecurityPolicy: {
@@ -29,8 +47,8 @@ export const securityHeaders = helmet({
 
 // Rate limiting configurations
 export const generalRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 1000 : 100, // More lenient in development
+  windowMs: generalRateWindowMs,
+  max: generalRateMax,
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later.'
@@ -49,8 +67,8 @@ export const generalRateLimit = rateLimit({
 });
 
 export const authRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 50 : 5, // More lenient in development
+  windowMs: authRateWindowMs,
+  max: authRateMax,
   message: {
     success: false,
     message: 'Too many authentication attempts, please try again later.'
@@ -59,8 +77,8 @@ export const authRateLimit = rateLimit({
 });
 
 export const otpRateLimit = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 1, // Limit each IP to 1 OTP request per minute
+  windowMs: otpRateWindowMs,
+  max: otpRateMax,
   message: {
     success: false,
     message: 'OTP requests are limited to once per minute.'

@@ -15,7 +15,7 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
   onSuccess,
   onError 
 }) => {
-  const API_BASE_URL = `https://nagrik-sewa-1.onrender.com/api`;
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || `${window.location.origin}/api`).replace(/\/+$/, '');
   const { refreshUser } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();

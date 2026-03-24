@@ -1,99 +1,102 @@
 /**
  * Database Seed Script
- * Creates the admin user with predefined credentials
- * 
- * Usage: npm run db:seed
+ * Creates or updates an admin user.
+ *
+ * Usage:
+ * ADMIN_EMAIL=admin@nagriksewa.co.in ADMIN_PASSWORD=<strong-password> npm run db:seed
  */
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-// Admin credentials
-const ADMIN_EMAIL = 'admin@nagriksewa.co.in';
-const ADMIN_PASSWORD = 'Developer@NagrikSewa1536';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@nagriksewa.co.in';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 // User Schema (simplified for seeding)
-const userSchema = new mongoose.Schema({
-  firstName: String,
-  lastName: String,
-  email: { type: String, unique: true, lowercase: true },
-  password: String,
-  phone: String,
-  role: { type: String, enum: ['customer', 'worker', 'admin'] },
-  address: {
-    street: String,
-    city: String,
-    state: String,
-    pincode: String,
-    country: String
+const userSchema = new mongoose.Schema(
+  {
+    firstName: String,
+    lastName: String,
+    email: { type: String, unique: true, lowercase: true },
+    password: String,
+    phone: String,
+    role: { type: String, enum: ['customer', 'worker', 'admin'] },
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      pincode: String,
+      country: String,
+    },
+    isEmailVerified: Boolean,
+    isPhoneVerified: Boolean,
+    loginAttempts: Number,
+    isTwoFactorEnabled: Boolean,
+    languagePreference: String,
+    notificationPreferences: {
+      email: Boolean,
+      sms: Boolean,
+      push: Boolean,
+      whatsapp: Boolean,
+    },
+    accountStatus: String,
   },
-  isEmailVerified: Boolean,
-  isPhoneVerified: Boolean,
-  loginAttempts: Number,
-  isTwoFactorEnabled: Boolean,
-  languagePreference: String,
-  notificationPreferences: {
-    email: Boolean,
-    sms: Boolean,
-    push: Boolean,
-    whatsapp: Boolean
-  },
-  accountStatus: String
-}, { timestamps: true });
+  { timestamps: true },
+);
 
 const User = mongoose.model('User', userSchema);
 
 async function seedAdmin() {
   try {
+    if (!ADMIN_PASSWORD) {
+      throw new Error('ADMIN_PASSWORD is required to run this seed script');
+    }
+
     // Connect to MongoDB
     const mongoUri = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://localhost:27017/nagrik-sewa';
-    console.log('🔗 Connecting to MongoDB...');
-    
+    console.log('Connecting to MongoDB...');
+
     await mongoose.connect(mongoUri);
-    console.log('✅ Connected to MongoDB');
+    console.log('Connected to MongoDB');
 
     // Check if admin already exists
-    const existingAdmin = await User.findOne({ email: ADMIN_EMAIL });
-    
+    const existingAdmin = await User.findOne({ email: ADMIN_EMAIL.toLowerCase() });
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+
     if (existingAdmin) {
-      console.log('⚠️  Admin user already exists. Updating password...');
-      
-      // Update existing admin's password and name
-      const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+      console.log('Admin user already exists. Updating credentials...');
+
       await User.updateOne(
-        { email: ADMIN_EMAIL },
-        { 
-          $set: { 
-            firstName: 'Pushkar',
-            lastName: 'Saini',
+        { email: ADMIN_EMAIL.toLowerCase() },
+        {
+          $set: {
+            firstName: process.env.ADMIN_FIRST_NAME || 'Admin',
+            lastName: process.env.ADMIN_LAST_NAME || 'User',
             password: hashedPassword,
             role: 'admin',
             isEmailVerified: true,
             isPhoneVerified: true,
-            accountStatus: 'active'
-          }
-        }
+            accountStatus: 'active',
+          },
+        },
       );
-      
-      console.log('✅ Admin password updated successfully!');
+
+      console.log('Admin user updated successfully');
     } else {
-      // Create new admin user
-      const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
-      
       const admin = new User({
-        firstName: 'Pushkar',
-        lastName: 'Saini',
-        email: ADMIN_EMAIL,
+        firstName: process.env.ADMIN_FIRST_NAME || 'Admin',
+        lastName: process.env.ADMIN_LAST_NAME || 'User',
+        email: ADMIN_EMAIL.toLowerCase(),
         password: hashedPassword,
-        phone: '9999999999',
+        phone: process.env.ADMIN_PHONE || '9999999999',
         role: 'admin',
         address: {
           street: 'Admin Headquarters',
           city: 'New Delhi',
           state: 'Delhi',
           pincode: '110001',
-          country: 'India'
+          country: 'India',
         },
         isEmailVerified: true,
         isPhoneVerified: true,
@@ -104,28 +107,25 @@ async function seedAdmin() {
           email: true,
           sms: true,
           push: true,
-          whatsapp: true
+          whatsapp: true,
         },
-        accountStatus: 'active'
+        accountStatus: 'active',
       });
 
       await admin.save();
-      console.log('✅ Admin user created successfully!');
+      console.log('Admin user created successfully');
     }
 
-    console.log('\n📋 Admin Credentials:');
-    console.log('   Email:', ADMIN_EMAIL);
-    console.log('   Password:', ADMIN_PASSWORD);
-    console.log('\n🔐 Use these credentials to login at /admin');
-
+    console.log('\nAdmin account ready');
+    console.log(`Email: ${ADMIN_EMAIL.toLowerCase()}`);
+    console.log('Password: [provided through ADMIN_PASSWORD env var]');
   } catch (error) {
-    console.error('❌ Seeding failed:', error.message);
+    console.error('Seeding failed:', error.message);
     process.exit(1);
   } finally {
     await mongoose.disconnect();
-    console.log('\n🔌 Disconnected from MongoDB');
+    console.log('\nDisconnected from MongoDB');
   }
 }
 
-// Run the seed function
 seedAdmin();

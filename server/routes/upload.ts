@@ -5,6 +5,10 @@ import fs from 'fs';
 import { authenticate } from '../middleware/auth';
 
 const router = express.Router();
+const configuredMaxFileSize = Number.parseInt(process.env.MAX_FILE_SIZE || '', 10);
+const maxFileSize = Number.isFinite(configuredMaxFileSize) && configuredMaxFileSize > 0
+  ? configuredMaxFileSize
+  : 5 * 1024 * 1024;
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -24,7 +28,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE || '5242880') // 5MB default
+    fileSize: maxFileSize
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|pdf|doc|docx/;

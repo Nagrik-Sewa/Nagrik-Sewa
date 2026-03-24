@@ -8,14 +8,15 @@ describe('Nagrik Sewa API Tests', () => {
   let server: any;
 
   beforeAll(async () => {
-    app = createServer();
+    app = await createServer();
     server = app.listen(0); // Use random port for testing
-    await database.connect();
-  });
+  }, 40000);
 
   afterAll(async () => {
     await database.disconnect();
-    server.close();
+    if (server) {
+      server.close();
+    }
   });
 
   describe('Health Checks', () => {

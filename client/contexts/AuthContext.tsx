@@ -14,7 +14,7 @@ interface User {
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
   isDigiLockerVerified?: boolean;
-  isSystemAdmin?: boolean; // Flag for hardcoded admin
+  isSystemAdmin?: boolean; // Flag for system admin
   preferences?: {
     language: string;
     notifications: {
@@ -49,14 +49,16 @@ interface RegisterData {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const API_URL = `https://nagrik-sewa-1.onrender.com/api`;
+const API_URL = (import.meta.env.VITE_API_URL || `${window.location.origin}/api`).replace(/\/+$/, '');
 
 // Debug logging for CORS/cookie verification
-console.log('[AUTH] Environment:', {
-  API_URL,
-  isDevelopment: import.meta.env.DEV,
-  isSameSite: typeof document !== 'undefined' && document.location.protocol === 'https:',
-});
+if (import.meta.env.DEV) {
+  console.log('[AUTH] Environment:', {
+    API_URL,
+    isDevelopment: import.meta.env.DEV,
+    isSameSite: typeof document !== 'undefined' && document.location.protocol === 'https:',
+  });
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);

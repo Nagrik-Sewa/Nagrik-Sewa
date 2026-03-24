@@ -7,7 +7,7 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   };
 }
 
-const API_BASE_URL = `https://nagrik-sewa-1.onrender.com/api`;
+const API_BASE_URL = (import.meta.env.VITE_API_URL || `${window.location.origin}/api`).replace(/\/+$/, '');
 
 // Create optimized axios instance with interceptors
 const createOptimizedAxios = (): AxiosInstance => {
@@ -27,7 +27,9 @@ const createOptimizedAxios = (): AxiosInstance => {
         ? config.url
         : `${API_BASE_URL}${config.url?.startsWith('/') ? '' : '/'}${config.url || ''}`;
 
-      console.log(`[OPT-API] ${config.method?.toUpperCase()} ${requestUrl}`);
+      if (import.meta.env.DEV) {
+        console.log(`[OPT-API] ${config.method?.toUpperCase()} ${requestUrl}`);
+      }
 
       // Add request timestamp for performance tracking
       config.metadata = { startTime: Date.now() };
@@ -49,7 +51,9 @@ const createOptimizedAxios = (): AxiosInstance => {
       return config;
     },
     (error) => {
-      console.error('Request interceptor error:', error);
+      if (import.meta.env.DEV) {
+        console.error('Request interceptor error:', error);
+      }
       return Promise.reject(error);
     }
   );

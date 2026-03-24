@@ -16,6 +16,9 @@
   ],
   "author": "Nagrik Sewa Team",
   "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "pkg": {
     "assets": [
       "dist/spa/*"
@@ -27,7 +30,7 @@
   "scripts": {
     "dev": "vite",
     "postinstall": "vite build --config vite.config.server.ts",
-    "build": "npm run build:client && npm run build:server",
+    "build": "vite build && vite build --config vite.config.server.ts",
     "build:client": "vite build",
     "build:server": "vite build --config vite.config.server.ts",
     "start": "node dist/server/production.mjs",

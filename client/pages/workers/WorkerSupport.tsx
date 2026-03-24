@@ -23,7 +23,7 @@ import { Card } from "../../components/ui/card";
 import { CONTACT_INFO, makePhoneCall, sendEmail } from "../../constants/contact";
 
 export default function WorkerSupport() {
-  const API_BASE_URL = `https://nagrik-sewa-1.onrender.com/api`;
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || `${window.location.origin}/api`).replace(/\/+$/, '');
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     fullName: '',

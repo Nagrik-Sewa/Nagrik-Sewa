@@ -28,55 +28,73 @@ const ensureDatabaseAvailable = (res: express.Response): boolean => {
   return false;
 };
 
-// ============================================================================
-// HARDCODED ADMIN CREDENTIALS
-// Special admin login - bypasses normal authentication
-// This admin account has direct access to the Admin Portal
-// ============================================================================
-const HARDCODED_ADMIN = {
-  email: 'admin@nagriksewa.co.in',
-  password: 'Developer@NagrikSewa1536',
-  role: 'admin' as const,
-  firstName: 'System',
-  lastName: 'Administrator',
-  isSystemAdmin: true // Flag to identify hardcoded admin
-};
+const SYSTEM_ADMIN_EMAIL = process.env.SYSTEM_ADMIN_EMAIL?.trim().toLowerCase();
+const SYSTEM_ADMIN_PASSWORD = process.env.SYSTEM_ADMIN_PASSWORD;
+const SYSTEM_ADMIN_FIRST_NAME = process.env.SYSTEM_ADMIN_FIRST_NAME || 'System';
+const SYSTEM_ADMIN_LAST_NAME = process.env.SYSTEM_ADMIN_LAST_NAME || 'Administrator';
+const ENABLE_SYSTEM_ADMIN_LOGIN = process.env.ENABLE_SYSTEM_ADMIN_LOGIN === 'true';
 
 // Validate JWT_SECRET at startup
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  console.error('❌ WARNING: JWT_SECRET not set in environment variables');
+  console.error('WARNING: JWT_SECRET not set in environment variables');
 }
 
-// ============================================================================
-// HELPER: Check if credentials match hardcoded admin
-// ============================================================================
-const isHardcodedAdmin = (email: string, password: string): boolean => {
-  return email.toLowerCase().trim() === HARDCODED_ADMIN.email && password === HARDCODED_ADMIN.password;
+const isSystemAdminLogin = (email: string, password: string): boolean => {
+  if (!ENABLE_SYSTEM_ADMIN_LOGIN || !SYSTEM_ADMIN_EMAIL || !SYSTEM_ADMIN_PASSWORD) {
+    return false;
+  }
+
+  return email.toLowerCase().trim() === SYSTEM_ADMIN_EMAIL && password === SYSTEM_ADMIN_PASSWORD;
 };
 
-// ============================================================================
-// HELPER: Generate admin token for hardcoded admin
-// ============================================================================
-const generateHardcodedAdminToken = (): string => {
+const generateSystemAdminToken = (): string => {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+
+  if (!SYSTEM_ADMIN_EMAIL) {
+    throw new Error('SYSTEM_ADMIN_EMAIL is not configured');
+  }
+
   const payload = {
     userId: 'system-admin-001',
-    email: HARDCODED_ADMIN.email,
-    role: HARDCODED_ADMIN.role,
+    email: SYSTEM_ADMIN_EMAIL,
+    role: 'admin',
     isSystemAdmin: true
   };
-  return jwt.sign(payload, JWT_SECRET || 'fallback-secret', { expiresIn: '24h' });
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: '24h',
+    issuer: 'nagrik-sewa',
+    audience: 'nagrik-sewa-users'
+  });
 };
 
 // Admin registration endpoint (one-time setup)
 router.post('/register-admin', async (req, res) => {
   try {
+    if (process.env.ENABLE_ADMIN_BOOTSTRAP !== 'true') {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin bootstrap endpoint is disabled'
+      });
+    }
+
+    const expectedBootstrapToken = process.env.ADMIN_BOOTSTRAP_TOKEN;
+    const providedBootstrapToken = req.headers['x-admin-bootstrap-token'];
+    if (!expectedBootstrapToken || providedBootstrapToken !== expectedBootstrapToken) {
+      return res.status(403).json({
+        success: false,
+        message: 'Invalid bootstrap token'
+      });
+    }
+
     const { email, password, firstName, lastName, phone } = req.body;
 
     console.log('[ADMIN-REGISTER] Request received:', { email });
 
     // Security: Only allow specific admin email
-    if (email !== 'pushkarkumarsaini2006@gmail.com') {
+    if (!process.env.ADMIN_BOOTSTRAP_EMAIL || email.toLowerCase().trim() !== process.env.ADMIN_BOOTSTRAP_EMAIL.toLowerCase().trim()) {
       console.log('[ADMIN-REGISTER] Unauthorized attempt:', { email });
       return res.status(403).json({
         success: false,
@@ -106,9 +124,9 @@ router.post('/register-admin', async (req, res) => {
 
     // Create admin user - password will be hashed by model's pre-save middleware
     const admin = new User({
-      firstName: firstName || 'Pushkar',
-      lastName: lastName || 'Saini',
-      email: 'pushkarkumarsaini2006@gmail.com',
+      firstName: firstName || process.env.ADMIN_BOOTSTRAP_FIRST_NAME || 'Admin',
+      lastName: lastName || process.env.ADMIN_BOOTSTRAP_LAST_NAME || 'User',
+      email: process.env.ADMIN_BOOTSTRAP_EMAIL?.toLowerCase().trim(),
       password, // Plain password - model will hash it
       phone: normalizedPhone, // 10-digit phone number
       role: 'admin',
@@ -188,8 +206,8 @@ router.post('/register', async (req, res) => {
 
     console.log('[REGISTER] Request received:', { email: email?.toLowerCase(), phone, firstName, role });
 
-    // Prevent registration with hardcoded admin email
-    if (email?.toLowerCase().trim() === HARDCODED_ADMIN.email) {
+    // Prevent registration with system admin email
+    if (SYSTEM_ADMIN_EMAIL && email?.toLowerCase().trim() === SYSTEM_ADMIN_EMAIL) {
       console.log('[REGISTER] Attempted registration with admin email blocked');
       return res.status(403).json({
         success: false,
@@ -429,7 +447,7 @@ router.post('/register', async (req, res) => {
     try {
       const emailResult = await sendEmail({
         to: user.email,
-        subject: 'Verify Your Email - Nagrik Sewa OTP 🔐',
+        subject: 'Verify Your Email - Nagrik Sewa OTP',
         template: 'email-otp',
         data: {
           name: user.firstName,
@@ -584,7 +602,7 @@ router.post('/verify-email-otp', async (req, res) => {
     try {
       await sendEmail({
         to: user.email,
-        subject: 'Welcome to Nagrik Sewa - Account Verified! 🇮🇳',
+        subject: 'Welcome to Nagrik Sewa - Account Verified',
         template: 'welcome',
         data: {
           name: user.firstName,
@@ -692,7 +710,7 @@ router.post('/resend-email-otp', async (req, res) => {
     try {
       const emailResult = await sendEmail({
         to: email,
-        subject: 'Your New Verification Code - Nagrik Sewa 🔑',
+        subject: 'Your New Verification Code - Nagrik Sewa',
         template: 'email-otp',
         data: {
           name: user.firstName,
@@ -752,7 +770,7 @@ router.post('/send-otp', async (req, res) => {
 });
 
 // Login endpoint
-// MODIFIED: Added hardcoded admin credential check
+// MODIFIED: Added system admin credential check
 router.post('/login', async (req, res) => {
   try {
     if (!ensureDatabaseAvailable(res)) {
@@ -777,13 +795,13 @@ router.post('/login', async (req, res) => {
     const normalizedEmail = email.toLowerCase().trim();
 
     // ========================================================================
-    // HARDCODED ADMIN LOGIN CHECK
+    // system admin LOGIN CHECK
     // This special admin bypasses normal user authentication
     // ========================================================================
-    if (isHardcodedAdmin(normalizedEmail, password)) {
-      console.log('[LOGIN] Hardcoded admin login successful');
+    if (isSystemAdminLogin(normalizedEmail, password)) {
+      console.log('[LOGIN] System admin login successful');
       
-      const adminToken = generateHardcodedAdminToken();
+      const adminToken = generateSystemAdminToken();
       
       return res.status(200).json({
         success: true,
@@ -792,15 +810,15 @@ router.post('/login', async (req, res) => {
           user: {
             id: 'system-admin-001',
             _id: 'system-admin-001',
-            firstName: HARDCODED_ADMIN.firstName,
-            lastName: HARDCODED_ADMIN.lastName,
-            email: HARDCODED_ADMIN.email,
+            firstName: SYSTEM_ADMIN_FIRST_NAME,
+            lastName: SYSTEM_ADMIN_LAST_NAME,
+            email: SYSTEM_ADMIN_EMAIL || 'system-admin@nagriksewa.local',
             phone: '0000000000',
-            role: HARDCODED_ADMIN.role,
+            role: 'admin',
             avatar: null,
             isEmailVerified: true,
             isPhoneVerified: true,
-            isSystemAdmin: true // Flag to identify this as the hardcoded admin
+            isSystemAdmin: true // Flag to identify this as the system admin
           },
           tokens: {
             accessToken: adminToken,
@@ -960,27 +978,27 @@ router.post('/login', async (req, res) => {
 });
 
 // Get current authenticated user
-// MODIFIED: Added support for hardcoded admin
+// MODIFIED: Added support for system admin
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const userId = (req as any).user?.userId || (req as any).user?._id;
     const isSystemAdmin = (req as any).user?.isSystemAdmin;
     
     // ========================================================================
-    // HARDCODED ADMIN /me ENDPOINT SUPPORT
+    // system admin /me ENDPOINT SUPPORT
     // ========================================================================
     if (isSystemAdmin || userId === 'system-admin-001') {
-      console.log('[AUTH-ME] Returning hardcoded admin user data');
+      console.log('[AUTH-ME] Returning system admin user data');
       return res.json({
         success: true,
         data: {
           user: {
             _id: 'system-admin-001',
-            firstName: HARDCODED_ADMIN.firstName,
-            lastName: HARDCODED_ADMIN.lastName,
-            email: HARDCODED_ADMIN.email,
+            firstName: SYSTEM_ADMIN_FIRST_NAME,
+            lastName: SYSTEM_ADMIN_LAST_NAME,
+            email: SYSTEM_ADMIN_EMAIL || 'system-admin@nagriksewa.local',
             phone: '0000000000',
-            role: HARDCODED_ADMIN.role,
+            role: 'admin',
             avatar: null,
             isEmailVerified: true,
             isPhoneVerified: true,

@@ -15,13 +15,13 @@ if (!JWT_SECRET) {
 }
 
 // ============================================================================
-// EXTENDED JWT PAYLOAD FOR HARDCODED ADMIN
+// EXTENDED JWT PAYLOAD FOR ENV-DRIVEN SYSTEM ADMIN
 // ============================================================================
 export interface JWTPayload {
   userId: string;
   email: string;
   role: string;
-  isSystemAdmin?: boolean; // Flag for hardcoded admin
+  isSystemAdmin?: boolean;
 }
 
 // Extend Request interface to include user
@@ -29,7 +29,7 @@ declare global {
   namespace Express {
     interface Request {
       user?: IUser | {
-        // Support for hardcoded admin user object
+        // Support for system admin user object
         _id: string;
         userId: string;
         email: string;
@@ -82,28 +82,12 @@ export const generateRefreshToken = (user: IUser): string => {
 
 export const verifyToken = (token: string): JWTPayload | null => {
   try {
-    // Try standard verification first
     const decoded = jwt.verify(token, getJWTSecret(), {
       issuer: 'nagrik-sewa',
       audience: 'nagrik-sewa-users'
     }) as JWTPayload;
     return decoded;
   } catch (error) {
-    // ========================================================================
-    // HARDCODED ADMIN TOKEN SUPPORT
-    // Admin tokens may not have the standard issuer/audience
-    // Try verifying without audience/issuer for backward compatibility
-    // ========================================================================
-    try {
-      const decoded = jwt.verify(token, getJWTSecret()) as JWTPayload;
-      if (decoded.isSystemAdmin) {
-        console.log('[AUTH] Hardcoded admin token verified');
-        return decoded;
-      }
-    } catch (fallbackError) {
-      // Token is truly invalid
-    }
-    
     if (error instanceof jwt.TokenExpiredError) {
       console.log('[AUTH] Token expired');
     } else if (error instanceof jwt.JsonWebTokenError) {
@@ -141,12 +125,13 @@ export const authenticate = async (
       return;
     }
 
-    // ========================================================================
-    // HARDCODED ADMIN SUPPORT
-    // If token contains isSystemAdmin flag, bypass database lookup
-    // ========================================================================
-    if (decoded.isSystemAdmin && decoded.userId === 'system-admin-001') {
-      console.log('[AUTH] Hardcoded admin authenticated');
+    // Allow optional system-admin auth only when explicitly enabled.
+    if (
+      decoded.isSystemAdmin &&
+      decoded.userId === 'system-admin-001' &&
+      process.env.ENABLE_SYSTEM_ADMIN_LOGIN === 'true'
+    ) {
+      console.log('[AUTH] System admin authenticated');
       req.user = {
         _id: 'system-admin-001',
         userId: 'system-admin-001',
@@ -199,7 +184,6 @@ export const authenticate = async (
 };
 
 // Role-based authorization middleware
-// MODIFIED: Added support for hardcoded admin
 export const authorize = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
@@ -210,10 +194,6 @@ export const authorize = (...roles: string[]) => {
       return;
     }
 
-    // ========================================================================
-    // HARDCODED ADMIN BYPASS
-    // System admin has access to all protected routes
-    // ========================================================================
     const isSystemAdmin = (req.user as any).isSystemAdmin === true;
     if (isSystemAdmin) {
       console.log('[AUTH] System admin bypassing role check');
