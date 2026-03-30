@@ -21,8 +21,7 @@ export const GoogleAuthProvider: React.FC<GoogleAuthProviderProps> = ({ children
   const isGoogleConfigured = googleClientId && googleClientId !== 'your_google_oauth_client_id_here';
 
   if (!isGoogleConfigured) {
-    console.warn('Google OAuth Client ID not properly configured. Google authentication will not be available.');
-    // Return a mock provider that prevents the "must be used within GoogleOAuthProvider" error
+    // Silent fallback: Google auth features remain disabled until configured.
     return <MockGoogleProvider>{children}</MockGoogleProvider>;
   }
 

@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { logger } from '@/lib/logger';
 
 // Extend axios config to include metadata
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -27,9 +28,7 @@ const createOptimizedAxios = (): AxiosInstance => {
         ? config.url
         : `${API_BASE_URL}${config.url?.startsWith('/') ? '' : '/'}${config.url || ''}`;
 
-      if (import.meta.env.DEV) {
-        console.log(`[OPT-API] ${config.method?.toUpperCase()} ${requestUrl}`);
-      }
+      logger.debug(`[OPT-API] ${config.method?.toUpperCase()} ${requestUrl}`);
 
       // Add request timestamp for performance tracking
       config.metadata = { startTime: Date.now() };
@@ -51,9 +50,7 @@ const createOptimizedAxios = (): AxiosInstance => {
       return config;
     },
     (error) => {
-      if (import.meta.env.DEV) {
-        console.error('Request interceptor error:', error);
-      }
+      logger.error('Request interceptor error:', error);
       return Promise.reject(error);
     }
   );
@@ -66,13 +63,11 @@ const createOptimizedAxios = (): AxiosInstance => {
       const responseTime = config.metadata?.startTime ? Date.now() - config.metadata.startTime : 0;
       
       // Log performance in development
-      if (import.meta.env.DEV) {
-        console.log(`🚀 API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${responseTime}ms`);
-      }
+      logger.debug(`API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${responseTime}ms`);
 
       // Warn on slow responses
       if (responseTime > 5000) {
-        console.warn(`🐌 Slow API response: ${response.config.url} took ${responseTime}ms`);
+        logger.warn(`Slow API response: ${response.config.url} took ${responseTime}ms`);
       }
 
       return response;
@@ -95,33 +90,33 @@ const createOptimizedAxios = (): AxiosInstance => {
             window.location.href = '/auth/login';
             break;
           case 403:
-            console.error('Access forbidden:', data);
+            logger.error('Access forbidden:', data);
             break;
           case 404:
-            console.error('Resource not found:', error.config?.url);
+            logger.error('Resource not found:', error.config?.url);
             break;
           case 429:
-            console.warn('Rate limit exceeded - retrying...');
+            logger.warn('Rate limit exceeded - retrying...');
             // Implement exponential backoff retry logic here
             break;
           case 500:
           case 502:
           case 503:
           case 504:
-            console.error('Server error:', status, data);
+            logger.error('Server error:', status, data);
             break;
           default:
-            console.error('API Error:', status, data);
+            logger.error('API Error:', status, data);
         }
 
         // Log error with performance data
-        console.error(`❌ API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${status} (${responseTime}ms)`);
+        logger.error(`API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${status} (${responseTime}ms)`);
       } else if (error.request) {
         // Network error
-        console.error('Network error:', error.message);
+        logger.error('Network error:', error.message);
       } else {
         // Other error
-        console.error('Request setup error:', error.message);
+        logger.error('Request setup error:', error.message);
       }
 
       return Promise.reject(error);
@@ -183,7 +178,7 @@ export const apiHelpers = {
         if (attempt < maxRetries) {
           // Exponential backoff
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
-          console.warn(`Retry attempt ${attempt} after ${delay}ms for ${url}`);
+          logger.warn(`Retry attempt ${attempt} after ${delay}ms for ${url}`);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
@@ -207,7 +202,7 @@ export const apiHelpers = {
         if (result.status === 'fulfilled') {
           results[i + index] = result.value;
         } else {
-          console.error(`Batch request ${i + index} failed:`, result.reason);
+          logger.error(`Batch request ${i + index} failed:`, result.reason);
           throw result.reason;
         }
       });

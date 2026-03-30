@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logger } from '@/lib/logger';
 
 const resolvedApiBaseUrl = import.meta.env.VITE_API_URL?.trim();
 const API_BASE_URL = (resolvedApiBaseUrl && resolvedApiBaseUrl.length > 0
@@ -24,15 +25,11 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    if (import.meta.env.DEV) {
-      console.log(`[API] ${config.method?.toUpperCase()} ${requestUrl}`);
-    }
+    logger.debug(`[API] ${config.method?.toUpperCase()} ${requestUrl}`);
     return config;
   },
   (error) => {
-    if (import.meta.env.DEV) {
-      console.error('[API] Request error:', error);
-    }
+    logger.error('[API] Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -40,18 +37,14 @@ api.interceptors.request.use(
 // Response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => {
-    if (import.meta.env.DEV) {
-      console.log(`[API] Response ${response.status} for ${response.config.url}`);
-    }
+    logger.debug(`[API] Response ${response.status} for ${response.config.url}`);
     return response;
   },
   (error) => {
     const status = error.response?.status;
     const url = error.config?.url || '';
-    
-    if (import.meta.env.DEV) {
-      console.error(`[API] Error ${status} for ${url}:`, error.response?.data?.message || error.message);
-    }
+
+    logger.error(`[API] Error ${status} for ${url}:`, error.response?.data?.message || error.message);
     
     // Don't redirect on 401 for auth endpoints (login/register/verify)
     const isAuthEndpoint = url.includes('/auth/login') || 
@@ -59,9 +52,7 @@ api.interceptors.response.use(
                           url.includes('/auth/verify');
     
     if (status === 401 && !isAuthEndpoint) {
-      if (import.meta.env.DEV) {
-        console.log('[API] Unauthorized, clearing auth state');
-      }
+      logger.debug('[API] Unauthorized, clearing auth state');
       localStorage.removeItem('authToken');
       // Only redirect if not already on auth pages
       if (!window.location.pathname.includes('/login') && 

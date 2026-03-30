@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { logger } from '@/lib/logger';
 import { toast } from '@/hooks/use-toast';
 
 interface User {
@@ -51,14 +52,11 @@ interface RegisterData {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_URL = (import.meta.env.VITE_API_URL || `${window.location.origin}/api`).replace(/\/+$/, '');
 
-// Debug logging for CORS/cookie verification
-if (import.meta.env.DEV) {
-  console.log('[AUTH] Environment:', {
-    API_URL,
-    isDevelopment: import.meta.env.DEV,
-    isSameSite: typeof document !== 'undefined' && document.location.protocol === 'https:',
-  });
-}
+logger.debug('[AUTH] Environment:', {
+  API_URL,
+  isDevelopment: import.meta.env.DEV,
+  isSameSite: typeof document !== 'undefined' && document.location.protocol === 'https:',
+});
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -79,10 +77,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (token) {
         try {
           const response = await api.get('/auth/me');
-          console.log('Auth me response:', response.data);
+          logger.debug('Auth me response:', response.data);
           setUser(response.data.data.user); // Fix: correct path to user data
         } catch (error) {
-          console.error('Auth initialization failed:', error);
+          logger.error('Auth initialization failed:', error);
           localStorage.removeItem('authToken');
         }
       }
@@ -96,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const loginUrl = `${API_URL}/login`;
       
-      console.log('[AUTH] Login attempt:', {
+      logger.debug('[AUTH] Login attempt:', {
         url: loginUrl,
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -115,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const responseData = await response.json();
 
       if (!response.ok) {
-        console.error('[AUTH] Login failed:', {
+        logger.error('[AUTH] Login failed:', {
           status: response.status,
           message: responseData?.message,
           headers: Object.fromEntries(response.headers.entries()),
@@ -123,7 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(responseData?.message || 'Login failed');
       }
 
-      console.log('[AUTH] Login response received:', {
+      logger.debug('[AUTH] Login response received:', {
         hasUser: !!responseData.data?.user,
         hasToken: !!responseData.data?.tokens?.accessToken,
         setCookieHeader: response.headers.get('set-cookie') ? 'Yes' : 'No',
@@ -145,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('authToken', accessToken);
       setUser(user);
       
-      console.log('[AUTH] Login successful:', { userId: user.id, role: user.role });
+      logger.debug('[AUTH] Login successful:', { userId: user.id, role: user.role });
       
       toast({
         title: "Welcome back!",
@@ -155,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Return user for role-based redirect handling
       return user;
     } catch (error: any) {
-      console.error('[AUTH] Login error:', error);
+      logger.error('[AUTH] Login error:', error);
       const message = error?.response?.data?.message || error?.message || 'Login failed';
       toast({
         title: "Login failed",
@@ -177,9 +175,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lastName: data.lastName?.trim() || ''
       };
       
-      console.log('Starting registration...', { ...normalizedData, password: '[HIDDEN]' });
+      logger.debug('Starting registration...', { ...normalizedData, password: '[HIDDEN]' });
       const response = await api.post('/auth/register', normalizedData);
-      console.log('Registration response:', response.data);
+      logger.debug('Registration response:', response.data);
       
       // ========================================================================
       // DO NOT AUTO-LOGIN - Wait for OTP verification
@@ -194,7 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Return the response for the component to handle OTP verification
       return response.data;
     } catch (error: any) {
-      console.error('Registration failed:', error);
+      logger.error('Registration failed:', error);
       const message = error.response?.data?.message || 'Registration failed';
       toast({
         title: "Registration failed",
@@ -293,11 +291,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (userData) {
         setUser(userData);
       } else {
-        console.error('[AUTH] Invalid user data in refresh response');
+        logger.error('[AUTH] Invalid user data in refresh response');
         logout();
       }
     } catch (error) {
-      console.error('[AUTH] Failed to refresh user:', error);
+      logger.error('[AUTH] Failed to refresh user:', error);
       logout();
     }
   };

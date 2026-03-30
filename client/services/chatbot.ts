@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { logger } from '@/lib/logger';
 
 export interface ChatMessage {
   id: string;
@@ -33,7 +34,7 @@ class ChatbotService {
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       if (!apiKey) {
-        console.error('VITE_GEMINI_API_KEY not found');
+        logger.error('VITE_GEMINI_API_KEY not found');
         return;
       }
 
@@ -41,9 +42,9 @@ class ChatbotService {
       this.model = this.genAI.getGenerativeModel({ 
         model: "gemini-1.5-pro"
       });
-      console.log('Chatbot AI initialized successfully');
+      logger.debug('Chatbot AI initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize AI:', error);
+      logger.error('Failed to initialize AI:', error);
     }
   }
 
@@ -172,7 +173,7 @@ Please respond helpfully and keep it brief (2-3 sentences):`;
       return assistantMessage;
 
     } catch (error) {
-      console.error('AI response error:', error);
+      logger.error('AI response error:', error);
       
       // Fallback message
       const fallbackMessage: ChatMessage = {
@@ -227,7 +228,7 @@ Respond in ${language} language.`;
       return result.response.text().trim();
 
     } catch (error) {
-      console.error('Resume enhancement error:', error);
+      logger.error('Resume enhancement error:', error);
       throw new Error('Failed to enhance resume. Please try again later.');
     }
   }
@@ -268,7 +269,7 @@ Respond in ${language} language and format as JSON with properties: professional
       }
 
     } catch (error) {
-      console.error('Resume generation error:', error);
+      logger.error('Resume generation error:', error);
       throw new Error('Failed to generate resume content. Please try again later.');
     }
   }
